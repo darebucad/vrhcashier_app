@@ -25,22 +25,20 @@
               </li>
 
               <li class="nav-item">
+                <a class="nav-link" href="{{ url('collections/outpatient') }}" style="text-indent: 2em">
+                  Out-Patient Payment
+                </a>
+              </li>
+
+              <li class="nav-item">
                 <a class="nav-link" href="#" style="text-indent: 2em">
                   In-Patient Payment
                 </a>
               </li>
 
-
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url('collections/outpatient') }}" style="text-indent: 2em">
-                 
-                  Out-Patient Payment
-                </a>
-              </li>
               <li class="nav-item">
                 <a class="nav-link" href="#" style="text-indent: 2em">
-                  
-                  Walk-in Payment
+                  Other Collection
                 </a>
               </li>
 

@@ -1,43 +1,21 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
 
 Auth::routes();
 
 Route::get('/', 'DashboardController@index')->name('dashboard');
 
-// Route::get('/dashboard', 'DashboardController@index')->name('dashboard');
-
-// Route::get('/home', 'HomeController@index')->name('home');
-
-// Route::get('/dashboard', 'DashboardController@index');
-
-// Route::get('/collections/outpatient', 'CollectionsOutpatientController@index')->name('collections.outpatient');
 
 
-Route::get('collections/outpatient', 'CollectionsOutpatientController@index')->name('collections.outpatient');
 
 
 Route::get('collections/outpatient/getdata', 'CollectionsOutpatientController@getdata')->name('collections.outpatient.getdata');
 
 
-Route::get('collections/outpatient/create', 'CollectionsOutpatientController@create')->name('collections.outpatient.create');
 
 
-Route::post('collections/outpatient/create/payment', 'CollectionsOutpatientController@store');
+
+
 
 
 Route::get('collections/outpatient/action', 'CollectionsOutpatientController@action')->name('collections.outpatient.action');
@@ -57,5 +35,30 @@ Route::get('/collections/outpatient/create/showcharge/{id}', [
 ]);
 
 
+// Collections Outpatient Routes
+
+
+Route::get('collections/outpatient', 'CollectionsOutpatientController@index')->name('collections.outpatient');
+
+
+Route::get('collections/outpatient/create/{id}', 'CollectionsOutpatientController@create')->name('collections.outpatient.create');
+
+
+Route::get('collections/outpatient/create/load_data', 'CollectionsOutpatientController@loadData');
+
+
+Route::post('collections/outpatient/create/post_data', 'CollectionsOutpatientController@postData');
+
+
+Route::post('collections/outpatient/create/postajax','CollectionsOutpatientController@post');
+
+
+Route::get('collections/outpatient/create/get_or_number', 'CollectionsOutpatientController@getORNumber');
+
+
+Route::post('collections/outpatient/create/payment', 'CollectionsOutpatientController@store');
+
+
+Route::post('collections/outpatient/create/apply_discount_all', 'CollectionsOutpatientController@applyDiscountAll');
 
 

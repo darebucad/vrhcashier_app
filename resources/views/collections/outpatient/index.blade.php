@@ -19,12 +19,14 @@
 
 
   <div class="row">
-    <a class="btn btn-sm btn-primary" href="{{ url('collections/outpatient/create') }}">Create</a>
+    <a class="btn btn-sm btn-primary" href="{{ route('collections.outpatient.create',['' => Auth::user()->id]) }}">Create</a>
   </div>
 
   <br />
 
-  <table id="outpatient_payment_table" class="table table-bordered " style="width:100%">
+  <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
+
+  <table id="outpatient_payment_table" class="table table-sm table-bordered " style="width:100%">
     <thead>
       <!-- Table Row -->
       <tr>
@@ -55,7 +57,7 @@
           {"data": "amt"},
           {"data": "entryby"},
           {"data": "status"},
-          { "data": "action", orderable:false, searchable: false }
+          {"data": "action", orderable:false, searchable: false }
         ]
       });
 
