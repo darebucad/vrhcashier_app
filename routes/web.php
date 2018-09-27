@@ -6,16 +6,7 @@ Auth::routes();
 Route::get('/', 'DashboardController@index')->name('dashboard');
 
 
-
-
-
 Route::get('collections/outpatient/getdata', 'CollectionsOutpatientController@getdata')->name('collections.outpatient.getdata');
-
-
-
-
-
-
 
 
 Route::get('collections/outpatient/action', 'CollectionsOutpatientController@action')->name('collections.outpatient.action');
@@ -27,12 +18,7 @@ Route::get('collections/outpatient/getCustomFilterData', 'CollectionsOutpatientC
 Route::post('collections/outpatient/create', 'CollectionsOutpatientController@show')->name('collections.outpatient.create.show');
 
 
-Route::get('/collections/outpatient/create/showcharge/{id}', [
-
-	'uses'	=>	'CollectionsOutpatientController@edit',
-	'as'	=>	'collections.outpatient.edit'
-
-]);
+Route::get('/collections/outpatient/create/showcharge/{id}', 'CollectionsOutpatientController@edit')->name('collections.outpatient.edit');
 
 
 // Collections Outpatient Routes
@@ -60,5 +46,17 @@ Route::post('collections/outpatient/create/payment', 'CollectionsOutpatientContr
 
 
 Route::post('collections/outpatient/create/apply_discount_all', 'CollectionsOutpatientController@applyDiscountAll');
+
+
+Route::post('collections/outpatient/create/apply_discount_selected', 'CollectionsOutpatientController@applyDiscountSelected');
+
+
+Route::post('collections/outpatient/create/update_data', 'CollectionsOutpatientController@updateData');
+
+
+Route::get('/collections/outpatient/print', 'CollectionsOutpatientController@pdfIndex');
+
+
+Route::get('/collections/outpatient/print/pdf/{id}', 'CollectionsOutpatientController@showPDF')->name('collections.outpatient.print.pdf');
 
 

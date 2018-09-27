@@ -9,43 +9,55 @@
 
     <div class="btn-toolbar mb-2 mb-md-0">
 
-        <div class="btn-group mr-2">
-          <input  type="text" name="search_barcode" id="search_barcode" class="form-control form-control-sm"  placeholder="Enter Barcode" autofocus>
-        </div>  
+      <div class="btn-group mr-2">
+        <input  type="text" name="search_barcode" id="search_barcode" class="form-control form-control-sm"  placeholder="Charge Slip / Barcode" autofocus>
+      </div>  
 
-        <div class="btn-group mr-2">
-          <button id="post_data" class="btn btn-outline-info pull-right btn-sm ">
-            Search
-          </button>
-        </div>
+      <div class="btn-group mr-2">
+        <button id="post_data" class="btn btn-outline-info pull-right btn-sm">
+          Search
+        </button>
+      </div>
 
       </div>
+      
     </div>
 
-
   <form action="/collections/outpatient/create/payment" method="post" >
-
     @csrf
 
     <div class="row" style="margin-top:10px;">
-      <button type="submit" class="btn btn-xs btn-primary">Save</button>
-      <p id="button-cancel">or <a class="btn-link" href="{{ url('collections/outpatient') }}">Cancel</a></p>
+
+      <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        <p id="button-cancel">or <a class="btn-link" href="{{ url('collections/outpatient') }}">Cancel</a></p>
+
+       <div class="col-md-4 offset-md-4">
+
+        <a href = "{{ url('/collections/outpatient/print/pdf') }}" class="btn btn-sm btn-outline-danger">
+          <span data-feather="calendar"></span>
+          Print Receipt
+        </a>
+        
+        <!-- <a href="{{ url('/collections/outpatient/print/pdf', ['' => 'P18-001028']) }}" class="btn btn-danger btn-sm">Print Receipt</a> -->
+        
+      </div>
+
     </div>
 
     <br />
     <br />
 
-    <input type="hidden" name="paystat" value="A">
+    <input type="hidden" name="paystat" id="paystat" value="">
 
-    <input type="hidden" name="paylock" value="N">
+    <input type="hidden" name="paylock" id="paylock" value="">
 
-    <input type="hidden" name="updsw" value="N">
+    <input type="hidden" name="updsw" id="updsw" value="">
 
-    <input type="hidden" name="confdl" value="N">
+    <input type="hidden" name="confdl" id="confdl" value="">
 
-    <input type="hidden" name="payctr" value="0">
+    <input type="hidden" name="payctr" id="payctr" value="">
 
-    <input type="hidden" name="status" value="Paid">
+    <input type="hidden" name="status" id="status" value="">
 
     <input type="hidden" name="user_id" id="user_id" value="{{ Auth::user()->id }}">
 
@@ -61,13 +73,11 @@
     <div id="patient_name_field" class="form-group row">
 
       <div class="input-group">
-
         <label for="patient_name" class="col-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
 
         <div class="col-md-9">
           <input type="text" name="patient_name" id="patient_name" value="" class="form-control form-contorl-sm">
         </div>
-  
       </div>
 
     </div>
@@ -92,7 +102,6 @@
 
       @foreach ($or_number as $or)
         @if ($loop->first)
-            
           <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $or->orno + 1 }}" style="background-color:#99ccff!important;" required autofocus>
           <input type="hidden" name="or_number_only" value="{{ $or->orno }}">
 
@@ -162,12 +171,12 @@
           <option value=" " selected> </option>
           <option value="SENIOR">Senior Citizen</option>
           <option value="PWD">PWD</option>
-          <option value="1">100% Discount</option>
-          <option value="0.1">10% Discount</option>
-          <option value="0.2">20% Discount</option>
-          <option value="0.25">25% Discount</option>
-          <option value="0.5">50% Discount</option>
-          <option value="0.75">75% Discount</option>
+          <option value="100">100% Discount</option>
+          <option value="10">10% Discount</option>
+          <option value="20">20% Discount</option>
+          <option value="25">25% Discount</option>
+          <option value="50">50% Discount</option>
+          <option value="75">75% Discount</option>
         </select>
       
       </div>
@@ -265,9 +274,9 @@
           <th>Description</th>
           <th>QTY</th>
           <th>Unit Cost</th>
-          <th>Discount (%)</th>
-          <th>Discount Value</th>
-          <th>Sub-total</th>
+          <th style="width:8%">Discount (%)</th>
+          <th style="width:10%">Discount Value</th>
+          <th style="width:10%">Sub-total</th>
           <th>Status</th>
         </tr>
       </thead>
@@ -294,20 +303,17 @@
 <!-- Load Data button -->
 <script type="text/javascript">
   $(document).ready(function(){
-
     $('#load_data').on('click', function(){
       $.ajax({
         type: "GET",
         url: "/collections/outpatient/create/load_data",
         success: function(data){
-
-          alert($('#search_barcode').val());
+          // alert($('#search_barcode').val());
           // $('#charge-info').empty().html(data);
           console.log(data);
           }
         }); // end of ajax
        }); 
-
   });
 </script>
 
@@ -324,14 +330,8 @@
         data: {_token: CSRF_TOKEN, message:$("#search_barcode").val(), user_id:$("#user_id").val()},
         dataType: 'JSON',
         success: function(data){
-          // alert(data.charge_slip);
-          // alert(JSON.stringify(data.data));
-          // alert('account_no: ' + data.account_no);
-          // alert('new_account_no: ' + data.new_account_no);
-          // alert('user_id: ' + data.user_id);
-          alert('clicked search barcode');
 
-          $('#discount_percent').val(' ');
+          // alert('clicked search barcode');
           $('#acctno').val(data.new_account_no);
 
           $.each(data.data, function(i, data){
@@ -339,53 +339,70 @@
             $('#pcchrgcod').val(data.pcchrgcod);
             $('#enccode').val(data.enccode);
             $('#hpercode').val(data.hpercode);
-
+            $('#discount_percent').val(data.disc_name);
+            $('#paystat').val('A');
+            $('#paylock').val('N');
+            $('#updsw').val('N');
+            $('#confdl').val('N');
+            $('#payctr').val('0');
+            $('#status').val('For Payment');
           });
 
           console.log(data);
     
           var content;
+          var discount = 0;
           var total_discount_value = 0;
           var total = 0;
+          var is_discount = 0;
 
-          
           $('#charge-info').empty();
-            $.each(data.data, function(i, data){
+            $.each(data.data, function(i, data) {
 
-              if(data.disc_percent == null || data.disc_percent == '') {
-                data.disc_percent = 0;
-                total_discount_value = 0;
+              discount = data.disc_percent;
+              discount_amount = data.disc_amount;
+              //discount_amount = data.computed_discount
+              sub_total = data.pcchrgamt;
+              // sub_total = data.computed_sub_total;
+              is_discount = data.is_discount;
+
+              if (discount == null || discount == '') {
+                discount = 0.00;
+              }
+              else if (discount == 'SENIOR' || discount == 'PWD') {
+                discount = 20.00;
               }
 
-              if(data.disc_amount == null || data.disc_amount == '') {
-                data.disc_amount = 0;
-                total_discount_value = 0;
+              if (discount_amount == null || discount_amount == '') {
+                discount_amount = 0.00;
+                total_discount_value = 0.00;
               }
 
-              total += Number(data.pcchrgamt)
+              if (is_discount == '1') {
+                is_discount = 'checked';
+              }
+              
+              total_discount_value += Number(discount_amount);
+              total += Number(sub_total);
               
               content = '<tr><td><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="' + data.docointkey +'" checked></td>';
-              content += '<td><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="' + data.docointkey + '"></td>';
+              content += '<td><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="' + data.docointkey + '" ' + is_discount + '></td>';
               content += '<td>' + data.dodate + '</td>';
               content += '<td>' + data.pcchrgcod + '</td>';
               content += '<td>' + data.product_description + '</td>';
               content += '<td align="right">' + data.qtyissued + '</td>';
               content += '<td align="right">' + data.pchrgup + '</td>';
-              content += '<td align="right">' + (data.disc_percent).toFixed(2) + '</td>';
-              content += '<td align="right">' + (data.disc_amount).toFixed(2) + '</td>';
-              content += '<td>' + data.pcchrgamt + '</td>';
-              content += '<td>' + data.estatus + '</td></tr>';
+              content += '<td align="right" style="width:8%">' + Number(discount).toFixed(2) + '</td>';
+              content += '<td align="right" style="width:10%">' + Number(discount_amount).toFixed(2) + '</td>';
+              content += '<td align="right" style="width:10%">' + Number(sub_total).toFixed(2) + '</td>';
+              content += '<td>' + data.invoice_status + '</td></tr>';
               $(content).appendTo('#charge-info');
 
             });
 
-
-            var value = parseFloat(total);
-          var num_total = $(total).text(value.toFixed(2));
-
-            content = '<tr><td colspan=8 align="right">Totals: </td>';
-            content += '<td colspan=1 align="right">' + (total_discount_value).toFixed(2) + '</td>';
-            content += '<td colspan=2>' + (total).toFixed(2) + '</td></tr>';
+            content = '<tr><td colspan=8 align="right"><strong>Grand Total: </strong></td>';
+            content += '<td colspan=1 align="right">' + Number(total_discount_value).toFixed(2) + '</td>';
+            content += '<td colspan=1 align="right"><strong>' + Number(total).toFixed(2) + '</strong></td></tr>';
             $(content).appendTo('#charge-info');
 
             $('#amount_paid').val((total).toFixed(2));
@@ -403,77 +420,66 @@
   $(document).ready(function(){
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
     $("#apply_discount_all").click(function(){
-
-      alert("clicked apply discount all");
-
       $.ajax({
         type: "POST",
-        url: "/collections/outpatient/create/post_data",
-        data: {_token: CSRF_TOKEN, message:$("#search_barcode").val(), user_id:$("#user_id").val()},
+        url: "/collections/outpatient/create/apply_discount_all",
+        data: {_token: CSRF_TOKEN, message:$("#search_barcode").val(), discount:$("#discount_percent").val()},
         dataType: 'JSON',
         success: function(data){
-          // alert(data.charge_slip);
+
           // alert(JSON.stringify(data.data));
-
-        
-          // $.each(data.data, function(i, data){
-          //   $('#patient_name').val(data.patient_name);
-          //   $('#pcchrgcod').val(data.pcchrgcod);
-          //   $('#enccode').val(data.enccode);
-          //   $('#hpercode').val(data.hpercode);
-          //   $('#acctno').val(data.acctno);
-          // });
-
           console.log(data);
-    
           var content;
-          var discount = $('#discount_percent').val();
+          var discount = $('#discount_percent').val(); //get discount percent
           var discount_value = 0;
           var sub_total = 0;
           var total_discount_value = 0;
-          var total = 0
+          var total = 0;
 
 
-          if (discount == 'SENIOR'){
-            discount = 20;
+          if (discount == null || discount == '') {
+            discount = 0.00;
+          }
+          else if (discount == 'SENIOR' || discount == 'PWD'){
+            discount = 20.00;
           } 
-          else if (discount == 'PWD'){
-            discount = 20;
-          }
-          else{
-            discount = (discount * 100);
-          }
-
 
           $('#charge-info').empty();
-          $.each(data.data, function(i, data){
+          $.each(data.data, function(i, value){
 
-            total_discount_value += (data.pcchrgamt * (discount/100))
-            total += (data.pcchrgamt - (data.pcchrgamt * (discount/100)))
-            discount_value = (data.pcchrgamt * (discount/100))
-            sub_total = (data.pcchrgamt - (data.pcchrgamt * (discount/100)))
+            // discount_value = Number(value.pcchrgamt * (discount/100));
+            discount_value = Number(value.computed_discount);
+            // sub_total = Number(value.pcchrgamt - (value.pcchrgamt * (discount/100)));
+            sub_total = Number(value.computed_sub_total);
 
+            if (sub_total == null || sub_total == '') {
+              sub_total = Number(value.pcchrgamt);
 
-            content = '<tr><td><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="' + data.docointkey +'" checked></td>';
-            content += '<td><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="' + data.docointkey + '" checked></td>';
-            content += '<td>' + data.dodate + '</td>';
-            content += '<td>' + data.pcchrgcod + '</td>';
-            content += '<td>' + data.product_description + '</td>';
-            content += '<td align="right">' + data.qtyissued + '</td>';
-            content += '<td align="right">' + data.pchrgup + '</td>';
-            content += '<td align="right">' + (discount).toFixed(2) + '</td>';
-            content += '<td align="right">' + (discount_value).toFixed(2) + '</td>';
-            content += '<td>' + (sub_total).toFixed(2) + '</td>';
-            content += '<td>' + data.estatus + '</td></tr>';
+            }
+            total_discount_value += discount_value;
+            total += sub_total;
+
+            content = '<tr><td><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="' + value.docointkey +'" checked></td>';
+            content += '<td><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="' + value.docointkey + '" checked></td>';
+            content += '<td>' + value.dodate + '</td>';
+            content += '<td>' + value.pcchrgcod + '</td>';
+            content += '<td>' + value.product_description + '</td>';
+            content += '<td align="right">' + value.qtyissued + '</td>';
+            content += '<td align="right">' + value.pchrgup + '</td>';
+            content += '<td align="right">' + Number(discount).toFixed(2) + '</td>';
+            content += '<td align="right">' + Number(discount_value).toFixed(2) + '</td>';
+            content += '<td align="right" >' + Number(sub_total).toFixed(2)+ '</td>';
+            content += '<td>' + value.invoice_status + '</td></tr>';
             $(content).appendTo('#charge-info');
+
           });
 
-              content = '<tr><td colspan=8 align="right">Totals: </td>';
-              content += '<td colspan=1 align="right">' + (total_discount_value).toFixed(2) + '</td>';
-              content += '<td colspan=2>' + (total).toFixed(2) + '</td></tr>';
-              $(content).appendTo('#charge-info');
+          content = '<tr><td colspan=8 align="right"><strong>Grand Total: </strong></td>';
+          content += '<td colspan=1 align="right">' + Number(total_discount_value).toFixed(2) + '</td>';
+          content += '<td colspan=1 align="right"><strong>' + Number(total).toFixed(2) + '</strong></td></tr>';
+          $(content).appendTo('#charge-info');
 
-              $('#amount_paid').val((total).toFixed(2));
+          $('#amount_paid').val(Number(total).toFixed(2));
             
         }
       }); 
@@ -481,26 +487,179 @@
   });
 </script>
 
-
+<!-- apply discount selected -->
 <script type="text/javascript">
   $(document).ready(function(){
-    
+    var CSRF_TOKEN = $('meta[name="csrf_token"]').attr('content');
     $('#apply_discount_selected').click(function(){
 
+      // alert('clicked apply discount selected');
+      var $checkboxes = $('input[name="discount_checkbox"]');
 
-      alert('Clicked apply discount selected');
+      /* declare an checkbox array */
+      var id = [];
+  
+      /* look for all checkboxes that have a class 'chk' attached to it and check if it was checked */
+      $('input[name="discount_checkbox"]:checked').each(function() {
+        id.push($(this).val());
 
+      });
+  
+    
+      /* check if there is checkedValues checkboxes, by default the length is 1 as it contains one single comma */
+      if (id.length > 0) {
+        // alert("You have selected " + id); 
+
+        $.ajax({
+        type: "POST",
+        url: "/collections/outpatient/create/apply_discount_selected",
+        data: { _token: CSRF_TOKEN, charge_slip: $('#search_barcode').val(), ids: id, discount: $('#discount_percent').val() },
+        dataType: "JSON",
+        success: function(data){
+          console.log(data);
+          // alert(data.charge_slip);
+          // alert(data.ids);
+          // alert(data.discount_percent);
+          // alert(JSON.stringify(data.data));
+
+          var content;
+          var discount = 0;
+          var total_discount_value = 0;
+          var sub_total = 0;
+          var total = 0;
+          var is_discount = 0;
+
+
+          
+          $('#charge-info').empty();
+            $.each(data.data, function(i, data){
+
+              discount = data.disc_percent;
+              // discount_amount = data.disc_amount;
+              discount_amount = data.computed_discount;
+              // sub_total = data.pcchrgamt;
+              sub_total = data.computed_sub_total;
+
+              if (sub_total == null || sub_total == '') {
+              sub_total = Number(data.pcchrgamt);
+              
+              }
+
+              is_discount = data.is_discount;
+
+              if (discount == null || discount == '') {
+                discount = 0.00;
+              }
+              else if (discount == 'SENIOR' || discount == 'PWD') {
+                discount = 20.00;
+              }
+
+              if (discount_amount == null || discount_amount == '') {
+                discount_amount = 0.00;
+                total_discount_value = 0.00;
+              }
+
+              if (is_discount == '1') {
+                is_discount = 'checked';
+              }
+              
+              total_discount_value += Number(discount_amount);
+              total += Number(sub_total);
+              
+              content = '<tr><td><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="' + data.docointkey +'" checked></td>';
+              content += '<td><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="' + data.docointkey + '" ' + is_discount + '></td>';
+              content += '<td>' + data.dodate + '</td>';
+              content += '<td>' + data.pcchrgcod + '</td>';
+              content += '<td>' + data.product_description + '</td>';
+              content += '<td align="right">' + data.qtyissued + '</td>';
+              content += '<td align="right">' + data.pchrgup + '</td>';
+              content += '<td align="right" style="width:8%">' + Number(discount).toFixed(2) + '</td>';
+              content += '<td align="right" style="width:10%">' + Number(discount_amount).toFixed(2) + '</td>';
+              content += '<td align="right" style="width:10%">' + Number( sub_total ).toFixed(2) + '</td>';
+              content += '<td>' + data.invoice_status + '</td></tr>';
+              $(content).appendTo('#charge-info');
+
+            });
+
+            content = '<tr><td colspan=8 align="right"><strong>Grand Total: </strong></td>';
+            content += '<td colspan=1 align="right">' + Number(total_discount_value).toFixed(2) + '</td>';
+            content += '<td colspan=1 align="right" ><strong>' + Number(total).toFixed(2) + '</strong></td></tr>';
+            $(content).appendTo('#charge-info');
+
+            $('#amount_paid').val((total).toFixed(2));
+        }
+      });
+      }
+      else {
+        alert("Please at least check one of the checkbox"); 
+      }
+
+      // console.dir($checkboxes);
+      // alert('Clicked apply discount selected');
+      // alert($('#invoice_table:checkbox:checked'));
+      // var atLeastOneIsChecked = $('#invoice_table:checkbox:checked').length > 0;
+      // alert(atLeastOneIsChecked);
     });
   });
 </script>
 
 
+<!-- click update button -->
 <script type="text/javascript">
   $(document).ready(function(){
+    var CSRF_TOKEN =  $('meta[name="csrf-token"]').attr('content');
+    
     $('#update_charges').click(function(){
-     
-      $('#charge-info').each(function(){
-        alert($(this).find('.dateCell').html());
+     // alert("clicked update button");
+     $('#discount_percent').val('');
+     $('#amount_paid').val('');
+     $.ajax({
+        type: "POST",
+        url: "/collections/outpatient/create/update_data",
+        data: {_token: CSRF_TOKEN, message:$("#search_barcode").val(), discount:'0'},
+        dataType: "JSON",
+        success: function(data) {
+          // alert(data.discount_percent);
+
+          console.log(data);
+
+          var content;
+          var discount = 0;
+          var discount_value = 0;
+          var sub_total = 0;
+          var total_discount_value = 0;
+          var total = 0;
+
+          $('#charge-info').empty();
+          $.each(data.data, function(i, value){
+            
+            discount_value = Number(value.pcchrgamt * (discount/100)).toFixed(2);
+            sub_total = Number(value.pcchrgamt - (value.pcchrgamt * (discount/100))).toFixed(2);
+            total_discount_value += Number(discount_value);
+            total += Number(sub_total);
+
+            content = '<tr><td><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="' + value.docointkey +'" checked></td>';
+            content += '<td><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="' + value.docointkey + '"></td>';
+            content += '<td>' + value.dodate + '</td>';
+            content += '<td>' + value.pcchrgcod + '</td>';
+            content += '<td>' + value.product_description + '</td>';
+            content += '<td align="right">' + value.qtyissued + '</td>';
+            content += '<td align="right">' + value.pchrgup + '</td>';
+            content += '<td align="right">' + Number(discount).toFixed(2) + '</td>';
+            content += '<td align="right">' + Number(discount_value).toFixed(2) + '</td>';
+            content += '<td align="right">' + Number(sub_total).toFixed(2) + '</td>';
+            content += '<td>' + value.estatus + '</td></tr>';
+            $(content).appendTo('#charge-info');
+
+          });
+          content = '<tr><td colspan=8 align="right"><strong>Grand Total: </strong></td>';
+          content += '<td colspan=1 align="right">' + Number(total_discount_value).toFixed(2) + '</td>';
+          content += '<td colspan=1 align="right"><strong>' + Number(total).toFixed(2) + '</strong></td></tr>';
+          $(content).appendTo('#charge-info');
+
+          $('#amount_paid').val(Number(total).toFixed(2));
+
+        }
       });
     });
   });
