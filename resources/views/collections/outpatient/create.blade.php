@@ -20,7 +20,7 @@
       </div>
 
       </div>
-      
+
     </div>
 
   <form action="/collections/outpatient/create/payment" method="post" >
@@ -32,14 +32,11 @@
         <p id="button-cancel">or <a class="btn-link" href="{{ url('collections/outpatient') }}">Cancel</a></p>
 
        <div class="col-md-4 offset-md-4">
-
-        <a href = "{{ url('/collections/outpatient/print/pdf') }}" class="btn btn-sm btn-outline-danger">
+        <!-- <a href = "{{ url('/collections/outpatient/print/pdf') }}" class="btn btn-sm btn-outline-danger">
           <span data-feather="calendar"></span>
           Print Receipt
-        </a>
-        
+        </a> -->
         <!-- <a href="{{ url('/collections/outpatient/print/pdf', ['' => 'P18-001028']) }}" class="btn btn-danger btn-sm">Print Receipt</a> -->
-        
       </div>
 
     </div>
@@ -493,34 +490,29 @@
     var CSRF_TOKEN = $('meta[name="csrf_token"]').attr('content');
     $('#apply_discount_selected').click(function(){
 
-      // alert('clicked apply discount selected');
-      var $checkboxes = $('input[name="discount_checkbox"]');
-
       /* declare an checkbox array */
       var id = [];
   
       /* look for all checkboxes that have a class 'chk' attached to it and check if it was checked */
       $('input[name="discount_checkbox"]:checked').each(function() {
         id.push($(this).val());
-
       });
   
-    
       /* check if there is checkedValues checkboxes, by default the length is 1 as it contains one single comma */
-      if (id.length > 0) {
-        // alert("You have selected " + id); 
-
+      if (id.length > 0) { 
         $.ajax({
         type: "POST",
         url: "/collections/outpatient/create/apply_discount_selected",
         data: { _token: CSRF_TOKEN, charge_slip: $('#search_barcode').val(), ids: id, discount: $('#discount_percent').val() },
         dataType: "JSON",
         success: function(data){
+
+          alert(data.charge_slip);
+          alert(data.ids);
+          alert(data.discount_percent);
+          alert(JSON.stringify(data.data));
+
           console.log(data);
-          // alert(data.charge_slip);
-          // alert(data.ids);
-          // alert(data.discount_percent);
-          // alert(JSON.stringify(data.data));
 
           var content;
           var discount = 0;
@@ -528,39 +520,35 @@
           var sub_total = 0;
           var total = 0;
           var is_discount = 0;
-
-
           
           $('#charge-info').empty();
             $.each(data.data, function(i, data){
 
               discount = data.disc_percent;
-              // discount_amount = data.disc_amount;
               discount_amount = data.computed_discount;
-              // sub_total = data.pcchrgamt;
               sub_total = data.computed_sub_total;
+              is_discount = data.is_discount;
 
-              if (sub_total == null || sub_total == '') {
-              sub_total = Number(data.pcchrgamt);
+              if (discount_amount == null || discount_amount == '' || discount_amount == 0.00) {
+                // discount_amount = 0.00;
+                // total_discount_value = 0.00;
+              }
+
+              if (sub_total == null || sub_total == '' || sub_total == 0.00) {
+                sub_total = Number(data.pcchrgamt);
               
               }
 
-              is_discount = data.is_discount;
 
-              if (discount == null || discount == '') {
-                discount = 0.00;
-              }
-              else if (discount == 'SENIOR' || discount == 'PWD') {
+              if (discount == 'SENIOR' || discount == 'PWD') {
                 discount = 20.00;
-              }
-
-              if (discount_amount == null || discount_amount == '') {
-                discount_amount = 0.00;
-                total_discount_value = 0.00;
               }
 
               if (is_discount == '1') {
                 is_discount = 'checked';
+              }
+              else{
+                is_discount = '';
               }
               
               total_discount_value += Number(discount_amount);

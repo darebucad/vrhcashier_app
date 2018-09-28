@@ -22,15 +22,13 @@
   <div class="row">
     <a class="btn btn-sm btn-primary" href="{{ route('collections.outpatient.create',['' => Auth::user()->id]) }}">Create</a>
 
-    <a class="btn btn-sm btn-outline-danger" href="{{ url('/collections/outpatient/print/pdf') }}" id="V-200114">Print Receipt</a>
-
   </div>
 
   <br />
 
   <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
 
-  <table id="outpatient_payment_table" class="table table-sm table-bordered " style="width:100%">
+  <table id="outpatient_payment_table" class="table table-sm table-striped" style="width:100%">
     <thead>
       <!-- Table Row -->
       <tr>
@@ -45,10 +43,26 @@
         <th>Action</th>
       </tr>
     </thead>
+    <tbody>
+      @foreach ($payments as $payment)
+      <tr>
+        <td>{{ $payment->or_date }}</td>
+        <td>{{ $payment->or_no_prefix }}</td>
+        <td>{{ $payment->patient_name }}</td>
+        <td>{{ $payment->discount }}</td>
+        <td>{{ $payment->amount_paid }}</td>
+        <td>{{ $payment->employee_name }}</td>
+        <td>{{ $payment->status }}</td>
+        <td><a href="{{ route('collections.outpatient.print.pdf', ['' => $payment->or_no_prefix ]) }}" class="btn btn-sm btn-outline-danger">Print Receipt</a></td>
+      </tr>
+      @endforeach
+    </tbody>
   </table>
 
 
-  <script>
+
+
+  <!-- <script>
     $(document).ready(function() {
       $('#outpatient_payment_table').DataTable({
         "processing": true,
@@ -67,7 +81,7 @@
       });
 
     });
-  </script>
+  </script> -->
 
   <script type="text/javascript">
  

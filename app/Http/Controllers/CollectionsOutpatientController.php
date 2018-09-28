@@ -43,7 +43,12 @@ class CollectionsOutpatientController extends Controller
      */
     public function index()
     {
-        $payments = Payment::all();
+        $payments = ViewPayment::select('*')
+        ->limit(20)
+        ->groupBy('or_no_prefix')
+        ->orderByRaw('created_at DESC')
+        ->get();
+
         return view('collections.outpatient.index')->with('payments', $payments);
     }
 
@@ -135,7 +140,9 @@ class CollectionsOutpatientController extends Controller
 
 
     public function getPaymentData($id) {
-        $payment_data = ViewPayment::where('or_no_prefix', $id)->get();
+        $payment_data = ViewPayment::where('or_no_prefix', $id)
+        ->orderByRaw('payment_counter ASC')
+        ->get();
         return $payment_data;
 
    }
@@ -149,7 +156,7 @@ class CollectionsOutpatientController extends Controller
 
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadHTML($this->convertPaymentDataToHtml($id))->setPaper($customPaper);
-        return $pdf->download('official_receipt.pdf');
+        return $pdf->download('Official Receipt ('.$id.').pdf');
 
         // $response = array(
 
@@ -162,30 +169,63 @@ class CollectionsOutpatientController extends Controller
    }
 
 
-
     public function convertPaymentDataToHtml($id) {
         $payment_data = $this->getPaymentData($id);
+        $payment_count = ViewPayment::where('or_no_prefix', $id)->count();
+
+        $sub_total = 0;
+        $total = 0;
         $output = '
-            <h4 align="center">Payment Details</h4>
-            <table width="100%">
-                <tr>
-                    <th>Description</th>
-                    <th>Account Code</th>
-                    <th>Amount</th>
-                </tr>
         ';
 
-        foreach ($payment_data as $payment) {
-            $output .= '
-                <tr>
-                    <td>' .$payment->product_description. '</td>
-                    <td>' .$payment->account_code. '</td>
-                    <td>' .$payment->computed_sub_total. '</td>
-                </tr>
-            ';
+        foreach ($payment_data as $value) {
+            $output .='<p align="right">'.$value->or_no_prefix.'</p>
+                <p align="right">'.$value->or_date.'</p>
+                <p>Veterans Regional Hospital</p>
+                <p>'.$value->patient_name.'</p>';
+
+            break;
         }
 
-        $output .= '</table>';
+        $output .= '<table width="100%">';
+
+        if($payment_count < 9){
+
+            foreach ($payment_data as $payment) {
+                $sub_total = $payment->computed_sub_total;
+
+                if ($sub_total == '' || $sub_total == null || $sub_total == 0.00){
+                    $sub_total = $payment->amount;
+                    $total += $payment->amount;
+                }
+                else{
+                    $total += $payment->computed_sub_total;
+                }
+
+                $output .= '
+                    <tr>
+                        <td style="font-size: 10px;">' .$payment->product_description. '</td>
+                        <td style="font-size: 10px;">' .$payment->account_code. '</td>
+                        <td style="font-size: 10px;" align="right">' .number_format($sub_total, 2). '</td>
+                    </tr>';
+            }
+        }
+
+        else{
+  
+        }
+
+
+        $output .= '</table>
+            <p>'.number_format($total, 2) .'</p>
+            <p>Amount in Words</p>
+            <p>TERESITA T. TAGUINOD</p>
+            <p>Supervising Administrative Officer</p>';
+
+        foreach ($payment_data as $key) {
+            $output .='<p>'.$key->employee_name.'</p>';
+            break;
+        }
 
         return $output;
    }
@@ -460,15 +500,11 @@ class CollectionsOutpatientController extends Controller
         $charge_slip = $request->charge_slip;
         $ids = $request->ids;
         $discount_percent = $request->discount;
+        $new_discount_percent = $discount_percent / 100;
 
-        if ($discount_percent == 'SENIOR'){
+
+        if ($discount_percent == 'SENIOR' || $discount_percent == 'PWD'){
             $new_discount_percent = 0.20;
-        }
-        else if ($discount_percent == 'PWD'){
-            $new_discount_percent = 0.20;
-        }
-        else{
-            $new_discount_percent = ($discount_percent / 100);
         }
 
         $outpatient_charges = ViewOutpatientCharge::whereIn('docointkey', $ids)->get();
@@ -477,6 +513,7 @@ class CollectionsOutpatientController extends Controller
 
             // $disc_amount = number_format($value->pcchrgamt * $new_discount_percent, 2);
             $disc_amount = $value->pcchrgamt * $new_discount_percent;
+
             MedicineCharge::where('docointkey', $value->docointkey)
             ->update([
                 'disc_percent' => $discount_percent,
@@ -491,10 +528,11 @@ class CollectionsOutpatientController extends Controller
         $updated_charges = ViewOutpatientCharge::where('pcchrgcod', $charge_slip)->get();
 
         foreach ($updated_charges as $value) {
-            
             MedicineCharge::where('docointkey', $value->docointkey)
             ->update([
-                'disc_name' => $discount_percent
+                'disc_name' => $discount_percent,
+                'is_pay' => '1'
+
             ]);
         }
 
