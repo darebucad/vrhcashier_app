@@ -148,8 +148,18 @@ class CollectionsOutpatientController extends Controller
    }
 
     public function showPDF($id) {
+        $outpatient_payments = ViewPayment::select('enccode', 'charge_slip_no')->where('or_no_prefix', $id)->first();
 
-        // $or_no = $request->ids;
+        Payment::where('preorno', $id)
+        ->update([
+            'status' => 'Paid'
+        ]);
+
+        MedicineCharge::where('pcchrgcod', $outpatient_payments->charge_slip_no)
+        ->update([
+            'invoice_status' => 'Paid'
+        ]);
+    
 
         // custom paper = array (0,0,width,length)
         $customPaper = array(0,0,273.6,792);
@@ -167,6 +177,18 @@ class CollectionsOutpatientController extends Controller
         // $pdf = PDF::loadView('collections.outpatient.print');
         // return $pdf->download('official_receipt.pdf');
    }
+
+
+    public function cancelPayment(Request $request){
+        $or_no = $request->id;
+
+        Payment::where('preorno', $or_no)
+        ->update([
+            'status' => 'Cancelled'
+        ]);
+
+        return redirect('/collections/outpatient');
+    }
 
 
     public function convertPaymentDataToHtml($id) {
@@ -349,6 +371,7 @@ class CollectionsOutpatientController extends Controller
         $outpatient_charges = ViewOutpatientCharge::where('pcchrgcod', $charge_slip)->get();
         $outpatient_charges_account = ViewOutpatientCharge::select('acctno', 'enccode', 'hpercode')->where('pcchrgcod', $charge_slip)->first();
         $patient_account = ViewPatientAccount::select('next_account_no_year', 'next_account_no_increment')->first();
+        $is_paid = ViewPayment::select('charge_slip_no')->where('charge_slip_no', $charge_slip)->count();
 
         $account_no = $outpatient_charges_account->acctno;
 
@@ -391,13 +414,21 @@ class CollectionsOutpatientController extends Controller
             $new_account_no = $account_no;
         }
 
+        if($is_paid > 0){
+            $is_paid = 'yes';
+        }
+        else{
+            $is_paid = 'no';
+        }
+
         $response = array(
             'charge_slip' => $charge_slip,
             'data'  =>  $outpatient_charges,
             'account_no' => $account_no,
             'new_account_no' => $new_account_no,
             'user_id' => $user_id,
-            'current_time' => $current_time
+            'current_time' => $current_time,
+            'is_paid' => $is_paid
         );
         return response()->json($response);
     }
@@ -447,7 +478,6 @@ class CollectionsOutpatientController extends Controller
         );
 
         return response()->json($response);
-
     }
 
       
@@ -500,39 +530,35 @@ class CollectionsOutpatientController extends Controller
         $charge_slip = $request->charge_slip;
         $ids = $request->ids;
         $discount_percent = $request->discount;
-        $new_discount_percent = $discount_percent / 100;
-
+        $new_discount_percent = ($discount_percent / 100);
 
         if ($discount_percent == 'SENIOR' || $discount_percent == 'PWD'){
             $new_discount_percent = 0.20;
         }
+    
+            $selected_patient_charges = ViewOutpatientCharge::whereIn('docointkey', $ids)->get();
 
-        $outpatient_charges = ViewOutpatientCharge::whereIn('docointkey', $ids)->get();
+            foreach ($selected_patient_charges as $value) {   
+                $disc_amount = $value->pcchrgamt * $new_discount_percent;
 
-        foreach ($outpatient_charges as $value) {   
+                MedicineCharge::where('docointkey', $value->docointkey)
+                ->update([
+                    'disc_percent' => $discount_percent,
+                    'disc_amount' => $disc_amount,
+                    'is_pay' => '1',
+                    'is_discount' => '1',
+                    'updated_at' => $current_time->toDateTimeString()
+                ]);
+            }
 
-            // $disc_amount = number_format($value->pcchrgamt * $new_discount_percent, 2);
-            $disc_amount = $value->pcchrgamt * $new_discount_percent;
+        $outpatient_charges = ViewOutpatientCharge::where('pcchrgcod', $charge_slip)->get();
 
-            MedicineCharge::where('docointkey', $value->docointkey)
-            ->update([
-                'disc_percent' => $discount_percent,
-                'disc_amount' => $disc_amount,
-                'is_pay' => '1',
-                'is_discount' => '1',
-                'updated_at' => $current_time->toDateTimeString()
-            ]);
-
-        }
-
-        $updated_charges = ViewOutpatientCharge::where('pcchrgcod', $charge_slip)->get();
-
-        foreach ($updated_charges as $value) {
+        foreach ($outpatient_charges as $value) {
             MedicineCharge::where('docointkey', $value->docointkey)
             ->update([
                 'disc_name' => $discount_percent,
-                'is_pay' => '1'
-
+                'is_pay' => '1',
+                'updated_at' => $current_time->toDateTimeString()
             ]);
         }
 
@@ -546,7 +572,11 @@ class CollectionsOutpatientController extends Controller
 
         );
         return response()->json($response);
-   }
+
+
+    }
+   
+
 
 
    /**

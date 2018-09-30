@@ -53,7 +53,7 @@
         <td>{{ $payment->amount_paid }}</td>
         <td>{{ $payment->employee_name }}</td>
         <td>{{ $payment->status }}</td>
-        <td><a href="{{ route('collections.outpatient.print.pdf', ['' => $payment->or_no_prefix ]) }}" class="btn btn-sm btn-outline-danger">Print Receipt</a></td>
+        <td><a href="{{ route('collections.outpatient.print.pdf', [ '' => $payment->or_no_prefix ]) }}" class="btn btn-sm btn-outline-danger">Print Receipt</a> <a href="" class="btn btn-sm btn-outline-info cancel" id="{{ $payment->or_no_prefix }}">Cancel Payment</a></td>
       </tr>
       @endforeach
     </tbody>
@@ -107,6 +107,29 @@
       alert('clicked edit button');
 
     });
+  </script>
+
+  <script type="text/javascript">
+   $(document).on('click', '.cancel', function(){
+    var id = $(this).attr('id');
+
+    if(confirm('Are you sure you want to cancel this payment?')){
+
+      // alert('clicked cancel button');
+      // alert(id);
+
+      $.ajax({
+        type: "GET",
+        url: "/collections/outpatient/cancel/payment",
+        data: {id:id},
+        success:function(data){
+          alert(data);
+
+        }
+      });
+    }
+
+   });
   </script>
 
 </main>

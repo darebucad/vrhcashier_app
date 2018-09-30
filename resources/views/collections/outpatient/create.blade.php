@@ -9,8 +9,13 @@
 
     <div class="btn-toolbar mb-2 mb-md-0">
 
+
+        
+
       <div class="btn-group mr-2">
         <input  type="text" name="search_barcode" id="search_barcode" class="form-control form-control-sm"  placeholder="Charge Slip / Barcode" autofocus>
+        
+
       </div>  
 
       <div class="btn-group mr-2">
@@ -23,11 +28,15 @@
 
     </div>
 
+    <div class="alert alert-warning alert-dismissable" style="display: none">
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        This charge slip was already paid.
+    </div>
+
   <form action="/collections/outpatient/create/payment" method="post" >
     @csrf
 
     <div class="row" style="margin-top:10px;">
-
       <button type="submit" class="btn btn-sm btn-primary">Save</button>
         <p id="button-cancel">or <a class="btn-link" href="{{ url('collections/outpatient') }}">Cancel</a></p>
 
@@ -229,7 +238,7 @@
       <label for="amount_tendered" class="col-md-1 col-form-label text-md-left">{{ __('Amount Tendered') }}</label>
 
       <div class="col-md-3">
-        <input id="amount_tendered" type="text" class="form-control form-control-sm" name="amount_tendered"  style="background-color:#99ccff!important;" autofocus>
+        <input id="amount_tendered" onBlur="computeChange()" type="text" class="form-control form-control-sm" name="amount_tendered"  style="background-color:#99ccff!important;" autofocus>
 
         @if ($errors->has('amount_tendered'))
             <span class="invalid-feedback" role="alert">
@@ -243,7 +252,7 @@
       <label for="change" class="col-md-1 col-form-label text-md-left">{{ __('Change') }}</label>
 
       <div class="col-md-3">
-        <input id="change" type="text" class="form-control form-control-sm" name="change" style="background-color:#99ccff!important;" autofocus>
+        <input id="change" type="text" class="form-control form-control-sm" name="change" autofocus>
         @if ($errors->has('change'))
             <span class="invalid-feedback" role="alert">
                 <strong>{{ $errors->first('change') }}</strong>
@@ -277,9 +286,9 @@
           <th>Status</th>
         </tr>
       </thead>
-       <tbody id="charge-info">
-         
-       </tbody>
+     <tbody id="charge-info">
+       
+     </tbody>
     </table>
   </div>
 
@@ -327,82 +336,92 @@
         data: {_token: CSRF_TOKEN, message:$("#search_barcode").val(), user_id:$("#user_id").val()},
         dataType: 'JSON',
         success: function(data){
+          var is_paid = data.is_paid;
 
-          // alert('clicked search barcode');
-          $('#acctno').val(data.new_account_no);
+          if(is_paid == 'yes'){
+            $('.alert').show();
+          }
+          else{
 
-          $.each(data.data, function(i, data){
-            $('#patient_name').val(data.patient_name);
-            $('#pcchrgcod').val(data.pcchrgcod);
-            $('#enccode').val(data.enccode);
-            $('#hpercode').val(data.hpercode);
-            $('#discount_percent').val(data.disc_name);
-            $('#paystat').val('A');
-            $('#paylock').val('N');
-            $('#updsw').val('N');
-            $('#confdl').val('N');
-            $('#payctr').val('0');
-            $('#status').val('For Payment');
-          });
+            $('#acctno').val(data.new_account_no);
 
-          console.log(data);
-    
-          var content;
-          var discount = 0;
-          var total_discount_value = 0;
-          var total = 0;
-          var is_discount = 0;
-
-          $('#charge-info').empty();
-            $.each(data.data, function(i, data) {
-
-              discount = data.disc_percent;
-              discount_amount = data.disc_amount;
-              //discount_amount = data.computed_discount
-              sub_total = data.pcchrgamt;
-              // sub_total = data.computed_sub_total;
-              is_discount = data.is_discount;
-
-              if (discount == null || discount == '') {
-                discount = 0.00;
-              }
-              else if (discount == 'SENIOR' || discount == 'PWD') {
-                discount = 20.00;
-              }
-
-              if (discount_amount == null || discount_amount == '') {
-                discount_amount = 0.00;
-                total_discount_value = 0.00;
-              }
-
-              if (is_discount == '1') {
-                is_discount = 'checked';
-              }
-              
-              total_discount_value += Number(discount_amount);
-              total += Number(sub_total);
-              
-              content = '<tr><td><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="' + data.docointkey +'" checked></td>';
-              content += '<td><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="' + data.docointkey + '" ' + is_discount + '></td>';
-              content += '<td>' + data.dodate + '</td>';
-              content += '<td>' + data.pcchrgcod + '</td>';
-              content += '<td>' + data.product_description + '</td>';
-              content += '<td align="right">' + data.qtyissued + '</td>';
-              content += '<td align="right">' + data.pchrgup + '</td>';
-              content += '<td align="right" style="width:8%">' + Number(discount).toFixed(2) + '</td>';
-              content += '<td align="right" style="width:10%">' + Number(discount_amount).toFixed(2) + '</td>';
-              content += '<td align="right" style="width:10%">' + Number(sub_total).toFixed(2) + '</td>';
-              content += '<td>' + data.invoice_status + '</td></tr>';
-              $(content).appendTo('#charge-info');
-
+            $.each(data.data, function(i, data){
+              $('#patient_name').val(data.patient_name);
+              $('#pcchrgcod').val(data.pcchrgcod);
+              $('#enccode').val(data.enccode);
+              $('#hpercode').val(data.hpercode);
+              $('#discount_percent').val(data.disc_name);
+              $('#paystat').val('A');
+              $('#paylock').val('N');
+              $('#updsw').val('N');
+              $('#confdl').val('N');
+              $('#payctr').val('0');
+              $('#status').val('For Payment');
             });
 
-            content = '<tr><td colspan=8 align="right"><strong>Grand Total: </strong></td>';
-            content += '<td colspan=1 align="right">' + Number(total_discount_value).toFixed(2) + '</td>';
-            content += '<td colspan=1 align="right"><strong>' + Number(total).toFixed(2) + '</strong></td></tr>';
-            $(content).appendTo('#charge-info');
+            console.log(data);
+      
+            var content;
+            var discount = 0;
+            var total_discount_value = 0;
+            var total = 0;
+            var is_discount = 0;
 
-            $('#amount_paid').val((total).toFixed(2));
+            $('#charge-info').empty();
+              $.each(data.data, function(i, data) {
+
+                discount = data.disc_percent;
+                discount_amount = data.disc_amount;
+                //discount_amount = data.computed_discount
+                sub_total = data.pcchrgamt;
+                // sub_total = data.computed_sub_total;
+                is_discount = data.is_discount;
+
+                if (discount == null || discount == '') {
+                  discount = 0.00;
+                }
+                else if (discount == 'SENIOR' || discount == 'PWD') {
+                  discount = 20.00;
+                }
+
+                if (discount_amount == null || discount_amount == '') {
+                  discount_amount = 0.00;
+                  total_discount_value = 0.00;
+                }
+
+                if (is_discount == '1') {
+                  is_discount = 'checked';
+                }
+                
+                total_discount_value += Number(discount_amount);
+                total += Number(sub_total);
+                
+                content = '<tr><td><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="' + data.docointkey +'" checked></td>';
+                content += '<td><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="' + data.docointkey + '" ' + is_discount + '></td>';
+                content += '<td>' + data.dodate + '</td>';
+                content += '<td>' + data.pcchrgcod + '</td>';
+                content += '<td>' + data.product_description + '</td>';
+                content += '<td align="right">' + data.qtyissued + '</td>';
+                content += '<td align="right">' + data.pchrgup + '</td>';
+                content += '<td align="right" style="width:8%">' + Number(discount).toFixed(2) + '</td>';
+                content += '<td align="right" style="width:10%">' + Number(discount_amount).toFixed(2) + '</td>';
+                content += '<td align="right" style="width:10%">' + Number(sub_total).toFixed(2) + '</td>';
+                content += '<td>' + data.invoice_status + '</td></tr>';
+                $(content).appendTo('#charge-info');
+
+              });
+
+              content = '<tr><td colspan=8 align="right"><strong>Grand Total: </strong></td>';
+              content += '<td colspan=1 align="right">' + Number(total_discount_value).toFixed(2) + '</td>';
+              content += '<td colspan=1 align="right"><strong>' + Number(total).toFixed(2) + '</strong></td></tr>';
+              $(content).appendTo('#charge-info');
+
+              $('#amount_paid').val((total).toFixed(2));
+
+          }
+
+
+          
 
         }
       }); 
@@ -536,12 +555,6 @@
 
               if (sub_total == null || sub_total == '' || sub_total == 0.00) {
                 sub_total = Number(data.pcchrgamt);
-              
-              }
-
-
-              if (discount == 'SENIOR' || discount == 'PWD') {
-                discount = 20.00;
               }
 
               if (is_discount == '1') {
@@ -675,6 +688,23 @@
           }); 
       });
  });    
+</script>
+
+<script type="text/javascript">
+  function computeChange(){
+    var amount_paid = Number($('#amount_paid').val());
+    var amount_tendered = Number($('#amount_tendered').val());
+    var compute = 0;
+
+    compute = amount_tendered - amount_paid;
+
+    $('#change').val(Number(compute).toFixed(2));
+
+
+
+
+
+  }
 </script>
 
 

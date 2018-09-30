@@ -59,4 +59,6 @@ Route::get('/collections/outpatient/print', 'CollectionsOutpatientController@pdf
 
 Route::get('/collections/outpatient/print/pdf/{id}', 'CollectionsOutpatientController@showPDF')->name('collections.outpatient.print.pdf');
 
+Route::get('/collections/outpatient/cancel/payment', 'CollectionsOutpatientController@cancelPayment');
+
 
