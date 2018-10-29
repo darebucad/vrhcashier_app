@@ -21,7 +21,7 @@
               <li class="nav-item">
                  <a class="nav-link disabled" href="#">
                   <span data-feather="credit-card"></span>
-                 Collection</a>
+                 Collections</a>
               </li>
 
               <li class="nav-item">
@@ -31,13 +31,13 @@
               </li>
 
               <li class="nav-item">
-                <a class="nav-link" href="#" style="text-indent: 2em">
+                <a class="nav-link" href="{{ url('collections/inpatient') }}" style="text-indent: 2em">
                   In-Patient Payment
                 </a>
               </li>
 
               <li class="nav-item">
-                <a class="nav-link" href="#" style="text-indent: 2em">
+                <a class="nav-link" href="{{ url('/collections/other') }}" style="text-indent: 2em">
                   Other Collection
                 </a>
               </li>
@@ -61,7 +61,7 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#" style="text-indent: 2em">
+                <a class="nav-link" href="{{ url('settings/user_account') }}" style="text-indent: 2em">
                   User Accounts
                 </a>
               </li>

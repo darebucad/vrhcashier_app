@@ -1,29 +1,13 @@
 <?php
 
-
 Auth::routes();
+
 
 Route::get('/', 'DashboardController@index')->name('dashboard');
 
 
-Route::get('collections/outpatient/getdata', 'CollectionsOutpatientController@getdata')->name('collections.outpatient.getdata');
 
-
-Route::get('collections/outpatient/action', 'CollectionsOutpatientController@action')->name('collections.outpatient.action');
-
-
-Route::get('collections/outpatient/getCustomFilterData', 'CollectionsOutpatientController@getCustomFilterData')->name('collections.outpatient.getCustomFilterData');
-
-
-Route::post('collections/outpatient/create', 'CollectionsOutpatientController@show')->name('collections.outpatient.create.show');
-
-
-Route::get('/collections/outpatient/create/showcharge/{id}', 'CollectionsOutpatientController@edit')->name('collections.outpatient.edit');
-
-
-// Collections Outpatient Routes
-
-
+// Collections Outpatient
 Route::get('collections/outpatient', 'CollectionsOutpatientController@index')->name('collections.outpatient');
 
 
@@ -59,6 +43,40 @@ Route::get('/collections/outpatient/print', 'CollectionsOutpatientController@pdf
 
 Route::get('/collections/outpatient/print/pdf/{id}', 'CollectionsOutpatientController@showPDF')->name('collections.outpatient.print.pdf');
 
+
 Route::get('/collections/outpatient/cancel/payment', 'CollectionsOutpatientController@cancelPayment');
+
+
+Route::get('/collections/outpatient/payment/edit', 'CollectionsOutpatientController@edit');
+
+
+Route::post('collections/outpatient/create', 'CollectionsOutpatientController@show')->name('collections.outpatient.create.show');
+
+
+Route::get('collections/outpatient/getdata', 'CollectionsOutpatientController@getdata')->name('collections.outpatient.getdata');
+
+
+
+
+// Collections Other
+Route::get('/collections/other', 'CollectionsOtherController@index')->name('collections.other');
+
+
+Route::get('collections/other/create/{id}', 'CollectionsOtherController@create')->name('collections.other.create');
+
+
+
+
+
+
+
+
+// Collections Inpatient
+Route::get('collections/inpatient', 'CollectionsInpatientController@index')->name('collections.inpatient');
+
+
+
+//Settings User Account
+Route::get('settings/user_account', 'UsersController@index')->name('settings.user_account');
 
 

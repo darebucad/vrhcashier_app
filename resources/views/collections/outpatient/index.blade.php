@@ -21,14 +21,13 @@
 
   <div class="row">
     <a class="btn btn-sm btn-primary" href="{{ route('collections.outpatient.create',['' => Auth::user()->id]) }}">Create</a>
-
   </div>
 
   <br />
 
-  <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
+  <input type="hidden" name="user_id" id="user_id" value="{{ Auth::user()->id }}">
 
-  <table id="outpatient_payment_table" class="table table-sm table-striped" style="width:100%">
+  <table id="other_payment_table" class="table table-sm table-striped table-hover" style="width:100%">
     <thead>
       <!-- Table Row -->
       <tr>
@@ -43,22 +42,24 @@
         <th>Action</th>
       </tr>
     </thead>
+    
     <tbody>
       @foreach ($payments as $payment)
-      <tr>
-        <td>{{ $payment->or_date }}</td>
-        <td>{{ $payment->or_no_prefix }}</td>
-        <td>{{ $payment->patient_name }}</td>
-        <td>{{ $payment->discount }}</td>
-        <td>{{ $payment->amount_paid }}</td>
-        <td>{{ $payment->employee_name }}</td>
-        <td>{{ $payment->status }}</td>
-        <td><a href="{{ route('collections.outpatient.print.pdf', [ '' => $payment->or_no_prefix ]) }}" class="btn btn-sm btn-outline-danger">Print Receipt</a> <a href="" class="btn btn-sm btn-outline-info cancel" id="{{ $payment->or_no_prefix }}">Cancel Payment</a></td>
+      <tr style="cursor: pointer;">
+        <td id="{{ $payment->or_no_prefix }}" class="edit">{{ $payment->or_date }}</td>
+        <td id="{{ $payment->or_no_prefix }}" class="edit">{{ $payment->or_no_prefix }}</td>
+        <td id="{{ $payment->or_no_prefix }}" class="edit">{{ $payment->patient_name }}</td>
+        <td id="{{ $payment->or_no_prefix }}" class="edit">{{ $payment->discount }}</td>
+        <td id="{{ $payment->or_no_prefix }}" class="edit">{{ $payment->amount_paid }}</td>
+        <td id="{{ $payment->or_no_prefix }}" class="edit">{{ $payment->employee_name }}</td>
+        <td id="{{ $payment->or_no_prefix }}" class="edit">{{ $payment->status }}</td>
+        <td>
+          <a href="{{ route('collections.outpatient.print.pdf', [ '' => $payment->or_no_prefix ]) }}" class="btn btn-sm btn-outline-danger">Print Receipt</a> 
+          <a href="#" class="btn btn-sm btn-outline-info cancel" id="{{ $payment->or_no_prefix }}">Cancel Payment</a></td>
       </tr>
       @endforeach
     </tbody>
   </table>
-
 
 
 
@@ -83,10 +84,10 @@
     });
   </script> -->
 
-  <script type="text/javascript">
- 
+  <!-- <script type="text/javascript">
     $(document).on('click', '.print', function(){
-       var ids = $(this).attr('id');
+      var ids = $(this).attr('id');
+      var user_id = $('#user_id').val();
 
       alert('clicked print receipt button');
       alert(ids);
@@ -94,24 +95,20 @@
       $.ajax({
         type: "POST",
         url: "/collections/outpatient/print/pdf",
-        data: { id:ids },
+        data: { id:ids, user_id:user_id},
         dataType: "JSON",
         success: function(data) {
           console.log(data.id);
-
         }
       });
     });
 
-    $(document).on('click', '.edit', function(){
-      alert('clicked edit button');
-
-    });
-  </script>
+  </script> -->
 
   <script type="text/javascript">
    $(document).on('click', '.cancel', function(){
     var id = $(this).attr('id');
+    var user_id = $('#user_id').val();
 
     if(confirm('Are you sure you want to cancel this payment?')){
 
@@ -121,16 +118,39 @@
       $.ajax({
         type: "GET",
         url: "/collections/outpatient/cancel/payment",
-        data: {id:id},
+        data: {id:id, user_id:user_id},
         success:function(data){
           alert(data);
-
         }
       });
     }
-
-   });
+  });
   </script>
+
+
+<script type="text/javascript">
+  $(document).on('click', '.edit', function() {
+      var cid = $(this).attr('id');
+      var cval = $(this).text();
+      var user_id = $('#user_id').val();
+
+      alert(cid);
+      alert(cval);
+
+      $.ajax({
+        type: "GET",
+        url: "/collections/outpatient/payment/edit",
+        data: {id:id, user_id:user_id},
+        dataType: "JSON",
+        success:function(data){
+          console.log(data);
+
+        }
+      });
+  });
+   
+</script>
+
 
 </main>
 

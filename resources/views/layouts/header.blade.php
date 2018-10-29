@@ -10,31 +10,31 @@
 
     <title>VRH Cashier</title>
 
+    <!-- jQuery core JS -->
+    <script type="text/javascript" src="{{ asset('/js/jquery-3.3.1.js') }}"></script>
 
-    <!-- Google hosted library jQuery core JS -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!-- Bootstrap 4.1.3 core CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ asset('/css/bootstrap.min.css') }}">
 
+    <!-- Select2 core css -->
+    <link rel="stylesheet" type="text/css" href="{{ asset('/css/select2_4.0.6-rc.0.min.css') }}">
 
-    <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <!-- jQuery DataTables -->
+    <script type="text/javascript" src="{{ asset('/js/jquery-1.10.18.dataTables.min.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('/js/dataTables-1.10.18.bootstrap4.min.js') }}"></script>
 
-    <!-- jQuery Datatables -->
-    <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
-
-    <!-- Bootstrap Datatables -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css">
-
-
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-
+    <!-- Bootstrap DataTables -->.
+    <link rel="stylesheet" type="text/css" href="{{ asset('/css/dataTables-1.10.18.bootstrap4.min.css') }}">
+    
     <!-- Bootstrap Datepicker CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker3.min.css" />
-
+    <link rel="stylesheet" type="text/css" href="{{ asset('/css/bootstrap-datepicker-1.8.0.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('/css/bootstrap-datepicker3-1.8.0.min.css') }}">
 
     <!-- Custom styles for this template -->
     <link href="/css/dashboard.css" rel="stylesheet">
+
+
+    <link rel="stylesheet" type="text/css" href="{{ asset('/css/font.css') }}" />
 
 
      

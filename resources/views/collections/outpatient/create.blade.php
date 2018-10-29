@@ -8,14 +8,8 @@
     <h1 class="h2">Create Collections Outpatient</h1>
 
     <div class="btn-toolbar mb-2 mb-md-0">
-
-
-        
-
       <div class="btn-group mr-2">
-        <input  type="text" name="search_barcode" id="search_barcode" class="form-control form-control-sm"  placeholder="Charge Slip / Barcode" autofocus>
-        
-
+        <input  type="text" name="search_barcode" id="search_barcode" class="form-control form-control-sm"  placeholder="Charge Slip / Barcode" required autofocus>
       </div>  
 
       <div class="btn-group mr-2">
@@ -23,15 +17,13 @@
           Search
         </button>
       </div>
-
-      </div>
-
     </div>
+  </div>
 
-    <div class="alert alert-warning alert-dismissable" style="display: none">
-      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-        This charge slip was already paid.
-    </div>
+  <div class="alert alert-warning alert-dismissable" style="display: none">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+      This charge slip was already paid.
+  </div>
 
   <form action="/collections/outpatient/create/payment" method="post" >
     @csrf
@@ -47,7 +39,6 @@
         </a> -->
         <!-- <a href="{{ url('/collections/outpatient/print/pdf', ['' => 'P18-001028']) }}" class="btn btn-danger btn-sm">Print Receipt</a> -->
       </div>
-
     </div>
 
     <br />
@@ -77,23 +68,20 @@
 
 
     <div id="patient_name_field" class="form-group row">
-
       <div class="input-group">
         <label for="patient_name" class="col-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
-
         <div class="col-md-9">
-          <input type="text" name="patient_name" id="patient_name" value="" class="form-control form-contorl-sm">
+          <input type="text" name="patient_name" id="patient_name" value="" class="form-control form-contorl-sm" required>
         </div>
       </div>
-
     </div>
 
     <!-- OR Date/Number Control -->
     <div class="form-group row">
       <label for="ordate" class="col-md-1 col-form-label text-md-left">{{ __('OR Date') }}</label>
+
       <div class="col-md-2">
         <div class="input-group">
-
           <input id="ordate" type="text" class="form-control form-control-sm" name="ordate" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required autofocus>
           <!-- <div class="input-group-append">
             <i class="far fa-calendar-alt"></i>
@@ -104,23 +92,21 @@
       <label for="or_number" class="col-md-2 col-form-label text-md-left">{{ __('OR Number') }}</label>
 
       <div class="col-md-4">
+        @foreach ($or_number as $or)
+          @if ($loop->first)
+            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $or->orno + 1 }}" style="background-color:#99ccff!important;" required autofocus>
+            <input type="hidden" name="or_number_only" value="{{ $or->orno }}">
+          @endif
+        @endforeach
 
-
-      @foreach ($or_number as $or)
-        @if ($loop->first)
-          <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $or->orno + 1 }}" style="background-color:#99ccff!important;" required autofocus>
-          <input type="hidden" name="or_number_only" value="{{ $or->orno }}">
-
+        @if ($errors->has('or_number'))
+          <span class="invalid-feedback" role="alert">
+              <strong>{{ $errors->first('or_number') }}</strong>
+          </span>
         @endif
-      @endforeach
-
-          
-      @if ($errors->has('or_number'))
-        <span class="invalid-feedback" role="alert">
-            <strong>{{ $errors->first('or_number') }}</strong>
-        </span>
-      @endif
       </div>
+
+      
     </div>
 
 
@@ -134,7 +120,6 @@
           <option value="C" selected>Cash</option>
           <option value="X">Check</option>
         </select>
-     
       </div>
 
       <label for="payment_type" class="col-md-2 col-form-label text-md-left">{{ __('Type of Payment') }}</label>
@@ -150,29 +135,23 @@
         </select>
       </div>
 
-
       <label for="currency" class="col-md-1 col-form-label text-md-left">{{ __('Currency') }}</label>
-       <div class="col-md-3">
-          <select id="currency" class="form-control form-control-sm" name="currency">
-            <option value=""> </option>
-            <option value="DOLLA">Dollars</option>
-            <option value="OTHER">Others</option>
-            <option value="PESO" selected>Php</option>
-            <option value="YEN">Yen</option>
-          </select>
-        
+      <div class="col-md-3">
+        <select id="currency" class="form-control form-control-sm" name="currency">
+          <option value=""> </option>
+          <option value="DOLLA">Dollars</option>
+          <option value="OTHER">Others</option>
+          <option value="PESO" selected>Php</option>
+          <option value="YEN">Yen</option>
+        </select>
       </div>
-
-
     </div>
 
     <!-- Discount details  Currency Control --> 
     <div class="form-group row" style="margin-bottom:1px;">
       <label class="col-md-2 col-form-label text-md-left">{{ __('Discount details | ') }}</label>
       <label for="discount_percent" class="col-md-2 col-form-label text-md-left">{{ __('Discount (%)') }}</label>
-
       <div class="col-md-3">
-
         <select  id="discount_percent" class="form-control form-control-sm" name="discount_percent">
           <option value=" " selected> </option>
           <option value="SENIOR">Senior Citizen</option>
@@ -184,7 +163,6 @@
           <option value="50">50% Discount</option>
           <option value="75">75% Discount</option>
         </select>
-      
       </div>
 
       <div class="col-md-1">
@@ -231,9 +209,7 @@
                 <strong>{{ $errors->first('amount_paid') }}</strong>
             </span>
         @endif
-
       </div>
-
 
       <label for="amount_tendered" class="col-md-1 col-form-label text-md-left">{{ __('Amount Tendered') }}</label>
 
@@ -260,14 +236,13 @@
         @endif
       </div>
     </div>
+  </form>
 
- </form>
-
-<div class="form-group row">
-  <button type="button" name="update_charges" id="update_charges" class="btn btn-success btn-sm">
-    Update
-  </button>
-</div>
+  <div class="form-group row">
+    <button type="button" name="update_charges" id="update_charges" class="btn btn-success btn-sm">
+      Update
+    </button>
+  </div>
 
   <div class="table-responsive">
     <table id="invoice_table" class="table table-sm" style="width: 100%">
@@ -286,15 +261,13 @@
           <th>Status</th>
         </tr>
       </thead>
-     <tbody id="charge-info">
-       
-     </tbody>
+
+      <tbody id="charge-info">
+
+      </tbody>
     </table>
   </div>
-
 </main>
-
-
 
 <!-- CSRF TOKEN -->
 <script type="text/javascript">
@@ -304,7 +277,6 @@
     }
   });
 </script>
-
 
 <!-- Load Data button -->
 <script type="text/javascript">
@@ -317,13 +289,11 @@
           // alert($('#search_barcode').val());
           // $('#charge-info').empty().html(data);
           console.log(data);
-          }
-        }); // end of ajax
-       }); 
+        }
+      }); // end of ajax
+    }); 
   });
 </script>
-
-
 
 <!-- Post Data / Search Barcode button -->
 <script type="text/javascript">
@@ -333,16 +303,16 @@
       $.ajax({
         type: "POST",
         url: "/collections/outpatient/create/post_data",
-        data: {_token: CSRF_TOKEN, message:$("#search_barcode").val(), user_id:$("#user_id").val()},
+        data: { _token: CSRF_TOKEN, charge_slip:$("#search_barcode").val(), user_id:$("#user_id").val() },
         dataType: 'JSON',
         success: function(data){
           var is_paid = data.is_paid;
 
-          if(is_paid == 'yes'){
+          if (is_paid == 'yes') {
             $('.alert').show();
-          }
-          else{
 
+          }
+          else {
             $('#acctno').val(data.new_account_no);
 
             $.each(data.data, function(i, data){
@@ -410,26 +380,18 @@
                 $(content).appendTo('#charge-info');
 
               });
-
               content = '<tr><td colspan=8 align="right"><strong>Grand Total: </strong></td>';
               content += '<td colspan=1 align="right">' + Number(total_discount_value).toFixed(2) + '</td>';
               content += '<td colspan=1 align="right"><strong>' + Number(total).toFixed(2) + '</strong></td></tr>';
               $(content).appendTo('#charge-info');
 
               $('#amount_paid').val((total).toFixed(2));
-
           }
-
-
-          
-
         }
       }); 
     });
   });
 </script>
-
-
 
 <!-- Click apply discount all -->
 <script type="text/javascript">
@@ -439,7 +401,7 @@
       $.ajax({
         type: "POST",
         url: "/collections/outpatient/create/apply_discount_all",
-        data: {_token: CSRF_TOKEN, message:$("#search_barcode").val(), discount:$("#discount_percent").val()},
+        data: { _token: CSRF_TOKEN, charge_slip:$("#search_barcode").val(), discount:$("#discount_percent").val() },
         dataType: 'JSON',
         success: function(data){
 
@@ -452,7 +414,6 @@
           var total_discount_value = 0;
           var total = 0;
 
-
           if (discount == null || discount == '') {
             discount = 0.00;
           }
@@ -462,16 +423,15 @@
 
           $('#charge-info').empty();
           $.each(data.data, function(i, value){
-
-            // discount_value = Number(value.pcchrgamt * (discount/100));
             discount_value = Number(value.computed_discount);
-            // sub_total = Number(value.pcchrgamt - (value.pcchrgamt * (discount/100)));
             sub_total = Number(value.computed_sub_total);
+            // discount_value = Number(value.pcchrgamt * (discount/100));
+            // sub_total = Number(value.pcchrgamt - (value.pcchrgamt * (discount/100)));
 
             if (sub_total == null || sub_total == '') {
               sub_total = Number(value.pcchrgamt);
-
             }
+
             total_discount_value += discount_value;
             total += sub_total;
 
@@ -617,7 +577,7 @@
      $.ajax({
         type: "POST",
         url: "/collections/outpatient/create/update_data",
-        data: {_token: CSRF_TOKEN, message:$("#search_barcode").val(), discount:'0'},
+        data: {_token: CSRF_TOKEN, charge_slip:$("#search_barcode").val(), discount:'0'},
         dataType: "JSON",
         success: function(data) {
           // alert(data.discount_percent);
@@ -649,7 +609,7 @@
             content += '<td align="right">' + Number(discount).toFixed(2) + '</td>';
             content += '<td align="right">' + Number(discount_value).toFixed(2) + '</td>';
             content += '<td align="right">' + Number(sub_total).toFixed(2) + '</td>';
-            content += '<td>' + value.estatus + '</td></tr>';
+            content += '<td>' + value.invoice_status + '</td></tr>';
             $(content).appendTo('#charge-info');
 
           });
@@ -695,18 +655,10 @@
     var amount_paid = Number($('#amount_paid').val());
     var amount_tendered = Number($('#amount_tendered').val());
     var compute = 0;
-
     compute = amount_tendered - amount_paid;
-
     $('#change').val(Number(compute).toFixed(2));
-
-
-
-
-
   }
 </script>
-
 
 
 @endsection

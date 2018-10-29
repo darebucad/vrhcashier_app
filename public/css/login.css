@@ -1,0 +1,149 @@
+/*body{background: url('C:\laragon\www\vrhcashier_app\public\307730.jpg');}*/
+html,body{
+    position: relative;
+    height: 100%;
+    font-family: Arial;
+}
+
+.login-container{
+    position: relative;
+    width: 350px;
+    margin: 80px auto;
+    padding: 20px 40px 40px;
+    text-align: left;
+    background: #fff;
+    border: 1px solid #ccc;
+}
+
+#output{
+    position: absolute;
+    width: 250px;
+    top: -75px;
+    left: 0;
+    color: #fff;
+}
+
+#output.alert-success{
+    background: rgb(25, 204, 25);
+}
+
+#output.alert-danger{
+    background: rgb(228, 105, 105);
+}
+
+
+.login-container::before,.login-container::after{
+    content: "";
+    position: absolute;
+    width: 100%;height: 100%;
+    top: 3.5px;left: 0;
+    background: #fff;
+        z-index: -1;
+    -webkit-transform: rotateZ(4deg);
+    -moz-transform: rotateZ(4deg);
+    -ms-transform: rotateZ(4deg);
+    border: 2px solid #ccc;
+
+}
+
+.login-container::after{
+    top: 5px;
+    z-index: -2;
+    -webkit-transform: rotateZ(-2deg);
+     -moz-transform: rotateZ(-2deg);
+      -ms-transform: rotateZ(-2deg);
+
+}
+
+.avatar{
+   
+   }
+
+.form-box input{
+    width: 100%;
+    padding: 15px;
+    text-align: left;
+    height: 30px;
+    border: 2px solid #ccc;
+    background: white;
+    transition:0.2s ease-in-out;
+    margin-top: 3px;
+
+}
+
+.form-box input:focus{
+    outline: 0;
+    background: #eee;
+}
+
+.form-box input[type="text"]{
+    border-radius: 5px 5px;
+    text-transform: lowercase;
+  
+}
+
+.form-box input[type="password"]{
+    border-radius: 5px 5px;
+
+}
+
+.form-box input[type="checkbox"]{
+    height: 15px;
+
+}
+
+.form-box button.login{
+    margin-top: 10px;
+    padding: 0px 0px;
+    background-color:mediumseagreen;
+    height: 30px;
+}
+
+.animated {
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 20%;
+}
+
+@-webkit-keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    -webkit-transform: translateY(20px);
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    -webkit-transform: translateY(20px);
+    -ms-transform: translateY(20px);
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    -webkit-transform: translateY(0);
+    -ms-transform: translateY(0);
+    transform: translateY(0);
+  }
+}
+
+.fadeInUp {
+  -webkit-animation-name: fadeInUp;
+  animation-name: fadeInUp;
+}
