@@ -11,7 +11,7 @@
             @csrf
 
             <div class="form-group">
-                <center><h2 style="font-weight: bold;">Cashiering</h2></center>
+                <center><h2 style="font-weight: bold;">Cashiering - Localhost</h2></center>
             </div>
 
             <div class="form-group">

@@ -8,4 +8,4 @@
 </p>
 
 
-# added discount_name (VARCHAR(191)) column in hrxo table
+# MySQL Database - Localhost

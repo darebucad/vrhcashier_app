@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -16,13 +15,13 @@ use App\ViewPayment;
 use App\ViewPaymentSum;
 use App\ViewOutpatientChargeLab;
 use App\DoctorsOrder;
+use App\ViewPaymentMainOR;
 use App;
 
 use DataTables;
 use DB;
 use PDF;
 use NumberToWords\NumberToWords;
-
 use Carbon\Carbon;
 
 
@@ -41,7 +40,7 @@ class CollectionsOutpatientController extends Controller
 
     
     /**
-     * Display a listing of the resource.
+     * Display a listing of Out-Patient payments.
      *
      * @return \Illuminate\Http\Response
      */
@@ -56,8 +55,9 @@ class CollectionsOutpatientController extends Controller
         return view('collections.outpatient.index')->with('payments', $payments);
     }
 
+
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new Out-Patient payment.
      *
      * @return \Illuminate\Http\Response
      */
@@ -68,10 +68,12 @@ class CollectionsOutpatientController extends Controller
         $or_number = Payment::select('orno')->where('id', $user_id)->orderByRaw('created_at DESC')->count();
 
         if ( $or_number == 0 ) {
-            $or_number = Payment::select('orno')->orderByRaw('created_at DESC')->get();
+            // $or_number = Payment::select('orno')->orderByRaw('created_at DESC')->get();
+            $or_number = ViewPaymentMainOR::select('orno','or_prefix')->get();
+
         }
         else {
-            $or_number = Payment::select('orno')->where('id', $user_id)->orderByRaw('created_at DESC')->get();
+            $or_number = ViewPaymentMainOR::select('orno','or_prefix')->where('id', $user_id)->get();
         }
 
         return view('collections.outpatient.create')->with('or_number', $or_number);

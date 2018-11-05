@@ -60,7 +60,6 @@ class CollectionsOtherController extends Controller
                 ->get();
         }
 
-
         $patient_names = PaymentOther::select('patient_name')->get();
 
         return view('collections.other.create', compact('payments', 'patient_names'));

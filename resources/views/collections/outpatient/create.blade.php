@@ -83,6 +83,7 @@
       <div class="col-md-2">
         <div class="input-group">
           <input id="ordate" type="text" class="form-control form-control-sm" name="ordate" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required autofocus>
+
           <!-- <div class="input-group-append">
             <i class="far fa-calendar-alt"></i>
           </div> -->
@@ -94,7 +95,16 @@
       <div class="col-md-4">
         @foreach ($or_number as $or)
           @if ($loop->first)
-            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $or->orno + 1 }}" style="background-color:#99ccff!important;" required autofocus>
+
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">{{ $or->or_prefix . ' - ' }}</span>
+              </div>
+
+              <input id="or_number" type="text" class="form-control" name="or_number" value="{{ $or->orno + 1 }}" style="background-color:#99ccff!important;" required autofocus>
+            </div>
+
+
             <input type="hidden" name="or_number_only" value="{{ $or->orno }}">
           @endif
         @endforeach
