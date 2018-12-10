@@ -37,4 +37,14 @@
 	</script>
 
 
+	<script>
+		$(document).ready(function () {
+			$('#or_date').datepicker({
+				format: "mm/dd/yyyy",
+				autoclose: true
+			});
+		});
+	</script>
+
+
   

@@ -134,7 +134,6 @@ class CollectionsOutpatientController extends Controller
 
 
         // return redirect('/collections/outpatient/print/pdf', ['' => $charge_slip]);
-
         // $this->showPDF($charge_slip);
 
         return redirect('/collections/outpatient');

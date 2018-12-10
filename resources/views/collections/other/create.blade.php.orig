@@ -4,15 +4,15 @@
 
 <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+
 		<h1 class="h2">Create Collections Other</h1>
-
-  		@if (session('status'))
-          <div class="alert alert-success" role="alert">
-              {{ session('status') }}
-          </div>
-  		@endif
-
+		@if (session('status'))
+        <div class="alert alert-success" role="alert">
+            {{ session('status') }}
+        </div>
+		@endif
 		<div class="btn-toolbar mb-2 mb-md-0">
+
 		  <div class="btn-group mr-2">
 		    <button class="btn btn-sm btn-outline-secondary">Share</button>
 		    <button class="btn btn-sm btn-outline-secondary">Export</button>
@@ -21,17 +21,24 @@
 		    <span data-feather="calendar"></span>
 		    This week
 		  </button>
+
 		</div>
 	</div>
 
-  <!-- <form action="/collections/other/create/payment" method="post" > -->
-  <form>
-
+  <form action="/collections/other/create/payment" method="post" >
     @csrf
 
     <div class="row" style="margin-top:10px;">
       <button class="btn btn-sm btn-primary" id="btn_save">Save</button>
         <p id="button-cancel">or <a class="btn-link" href="{{ url('collections/other') }}">Cancel</a></p>
+
+       <div class="col-md-4 offset-md-4">
+        <!-- <a href = "{{ url('/collections/outpatient/print/pdf') }}" class="btn btn-sm btn-outline-danger">
+          <span data-feather="calendar"></span>
+          Print Receipt
+        </a> -->
+        <!-- <a href="{{ url('/collections/outpatient/print/pdf', ['' => 'P18-001028']) }}" class="btn btn-danger btn-sm">Print Receipt</a> -->
+      </div>
     </div>
 
     <br />
@@ -60,33 +67,30 @@
 
 
 
-  	<div id="patient_name_field" class="form-group row">
-  		<div class="input-group">
-  			<label class="col-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
+	<div id="patient_name_field" class="form-group row">
+		<div class="input-group">
+			<label class="col-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
 
-  			<div class="col-md-9">
-  				<select id="patient_name" class="form-control form-control-sm" required>
-  					<option></option>
-
-    					@foreach($patient_names as $name)
-    						<option value="{{ $name->patient_name }}">{{ $name->patient_name }}</option>
-
-    					@endforeach
-
-  				</select>
-  			</div>
-  		</div>
-  	</div>
+			<div class="col-md-9">
+				<select id="patient_name" class="form-control form-control-sm" required>
+					<option></option>
+					@foreach($patient_names as $name)
+						<option value="{{ $name->patient_name }}">{{ $name->patient_name }}</option>
+					@endforeach
+				</select>
+			</div>
+		</div>
+	</div>
 
     
 
     <!-- OR Date/Number Control -->
     <div class="form-group row">
-      <label for="or_date" class="col-md-1 col-form-label text-md-left">{{ __('OR Date') }}</label>
+      <label for="ordate" class="col-md-1 col-form-label text-md-left">{{ __('OR Date') }}</label>
 
       <div class="col-md-2">
         <div class="input-group">
-          <input id="or_date" type="text" class="form-control form-control-sm" name="or_date" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required autofocus>
+          <input id="ordate" type="text" class="form-control form-control-sm" name="ordate" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required autofocus>
           <!-- <div class="input-group-append">
             <i class="far fa-calendar-alt"></i>
           </div> -->
@@ -98,23 +102,20 @@
       <div class="col-md-4">
 
       	@if (count($payments) === 1)
-          @foreach ($payments as $payment)
-            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '-' . $payment->next_or_number }}" style="background-color:#99ccff!important;" required autofocus>
+      		@foreach ($payments as $payment)
+			<input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '-' . $payment->next_or_number }}" style="background-color:#99ccff!important;" required autofocus>
             <input type="hidden" name="or_number_only" value="{{ $payment->next_or_number }}">
         	@endforeach
-
-    		@else
-    			<input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ '0000001' }}" style="background-color:#99ccff!important;" required autofocus>
-          <input type="hidden" name="or_number_only" value="{{ '0000001' }}">
-
-    		@endif
+		@else
+			<input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ '0000001' }}" style="background-color:#99ccff!important;" required autofocus>
+            <input type="hidden" name="or_number_only" value="{{ '0000001' }}">
+		@endif
 
         @if ($errors->has('or_number'))
           <span class="invalid-feedback" role="alert">
               <strong>{{ $errors->first('or_number') }}</strong>
           </span>
         @endif
-
       </div>
     </div>
 
@@ -122,6 +123,7 @@
     <!-- Mode/Type of payment Control -->
 
     <div class="form-group row" style="margin-bottom:1px;">
+
   		<label for="payment_mode" class="col-md-2 col-form-label text-md-left">{{ __('Mode of Payment') }}</label>
 
   		<div class="col-md-3">
@@ -151,6 +153,7 @@
     </div>
 
     <div class="form-group row" style="margin-bottom:1px;">
+
     	<label for="payment_type" class="col-md-2 col-form-label text-md-left">{{ __('Type of Payment') }}</label>
 		
       <div class="col-md-3">
@@ -164,6 +167,7 @@
   			</select>
   		</div>
 
+		
 		  <label for="discount_computation" class="col-md-2 col-form-label text-md-left">{{ __('Discount Computation') }}</label>
       
       <div class="col-md-3">
@@ -268,7 +272,7 @@
           <th style="width:10%">Discount (%)</th>
           <th style="width:10%">Discount Value</th>
           <th style="width:10%">Sub-total</th>
-          <th style="width:5%">Action</th>
+          <th style="width:5%"> </th>
         </tr>
       </thead>
 
@@ -286,27 +290,23 @@
 	$(document).ready(function() {
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
     var table = $('#invoice_table');
-    var newRow = '';  
+    var current_row = $(this).closest('tr');
 
-    var current_row = $('#invoice_table tr')
-    var rowNum = 0;
-     
-
+    var newRow = '';   
 
     $('#add_row').click(function(event) {
       event.preventDefault();
       newRow = 
-      	'<tr id=' + rowNum + ' class="payment_values">' +
+      	'<tr>' +
         '<td style="width:5%"><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="" checked></td>' +
         '<td style="width:5%"><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="" disabled></td>' +
         '<td style="width:45%"><select class="products form-control form-control-sm" style="width:100%"><option> </option></select></td>' +
         '<td style="width:10%" align="right"><input type="text" name="quantity[]" class="quantity form-control form-control-sm" style="width:100%; text-align: right" value="1.00"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="unit_cost[]" class="unit_cost form-control form-control-sm"style="width:100%; text-align: right"></td>' +
-        '<td style="width:10%" align="right"><input type="text" name="discount_percent[]" class="discount_percent form-control form-control-sm" style="width:100%; text-align: right"></td>' +
-        '<td style="width:10%" align="right"><input type="text" name="discount_value[]" class="discount_value form-control form-control-sm" style="width:100%; text-align: right"></td>' +
+        '<td style="width:10%" align="right"><input type="text" name="discount_percent[]" class="discount_percent form-control form-control-sm" style="width:100%"></td>' +
+        '<td style="width:10%" align="right"><input type="text" name="discount_value[]" class="discount_value form-control form-control-sm" style="width:100%"></td>' +
         '<td style="width:10%"><input type="text" name="sub_total[]" class="sub_total form-control form-control-sm" style="width:100%"></td>' +
-        '<td style="width:5%"><a href="#" class="delete-rows" id="delete_row"><span data-feather="trash-2"></span>Delete</a></td>'+
-        '<td style="width:5%"><a href="#" class="select-rows" id="select_row">Select</a></td>'
+        '<td style="width:5%"><a href="#" class="delete-rows" id="delete_row"> Delete</a></td>'+
         '</tr>';
 
       $.ajax({
@@ -322,14 +322,15 @@
             placeholder: "Select a product",
             minimumResultsForSearch: 20, // at least 20 results must be displayed
             allowClear:true
+
           });
         }
       });    
 
       table.prepend(newRow);
 
-      rowNum = rowNum + 1;
     });
+
 
     table.on('click', '#delete_row', function() {
       $(this).closest('tr').remove();
@@ -337,172 +338,32 @@
     });
 
     $('tbody').delegate('.products', 'select2:select', function(){
-      var id = $(this).val();
-      var row_id = $(this).closest('tr').attr('id');
+      var qty = $(this).closest('tr').find('.quantity').val();
+      var uc = $(this).closest('tr').find('.unit_cost').val();
 
       $.ajax({
         type: "GET",
         url: "/collections/other/get_latest_price",
-        data: { _token: CSRF_TOKEN, id: id, row_id: row_id },
+        data: { _token: CSRF_TOKEN, id: $(this).val() },
         dataType: "JSON",
         success: function(data){
-          var price = "";
-          var row_id = data.row_id;
-
           console.log(data);
-          // alert(data.row_id);
 
           $.each(data.data, function(i, data){
 
-            price = Number(data.selling_price);
-            quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
-            sub_total = price * quantity;
-   
+            alert(data.item_code);
+            alert(data.selling_price);
 
-            $('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val(price);
+            var col1 = table.find('#3').text();
 
-            $('#invoice_table').find('tr#' + row_id).find('.sub_total').val(sub_total);
-           
+            var data = col1;
+            alert(data);
+
+            
           })
         }
       });
     });
-
-
-
-  
-    $("#invoice_table tbody tr").on('input', '.quantity', function () {
-      var calculated_total_sum = 0;
-
-      $("#invoice_table tbody tr .quantity").each(function () {
-        var get_textbox_value = $(this).val();
-
-        if ($.isNumeric(get_textbox_value)) {
-          calculated_total_sum += parseFloat(get_textbox_value);
-
-        }    
-      });
-      $("#invoice_table tbody tr .sub_total").html(calculated_total_sum);
-
-
-    });
-
-
-
-    $('#btn_save').click(function(event){
-      event.preventDefault();
-      alert('button save');
-
-      var patient_name_value = $('#patient_name').val();
-      var or_date_value = $('#or_date').val();
-      var user_id_value = $('#user_id').val();
-      var prefix_or_number_value = $('#or_number').val();
-      var payment_mode_value = $('#payment_mode').val();
-      var discount_percent_value = $('#discount_percent').val();
-      var currency_value = $('#currency').val();
-      var payment_type_value = $('#payment_type').val();
-      var discount_computation_value = $('#discount_computation').val();
-      var amount_paid_value = $('#amount_paid').val();
-      var amount_tendered_value = $('#amount_tendered').val();
-      var change_value =  $('#change').val();
-
-      var arrData=[];
-
-      //loop over each  table row (tr)
-      $('.payment_values').each(function(){
-        var current_row = $(this);
-
-        var product_id_value = current_row.find('.products').val();
-        var quantity_value = current_row.find('.quantity').val();
-        var unit_cost_value = current_row.find('.unit_cost').val();
-        var discount_percent_value = current_row.find('.discount_percent').val();
-        var discount_value_value = current_row.find('.discount_value').val();
-        var sub_total_value = current_row.find('.sub_total').val(); 
-
-
-        var obj = {};
-        obj.prefix_or_number = prefix_or_number_value;
-        // obj.or_number = 
-        obj.or_date = or_date_value;
-        obj.patient_name = patient_name_value;
-        obj.unit_cost = unit_cost_value;
-        obj.quantity = quantity_value;
-        obj.sub_total = sub_total_value;
-        obj.currency_code = currency_value;
-        obj.payment_type = payment_type_value;
-        obj.payment_mode = payment_mode_value;
-        obj.item_code = product_id_value;
-        obj.user_id = user_id_value;
-        obj.discount_percent = discount_percent_value;
-        obj.discount_computation = discount_computation_value;
-        obj.discount_value = discount_value_value;
-        obj.amount_paid = amount_paid_value;
-        obj.amount_tendered = amount_tendered_value;
-        obj.amount_change = change_value;
-        
-        arrData.push(obj);
-
-      });
-
-      alert(arrData);
-      console.log(arrData);
-
-      
-      var date = new Date()
-      var month = date.getMonth()+1;
-      var day = date.getDate();
-      var output = date.getFullYear() + '/' +
-      (('' + month).length < 2 ? '0' : '') + month + '/' +
-      (('' + day).length < 2 ? '0' : '') + day;
-
-      console.log(output);
-      //Thu May 19 2011 17:25:38 GMT+1000 {} 
-      //2018/12/07
-
-
-
-
-      // $.ajax({
-      //   type: "POST",
-      //   url: "/collections/other/store_payment",
-      //   data: { _token: CSRF_TOKEN, data: arrData },
-      //   dataType: "JSON",
-      //   success: function(data){
-      //     alert(data);
-      //     console.log(data);
-
-      //   }
-      // });
-
-
-    });
-
-
-    $('#invoice_table').on('click', '.select-rows', function(){
-      var current_row = $(this).closest('tr');
-      var product_id = current_row.find('.products').val();
-      var quantity = current_row.find('.quantity').val();
-      var unit_cost = current_row.find('.unit_cost').val();
-      var discount_percent = current_row.find('.discount_percent').val();
-      var discount_value = current_row.find('.discount_value').val();
-      var sub_total = current_row.find('.sub_total').val();
-
-      var data = 'product id: ' + product_id + '\n' + 
-                  'quantity: ' + quantity + '\n' + 
-                  'unit cost: ' + unit_cost + '\n' +
-                  'discount percent: ' + discount_percent + '\n' +
-                  'discount value: ' + discount_value + '\n' +
-                  'sub total: ' + sub_total + '\n';
-    
-      alert(data);
-      console.log(data);
-
-
-
-
-    })
-
-
 
 
   }); // $.(document).ready(function(){})
@@ -532,10 +393,18 @@
   $(document).ready(function(){
     // code to read selected table row cell data (values).
     $('#invoice_table').on('click', '#btn_save', function(){
+
       var current_row = $(this).closest('tr');
 
+
     })
+
+
+    
+    
+
   });
 </script>
+
 
 @endsection

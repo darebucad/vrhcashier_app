@@ -65,10 +65,13 @@ Route::get('/collections/other', 'CollectionsOtherController@index')->name('coll
 Route::get('collections/other/create/{id}', 'CollectionsOtherController@create')->name('collections.other.create');
 
 
+Route::get('collections/other/show_products', 'CollectionsOtherController@showProducts')->name('collections.other.show_products');
 
 
+Route::get('collections/other/get_latest_price', 'CollectionsOtherController@getLatestPrice')->name('collections.get_latest_price');
 
 
+Route::post('collections/other/store_payment', 'CollectionsOtherController@storePayment')->name('collections.store_payment');
 
 
 // Collections Inpatient

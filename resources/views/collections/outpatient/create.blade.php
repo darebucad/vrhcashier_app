@@ -337,6 +337,7 @@
               $('#confdl').val('N');
               $('#payctr').val('0');
               $('#status').val('For Payment');
+              
             });
 
             console.log(data);
