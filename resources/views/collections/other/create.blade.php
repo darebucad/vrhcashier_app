@@ -78,7 +78,7 @@
   		</div>
   	</div>
 
-    
+
 
     <!-- OR Date/Number Control -->
     <div class="form-group row">
@@ -152,7 +152,7 @@
 
     <div class="form-group row" style="margin-bottom:1px;">
     	<label for="payment_type" class="col-md-2 col-form-label text-md-left">{{ __('Type of Payment') }}</label>
-		
+
       <div class="col-md-3">
   			<select id="payment_type" class="form-control form-control-sm" name="payment_type">
   				<option value=""> </option>
@@ -165,7 +165,7 @@
   		</div>
 
 		  <label for="discount_computation" class="col-md-2 col-form-label text-md-left">{{ __('Discount Computation') }}</label>
-      
+
       <div class="col-md-3">
         <select name="discount_computation" id="discount_computation" class="form-control form-control-sm">
           <option value=" "> </option>
@@ -208,7 +208,7 @@
 
     </div>
 
-    
+
 
     <!-- Amount paid  Amount tendered  Change Control  -->
     <div class="form-group row">
@@ -286,16 +286,16 @@
 	$(document).ready(function() {
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
     var table = $('#invoice_table');
-    var newRow = '';  
+    var newRow = '';
 
     var current_row = $('#invoice_table tr')
     var rowNum = 0;
-     
+
 
 
     $('#add_row').click(function(event) {
       event.preventDefault();
-      newRow = 
+      newRow =
       	'<tr id=' + rowNum + ' class="payment_values">' +
         '<td style="width:5%"><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="" checked></td>' +
         '<td style="width:5%"><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="" disabled></td>' +
@@ -324,7 +324,7 @@
             allowClear:true
           });
         }
-      });    
+      });
 
       table.prepend(newRow);
 
@@ -349,6 +349,7 @@
           var price = "";
           var row_id = data.row_id;
 
+
           console.log(data);
           // alert(data.row_id);
 
@@ -357,12 +358,13 @@
             price = Number(data.selling_price);
             quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
             sub_total = price * quantity;
-   
+						amount_paid = Number($('#amount_paid').val());
 
-            $('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val(price);
+            $('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val(Number(price).toFixed(2));
+            $('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+							amount_paid = amount_paid + price;
+						$('#amount_paid').val(Number(amount_paid).toFixed(2));
 
-            $('#invoice_table').find('tr#' + row_id).find('.sub_total').val(sub_total);
-           
           })
         }
       });
@@ -370,19 +372,19 @@
 
 
 
-  
-    $("#invoice_table tbody tr").on('input', '.quantity', function () {
+
+    $("#invoice_table .payment_values").on('input', '.quantity', function () {
       var calculated_total_sum = 0;
 
-      $("#invoice_table tbody tr .quantity").each(function () {
+      $("#invoice_table .quantity").each(function () {
         var get_textbox_value = $(this).val();
 
         if ($.isNumeric(get_textbox_value)) {
           calculated_total_sum += parseFloat(get_textbox_value);
 
-        }    
+        }
       });
-      $("#invoice_table tbody tr .sub_total").html(calculated_total_sum);
+      $("#invoice_table .sub_total").val(calculated_total_sum);
 
 
     });
@@ -392,6 +394,13 @@
     $('#btn_save').click(function(event){
       event.preventDefault();
       alert('button save');
+
+	    var date = new Date();
+	    var month = date.getMonth()+1;
+	    var day = date.getDate();
+			var hour = date.getHours();
+			var minute = date.getMinutes();
+			var second = date.getSeconds();
 
       var patient_name_value = $('#patient_name').val();
       var or_date_value = $('#or_date').val();
@@ -404,25 +413,27 @@
       var discount_computation_value = $('#discount_computation').val();
       var amount_paid_value = $('#amount_paid').val();
       var amount_tendered_value = $('#amount_tendered').val();
-      var change_value =  $('#change').val();
+      var amount_change_value =  $('#change').val();
+
+			var created_at_value = date.getFullYear() + '-' +
+					(('' + month).length < 2 ? '0' : '') +
+					month + '-' + (('' + day).length < 2 ? '0' : '') + day +
+					' ' + hour + ':' + minute + ':' + second;
 
       var arrData=[];
 
       //loop over each  table row (tr)
       $('.payment_values').each(function(){
         var current_row = $(this);
-
         var product_id_value = current_row.find('.products').val();
         var quantity_value = current_row.find('.quantity').val();
         var unit_cost_value = current_row.find('.unit_cost').val();
         var discount_percent_value = current_row.find('.discount_percent').val();
         var discount_value_value = current_row.find('.discount_value').val();
-        var sub_total_value = current_row.find('.sub_total').val(); 
-
-
+        var sub_total_value = current_row.find('.sub_total').val();
         var obj = {};
+
         obj.prefix_or_number = prefix_or_number_value;
-        // obj.or_number = 
         obj.or_date = or_date_value;
         obj.patient_name = patient_name_value;
         obj.unit_cost = unit_cost_value;
@@ -438,42 +449,26 @@
         obj.discount_value = discount_value_value;
         obj.amount_paid = amount_paid_value;
         obj.amount_tendered = amount_tendered_value;
-        obj.amount_change = change_value;
-        
+        obj.amount_change = amount_change_value;
+				obj.created_at = created_at_value;
         arrData.push(obj);
 
       });
 
       alert(arrData);
       console.log(arrData);
+      console.log(created_at_value);
 
-      
-      var date = new Date()
-      var month = date.getMonth()+1;
-      var day = date.getDate();
-      var output = date.getFullYear() + '/' +
-      (('' + month).length < 2 ? '0' : '') + month + '/' +
-      (('' + day).length < 2 ? '0' : '') + day;
-
-      console.log(output);
-      //Thu May 19 2011 17:25:38 GMT+1000 {} 
-      //2018/12/07
-
-
-
-
-      // $.ajax({
-      //   type: "POST",
-      //   url: "/collections/other/store_payment",
-      //   data: { _token: CSRF_TOKEN, data: arrData },
-      //   dataType: "JSON",
-      //   success: function(data){
-      //     alert(data);
-      //     console.log(data);
-
-      //   }
-      // });
-
+      $.ajax({
+        type: "POST",
+        url: "/collections/other/store_payment",
+        data: { _token: CSRF_TOKEN, data: arrData },
+        dataType: "JSON",
+        success: function(data){
+          alert(data);
+          console.log(data);
+        }
+      });
 
     });
 
@@ -487,20 +482,17 @@
       var discount_value = current_row.find('.discount_value').val();
       var sub_total = current_row.find('.sub_total').val();
 
-      var data = 'product id: ' + product_id + '\n' + 
-                  'quantity: ' + quantity + '\n' + 
+      var data = 'product id: ' + product_id + '\n' +
+                  'quantity: ' + quantity + '\n' +
                   'unit cost: ' + unit_cost + '\n' +
                   'discount percent: ' + discount_percent + '\n' +
                   'discount value: ' + discount_value + '\n' +
                   'sub total: ' + sub_total + '\n';
-    
+
       alert(data);
       console.log(data);
 
-
-
-
-    })
+    });
 
 
 
@@ -509,11 +501,11 @@
 </script>
 
 <script>
-	$(document).ready(function() { 
+	$(document).ready(function() {
 		$("#patient_name").select2({
 			placeholder: 'Select a patient name',
 			allowClear:true,
-		}); 
+		});
 	});
 
 </script>

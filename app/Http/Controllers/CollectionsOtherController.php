@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
- 
+
 use App\PaymentOther;
 use App\Setup;
 use App\ViewPaymentORNumber;
@@ -14,7 +14,7 @@ use App\ViewProducts;
 
 class CollectionsOtherController extends Controller
 {
-    
+
     /**
      * Create a new controller instance.
      *
@@ -38,7 +38,7 @@ class CollectionsOtherController extends Controller
         ->get();
 
     	return view('collections.other.index', compact('payments'));
-    	
+
     }
 
 
@@ -82,7 +82,7 @@ class CollectionsOtherController extends Controller
 
         $response = array(
             'data'  =>  $drugs
-           
+
         );
         return response()->json($response);
     }
@@ -116,6 +116,8 @@ class CollectionsOtherController extends Controller
 
     }
 
+
+
     /**
      * Store a newly created other collection payment.
      *
@@ -125,38 +127,38 @@ class CollectionsOtherController extends Controller
     public function storePayment(Request $request) {
         $json_data = $request->data;
         $counter = 0;
-        // $converted_data = json_decode($json_data);
 
-        foreach($json_data as $item) { 
-
+        foreach($json_data as $item) {
             $data = array(
                 'prefix_or_number' => $item['prefix_or_number'],
-                'or_number' => $item['prefix_or_number'],
+                'or_number' => substr($item['prefix_or_number'], 2),
                 'patient_name' => $item['patient_name'],
                 'unit_cost' => $item['unit_cost'],
                 'quantity' => $item['quantity'],
                 'sub_total' => $item['sub_total'],
+                'currency_code' => $item['currency_code'],
+                'payment_type' => $item['payment_type'],
+                'payment_mode' => $item['payment_mode'],
                 'payment_counter' => $counter,
                 'charge_code' => '',
                 'charge_table' => '',
                 'item_code' => $item['item_code'],
-                'id' => $item['user_id']
+                'id' => $item['user_id'],
+                'payment_status' => 'Paid',
+                'amount_paid' => $item['amount_paid'],
+                'amount_tendered' => $item['amount_tendered'],
+                'amount_change' => $item['amount_change'],
+                'created_at' => $item['created_at']
 
             );
-
             PaymentOther::insert($data);
             $counter = $counter + 1;
-
         }
-
 
         $response = array(
             'data' => $json_data
-
         );
-
         return response()->json($response);
-
     }
 
     /**
