@@ -287,11 +287,8 @@
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
     var table = $('#invoice_table');
     var newRow = '';
-
     var current_row = $('#invoice_table tr')
     var rowNum = 0;
-
-
 
     $('#add_row').click(function(event) {
       event.preventDefault();
@@ -304,7 +301,7 @@
         '<td style="width:10%" align="right"><input type="text" name="unit_cost[]" class="unit_cost form-control form-control-sm"style="width:100%; text-align: right"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="discount_percent[]" class="discount_percent form-control form-control-sm" style="width:100%; text-align: right"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="discount_value[]" class="discount_value form-control form-control-sm" style="width:100%; text-align: right"></td>' +
-        '<td style="width:10%"><input type="text" name="sub_total[]" class="sub_total form-control form-control-sm" style="width:100%"></td>' +
+        '<td style="width:10%"><input type="text" name="sub_total[]" class="sub_total form-control form-control-sm" style="width:100%; text-align: right"></td>' +
         '<td style="width:5%"><a href="#" class="delete-rows" id="delete_row"><span data-feather="trash-2"></span>Delete</a></td>'+
         '<td style="width:5%"><a href="#" class="select-rows" id="select_row">Select</a></td>'
         '</tr>';
@@ -336,6 +333,37 @@
 
     });
 
+		table.on('keydown', '.quantity', function(event){
+			var id = $(this).val();
+      var row_id = $(this).closest('tr').attr('id');
+			var sub_total_value = 0;
+
+			if(event.which == 13){
+				event.preventDefault();
+				alert('pressed');
+				alert(id);
+
+				price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
+				quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
+				sub_total = price * quantity;
+
+
+				$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+				$('#invoice_table').find('tr#'+ row_id).find('.quantity').val(Number(quantity).toFixed(2));
+
+				$('.payment_values').each(function(){
+					var current_row = $(this);
+					sub_total_value =  sub_total_value + Number(current_row.find('.sub_total').val());
+
+				})
+
+				$('#amount_paid').val(Number(sub_total_value).toFixed(2));
+		
+				console.log(sub_total);
+			}
+		});
+
+
     $('tbody').delegate('.products', 'select2:select', function(){
       var id = $(this).val();
       var row_id = $(this).closest('tr').attr('id');
@@ -349,12 +377,10 @@
           var price = "";
           var row_id = data.row_id;
 
-
           console.log(data);
           // alert(data.row_id);
 
           $.each(data.data, function(i, data){
-
             price = Number(data.selling_price);
             quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
             sub_total = price * quantity;
@@ -369,26 +395,6 @@
         }
       });
     });
-
-
-
-
-    $("#invoice_table .payment_values").on('input', '.quantity', function () {
-      var calculated_total_sum = 0;
-
-      $("#invoice_table .quantity").each(function () {
-        var get_textbox_value = $(this).val();
-
-        if ($.isNumeric(get_textbox_value)) {
-          calculated_total_sum += parseFloat(get_textbox_value);
-
-        }
-      });
-      $("#invoice_table .sub_total").val(calculated_total_sum);
-
-
-    });
-
 
 
     $('#btn_save').click(function(event){
