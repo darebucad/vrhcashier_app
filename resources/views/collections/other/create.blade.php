@@ -59,6 +59,10 @@
     <input type="hidden" name="pcchrgcod" id="pcchrgcod" value="">
 
 
+		<input type="hidden" name="charge_code" id="charge_code" value="">
+		<input type="hidden" name="charge_table" id="charge_table" value="">
+
+
 
   	<div id="patient_name_field" class="form-group row">
   		<div class="input-group">
@@ -328,6 +332,51 @@
       rowNum = rowNum + 1;
     });
 
+
+		$('tbody').delegate('.products', 'select2:select', function(){
+			var id = $(this).val();
+			var row_id = $(this).closest('tr').attr('id');
+
+			$.ajax({
+				type: "GET",
+				url: "/collections/other/get_latest_price",
+				data: { _token: CSRF_TOKEN, id: id, row_id: row_id },
+				dataType: "JSON",
+				success: function(data){
+					var price = "";
+					var row_id = data.row_id;
+
+					console.log(data);
+					// alert(data.row_id);
+
+					$.each(data.data, function(i, data){
+						price = Number(data.selling_price);
+						quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
+						sub_total = price * quantity;
+						amount_paid = Number($('#amount_paid').val());
+						charge_code = data.charge_code;
+						charge_table = data.charge_table;
+						discount_initial_value = Number(0.00);
+
+						$('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val(Number(price).toFixed(2));
+						$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+
+						$('#invoice_table').find('tr#'+ row_id).find('.discount_percent').val(discount_initial_value.toFixed(2));
+						$('#invoice_table').find('tr#'+ row_id).find('.discount_value').val(discount_initial_value.toFixed(2));
+							amount_paid = amount_paid + price;
+						$('#amount_paid').val(Number(amount_paid).toFixed(2));
+
+						$('#charge_code').val(charge_code);
+						$('#charge_table').val(charge_table);
+
+						// alert(charge_code +',,, ' + charge_table);
+
+					})
+				}
+			});
+		});
+
+
     table.on('click', '#delete_row', function() {
       $(this).closest('tr').remove();
 
@@ -340,7 +389,7 @@
 
 			if(event.which == 13){
 				event.preventDefault();
-				alert('pressed');
+				alert('pressed enter in quantity column');
 				alert(id);
 
 				price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
@@ -358,43 +407,47 @@
 				})
 
 				$('#amount_paid').val(Number(sub_total_value).toFixed(2));
-		
+
 				console.log(sub_total);
 			}
 		});
 
+		table.on('keydown', '.discount_percent', function(event){
+			var id = $(this).val();
+			var discount_percent = Number(id) / 100;
+			var row_id = $(this).closest('tr').attr('id');
+			var discount_value = 0;
+			var sub_total = 0;
 
-    $('tbody').delegate('.products', 'select2:select', function(){
-      var id = $(this).val();
-      var row_id = $(this).closest('tr').attr('id');
 
-      $.ajax({
-        type: "GET",
-        url: "/collections/other/get_latest_price",
-        data: { _token: CSRF_TOKEN, id: id, row_id: row_id },
-        dataType: "JSON",
-        success: function(data){
-          var price = "";
-          var row_id = data.row_id;
+			if(event.which == 13){
+				event.preventDefault();
+				alert('pressed enter in discount percent column');
+				alert(id);
 
-          console.log(data);
-          // alert(data.row_id);
+				price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
+				quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
 
-          $.each(data.data, function(i, data){
-            price = Number(data.selling_price);
-            quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
-            sub_total = price * quantity;
-						amount_paid = Number($('#amount_paid').val());
+				sub_total = price * quantity;
 
-            $('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val(Number(price).toFixed(2));
-            $('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
-							amount_paid = amount_paid + price;
-						$('#amount_paid').val(Number(amount_paid).toFixed(2));
+				discount_value = sub_total * discount_percent;
 
-          })
-        }
-      });
-    });
+				discount_percent = discount_percent * 100
+
+
+				$('#invoice_table').find('tr#'+ row_id).find('.discount_percent').val(discount_percent.toFixed(2));
+				$('#invoice_table').find('tr#'+ row_id).find('.discount_value').val(Number(discount_value).toFixed(2));
+
+				sub_total = sub_total - discount_value;
+
+				$('#invoice_table').find('tr#'+ row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+
+
+			}
+
+		});
+
+
 
 
     $('#btn_save').click(function(event){
@@ -420,6 +473,8 @@
       var amount_paid_value = $('#amount_paid').val();
       var amount_tendered_value = $('#amount_tendered').val();
       var amount_change_value =  $('#change').val();
+			var charge_code_value = $('#charge_code').val();
+			var charge_table_value = $('#charge_table').val();
 
 			var created_at_value = date.getFullYear() + '-' +
 					(('' + month).length < 2 ? '0' : '') +
@@ -457,6 +512,8 @@
         obj.amount_tendered = amount_tendered_value;
         obj.amount_change = amount_change_value;
 				obj.created_at = created_at_value;
+				obj.charge_code = charge_code_value;
+				obj.charge_table = charge_table_value;
         arrData.push(obj);
 
       });

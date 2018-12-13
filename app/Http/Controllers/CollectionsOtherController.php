@@ -77,12 +77,10 @@ class CollectionsOtherController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function showProducts(Request $request){
-        $drugs = ViewProducts::select('item_code AS id', 'description AS text')
-            ->get();
+        $drugs = ViewProducts::select('item_code AS id', 'description AS text')->get();
 
         $response = array(
             'data'  =>  $drugs
-
         );
         return response()->json($response);
     }
@@ -101,7 +99,7 @@ class CollectionsOtherController extends Controller
         $pad_string = "0";
         $pad_output = str_pad($item_code, $pad_length, $pad_string, STR_PAD_LEFT);
 
-        $drugs = ViewProducts::select('item_code', 'selling_price')
+        $drugs = ViewProducts::select('item_code', 'selling_price', 'charge_code', 'charge_table')
                     ->where('item_code', str_pad($item_code, $pad_length, $pad_string, STR_PAD_LEFT))
                     ->get();
 
@@ -115,8 +113,6 @@ class CollectionsOtherController extends Controller
         return response()->json($response);
 
     }
-
-
 
     /**
      * Store a newly created other collection payment.
@@ -140,8 +136,8 @@ class CollectionsOtherController extends Controller
                 'payment_type' => $item['payment_type'],
                 'payment_mode' => $item['payment_mode'],
                 'payment_counter' => $counter,
-                'charge_code' => '',
-                'charge_table' => '',
+                'charge_code' => $item['charge_code'],
+                'charge_table' => $item['charge_table'],
                 'item_code' => $item['item_code'],
                 'id' => $item['user_id'],
                 'payment_status' => 'Paid',
