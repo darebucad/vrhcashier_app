@@ -25,7 +25,7 @@
 	</div>
 
   <!-- <form action="/collections/other/create/payment" method="post" > -->
-  <form>
+  <form id="collections_other">
 
     @csrf
 
@@ -64,25 +64,31 @@
 
 
 
+
+		<!-- Patient name control-->
   	<div id="patient_name_field" class="form-group row">
   		<div class="input-group">
   			<label class="col-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
 
   			<div class="col-md-9">
-  				<select id="patient_name" class="form-control form-control-sm" required>
+  				<!-- <select id="patient_name" class="form-control form-control-sm" required>
   					<option></option>
-
     					@foreach($patient_names as $name)
     						<option value="{{ $name->patient_name }}">{{ $name->patient_name }}</option>
-
     					@endforeach
+  				</select> -->
+					<input type="text" name="patient_name" value="" id ="patient_name" class="form-control form-control-sm">
 
-  				</select>
   			</div>
+
+				<div class="col-md-2">
+					<a class="nav-link disabled" href="#" id="create_new">
+						<span data-feather="save"></span>
+						Create New <span class="sr-only"></span>
+					</a>
+				</div>
   		</div>
   	</div>
-
-
 
     <!-- OR Date/Number Control -->
     <div class="form-group row">
@@ -100,7 +106,6 @@
       <label for="or_number" class="col-md-2 col-form-label text-md-left">{{ __('OR Number') }}</label>
 
       <div class="col-md-4">
-
       	@if (count($payments) === 1)
           @foreach ($payments as $payment)
             <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '-' . $payment->next_or_number }}" style="background-color:#99ccff!important;" required autofocus>
@@ -189,11 +194,11 @@
 		<label for="currency" class="col-md-2 col-form-label text-md-left">{{ __('Currency') }}</label>
 		<div class="col-md-3">
 	        <select id="currency" class="form-control form-control-sm" name="currency">
-				<option value=""> </option>
-				<option value="DOLLA">Dollars</option>
-				<option value="OTHER">Others</option>
-				<option value="PESO" selected>Php</option>
-				<option value="YEN">Yen</option>
+						<option value=""> </option>
+						<option value="DOLLA">Dollars</option>
+						<option value="OTHER">Others</option>
+						<option value="PESO" selected>Php</option>
+						<option value="YEN">Yen</option>
 	        </select>
 		</div>
 
@@ -281,6 +286,11 @@
       		<td colspan="9"><a href="#" title="" class="add-rows" id="add_row">Add an item</a></td>
       	</tr>
 
+				<tr>
+					<td colspan="7" align="right">Total: </td>
+					<td colspan="2" align="left">1,000.00</td>
+
+				</tr>
       </tbody>
     </table>
   </div>
@@ -294,12 +304,31 @@
     var current_row = $('#invoice_table tr')
     var rowNum = 0;
 
+
+// 		var preload_data = {
+// 				results: [{
+// 						id: 'user0',
+// 						text: 'Disabled User',
+// 				}, {
+// 						id: 'user1',
+// 						text: 'Jane Doe'
+// 				}]
+// 		};
+//
+// 	$('#patient_name').select2({
+// 		data: preload_data,
+// 		placeholder: 'choose something',
+// 		allowClear: true
+//
+// });
+
+
     $('#add_row').click(function(event) {
       event.preventDefault();
       newRow =
       	'<tr id=' + rowNum + ' class="payment_values">' +
-        '<td style="width:5%"><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="" checked></td>' +
-        '<td style="width:5%"><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value="" disabled></td>' +
+        '<td style="width:5%"><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="" checked disabled></td>' +
+        '<td style="width:5%"><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value=' + rowNum + '></td>' +
         '<td style="width:45%"><select class="products form-control form-control-sm" style="width:100%"><option> </option></select></td>' +
         '<td style="width:10%" align="right"><input type="text" name="quantity[]" class="quantity form-control form-control-sm" style="width:100%; text-align: right" value="1.00"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="unit_cost[]" class="unit_cost form-control form-control-sm"style="width:100%; text-align: right"></td>' +
@@ -427,13 +456,9 @@
 
 				price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
 				quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
-
 				sub_total = price * quantity;
-
 				discount_value = sub_total * discount_percent;
-
 				discount_percent = discount_percent * 100
-
 
 				$('#invoice_table').find('tr#'+ row_id).find('.discount_percent').val(discount_percent.toFixed(2));
 				$('#invoice_table').find('tr#'+ row_id).find('.discount_value').val(Number(discount_value).toFixed(2));
@@ -441,18 +466,12 @@
 				sub_total = sub_total - discount_value;
 
 				$('#invoice_table').find('tr#'+ row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
-
-
 			}
-
 		});
-
-
-
 
     $('#btn_save').click(function(event){
       event.preventDefault();
-      alert('button save');
+      alert('clicked save button');
 
 	    var date = new Date();
 	    var month = date.getMonth()+1;
@@ -535,7 +554,6 @@
 
     });
 
-
     $('#invoice_table').on('click', '.select-rows', function(){
       var current_row = $(this).closest('tr');
       var product_id = current_row.find('.products').val();
@@ -551,27 +569,89 @@
                   'discount percent: ' + discount_percent + '\n' +
                   'discount value: ' + discount_value + '\n' +
                   'sub total: ' + sub_total + '\n';
-
       alert(data);
       console.log(data);
-
     });
 
+		$('#create_new').click(function(event){
+			var id = $(this).val();
+			var patient_name = $('#patient_name').val();
+			var data = $('#patient_name').select2('data');
+			var description = $('select2-container select2-container--default select2-container--open select2-dropdown select2-dropdown--below select2-search select2-search--dropdown input.select2-search__field').val();
 
+			event.preventDefault();
+			alert('clicked create new');
+			alert(data[0].text);
+			alert(data[0].id);
+			alert(id);
+			alert(description);
 
+			// var newOption = new Option(data[0].text, data[0].id, true, true);
+			// $('#patient_name').append(newOption).trigger('change');
+
+			$('#patient_name').val('Select2 Config');
+
+		});
 
   }); // $.(document).ready(function(){})
 </script>
 
-<script>
+<!-- keywords.select2({
+            tags: true,
+            createTag: function (params) {
+                var term = $.trim(params.term);
+                var count = 0
+                var existsVar = false;
+
+                //check if there is any option already
+                if($('#keywords option').length > 0){
+                    $('#keywords option').each(function(){
+                        if ($(this).text().toUpperCase() == term.toUpperCase()) {
+                            existsVar = true
+                            return false;
+                        }else{
+                            existsVar = false
+                        }
+                    });
+                    if(existsVar){
+                        return null;
+                    }
+                    return {
+                        id: params.term,
+                        text: params.term,
+                        newTag: true
+                    }
+                }
+
+                //since select has 0 options, add new without comparing
+                else{
+                    return {
+                        id: params.term,
+                        text: params.term,
+                        newTag: true
+                    }
+                }
+            },
+            maximumInputLength: 20, // only allow terms up to 20 characters long
+            closeOnSelect: true
+        }) -->
+
+<!-- <script>
 	$(document).ready(function() {
+
+		var patient_name = $('#patient_name').val();
+		var newOption = new Option(patient_name, patient_name, false, false);
+
 		$("#patient_name").select2({
 			placeholder: 'Select a patient name',
 			allowClear:true,
 		});
+
+			$('#patient_name').append(newOption).trigger('change');
+
 	});
 
-</script>
+</script> -->
 
 <!-- <script type="text/javascript">
   $(document).ready(function(){
@@ -588,9 +668,142 @@
     // code to read selected table row cell data (values).
     $('#invoice_table').on('click', '#btn_save', function(){
       var current_row = $(this).closest('tr');
-
     })
   });
 </script>
+
+<script type="text/javascript">
+	$("#patient_name").select2({
+		createSearchChoice:function(term, data) { if ($(data).filter(function() { return this.text.localeCompare(term)===0; }).length===0) {return {id:term, text:term};} },
+		multiple: true,
+		data: [{id: 0, text: 'story'},{id: 1, text: 'bug'},{id: 2, text: 'task'}]
+	});
+
+	$("#patient_name")
+	.on("change", function(e) { log("change " + JSON.stringify({val:e.val, added:e.added, removed:e.removed})); })
+	.on("select2-opening", function() { log("opening"); })
+	.on("select2-open", function() { log("open"); })
+	.on("select2-close", function() { log("close"); })
+	.on("select2-highlight", function(e) { log ("highlighted val="+ e.val+" choice="+ JSON.stringify(e.choice));})
+	.on("select2-selecting", function(e) { log ("selecting val="+ e.val+" choice="+ JSON.stringify(e.choice));})
+	.on("select2-removing", function(e) { log ("removing val="+ e.val+" choice="+ JSON.stringify(e.choice));})
+	.on("select2-removed", function(e) { log ("removed val="+ e.val+" choice="+ JSON.stringify(e.choice));})
+	.on("select2-loaded", function(e) { log ("loaded (data property omitted for brevity)");})
+	.on("select2-focus", function(e) { log ("focus");})
+	.on("select2-blur", function(e) { log ("blur");});
+</script>
+
+<script type="text/javascript">
+	$(document).ready(function(){
+		$('#apply_discount_all').click(function(event){
+			event.preventDefault();
+			alert('clicked apply discount all button');
+
+			var discount_percent = $.trim($('#discount_percent').val());
+			var discount_name = discount_percent;
+
+			if (discount_percent === '') {
+				discount_percent = 'No Discount(%) found.';
+				alert(discount_percent);
+			} else {
+
+
+
+				if (discount_percent === 'SENIOR' || discount_percent ==='PWD') {
+					discount_percent = 0.20;
+
+				} else {
+					discount_percent = discount_percent / 100;
+				}
+
+
+				$('.payment_values').each(function(){
+
+					var current_row = $(this);
+
+	        var product_id_value = Number(current_row.find('.products').val());
+	        var quantity_value = Number(current_row.find('.quantity').val());
+	        var unit_cost_value = Number(current_row.find('.unit_cost').val());
+	        var discount_percent_value = Number(current_row.find('.discount_percent').val());
+	        var sub_total_value = Number(current_row.find('.sub_total').val());
+					var discount_value_value = sub_total_value * discount_percent;
+					var sub_total_final_value = sub_total_value - discount_value_value;
+
+					discount_percent = discount_percent * 100;
+
+					current_row.find('.discount_percent').val(Number(discount_percent).toFixed(2));
+					current_row.find('.discount_value').val(Number(discount_value_value).toFixed(2));
+					current_row.find('.sub_total').val(Number(sub_total_final_value).toFixed(2));
+
+					discount_percent = discount_percent / 100;
+
+				});
+			}
+		});
+
+		$('#apply_discount_selected').click(function(event){
+			event.preventDefault();
+			alert('clicked apply discount selected button');
+
+			/* declare an checkbox array */
+			var id = [];
+
+			var discount_percent = $.trim($('#discount_percent').val()); // discount percent  25
+
+			$('input[name="discount_checkbox"]:checked').each(function(){
+				id.push($(this).val());
+
+			});
+
+			if (discount_percent === '') {
+				alert('No Discount(%) found.');
+
+			} else {
+
+				/* check if there is checkedValues checkboxes, by default the length is 1 as it contains one single comma */
+				if (id.length > 0) {
+
+					if (discount_percent === 'SENIOR' || discount_percent === 'PWD') {
+						discount_percent = 0.20;
+
+					} else {
+						discount_percent = discount_percent / 100;
+
+					}
+
+					/* look for all checkboxes and check if it was checked */
+					$('input[name="discount_checkbox"]:checked').each(function() {
+						var row_id = $(this).val();
+						var discount_name = discount_percent * 100;
+						var sub_total = Number($('#invoice_table').find('tr#'+ row_id).find('.sub_total').val());
+						var discount_value = 0;
+
+						alert(row_id);
+						alert(sub_total);
+
+						discount_value = sub_total * discount_percent;
+						sub_total = sub_total - discount_value;
+
+						$('#invoice_table').find('tr#'+ row_id).find('.discount_value').val(Number(discount_value).toFixed(2));
+						$('#invoice_table').find('tr#'+ row_id).find('.discount_percent').val(Number(discount_name).toFixed(2));
+						$('#invoice_table').find('tr#'+ row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+
+					});
+
+				} else {
+					alert("Please at least check one of the checkbox");
+
+				}
+
+
+			}
+
+		});
+	});
+</script>
+
+
+
+
 
 @endsection

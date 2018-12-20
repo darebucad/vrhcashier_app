@@ -10,6 +10,7 @@ use App\ViewPaymentORNumber;
 use App\ViewDrugsMedicines;
 use App\GenericDescription;
 use App\ViewProducts;
+use App\Patient;
 
 
 class CollectionsOtherController extends Controller
@@ -63,7 +64,10 @@ class CollectionsOtherController extends Controller
                 ->get();
         }
 
-        $patient_names = PaymentOther::select('patient_name')->get();
+        $patient_names = Patient::select('hpercode','patient_name')
+            ->orderBy('patient_name', 'asc')
+            ->limit(100)
+            ->get();
 
         return view('collections.other.create', compact('payments', 'patient_names'));
     }
