@@ -80,12 +80,12 @@ class CollectionsOtherController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function showProducts(Request $request){
-        $drugs = ViewProducts::select('item_code AS id', 'description AS text')->get();
-
+    public function showProducts(Request $request) {
+        $products = ViewProducts::select(strval('item_code as id'), 'description AS text')->get();
         $response = array(
-            'data'  =>  $drugs
+            'data'  =>  $products
         );
+
         return response()->json($response);
     }
 
@@ -99,19 +99,21 @@ class CollectionsOtherController extends Controller
     public function getLatestPrice(Request $request) {
         $item_code = $request->id;
         $row_id = $request->row_id;
+        $description = $request->description;
         $pad_length = 13;
         $pad_string = "0";
         $pad_output = str_pad($item_code, $pad_length, $pad_string, STR_PAD_LEFT);
 
         $drugs = ViewProducts::select('item_code', 'selling_price', 'charge_code', 'charge_table')
-                    ->where('item_code', str_pad($item_code, $pad_length, $pad_string, STR_PAD_LEFT))
+                    ->where('description', $description)
                     ->get();
 
         $response = array(
             'data' => $drugs,
             'id' => $item_code,
             'pad' => $pad_output,
-            'row_id' => $row_id
+            'row_id' => $row_id,
+            'description' => $description
 
         );
         return response()->json($response);
@@ -132,6 +134,7 @@ class CollectionsOtherController extends Controller
             $data = array(
                 'prefix_or_number' => $item['prefix_or_number'],
                 'or_number' => substr($item['prefix_or_number'], 2),
+                'or_date' => date('Y-m-d H:i:s', strtotime(str_replace('-', '/', $item['or_date']))),
                 'patient_name' => $item['patient_name'],
                 'unit_cost' => $item['unit_cost'],
                 'quantity' => $item['quantity'],
@@ -144,6 +147,10 @@ class CollectionsOtherController extends Controller
                 'charge_table' => $item['charge_table'],
                 'item_code' => $item['item_code'],
                 'id' => $item['user_id'],
+                'discount_name' => $item['discount_name'],
+                'discount_percent' => $item['discount_percent'],
+                'discount_computation' => $item['discount_computation'],
+                'discount_value' => $item['discount_value'],
                 'payment_status' => 'Paid',
                 'amount_paid' => $item['amount_paid'],
                 'amount_tendered' => $item['amount_tendered'],

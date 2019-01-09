@@ -58,8 +58,8 @@
 
     <input type="hidden" name="pcchrgcod" id="pcchrgcod" value="">
 
-
 		<input type="hidden" name="charge_code" id="charge_code" value="">
+
 		<input type="hidden" name="charge_table" id="charge_table" value="">
 
 
@@ -221,9 +221,12 @@
 
     <!-- Amount paid  Amount tendered  Change Control  -->
     <div class="form-group row">
+
+			<label for="" class="col-md-1 col-form-label text-me-left"><strong>P 1.0000</strong></label>
+
       <label for="amount_paid" class="col-md-1 col-form-label text-md-left">{{ __('Amount Paid') }}</label>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
         <input id="amount_paid" type="text" class="form-control form-control-sm" name="amount_paid" style="background-color:#99ccff!important;" autofocus>
         @if ($errors->has('amount_paid'))
             <span class="invalid-feedback" role="alert">
@@ -234,7 +237,7 @@
 
       <label for="amount_tendered" class="col-md-1 col-form-label text-md-left">{{ __('Amount Tendered') }}</label>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
         <input id="amount_tendered" onBlur="computeChange()" type="text" class="form-control form-control-sm" name="amount_tendered"  style="background-color:#99ccff!important;" autofocus>
 
         @if ($errors->has('amount_tendered'))
@@ -248,7 +251,7 @@
 
       <label for="change" class="col-md-1 col-form-label text-md-left">{{ __('Change') }}</label>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
         <input id="change" type="text" class="form-control form-control-sm" name="change" autofocus>
         @if ($errors->has('change'))
             <span class="invalid-feedback" role="alert">
@@ -259,11 +262,11 @@
     </div>
   </form>
 
-  <div class="form-group row">
+  <!-- <div class="form-group row">
     <button type="button" name="update_charges" id="update_charges" class="btn btn-success btn-sm">
       Update
     </button>
-  </div>
+  </div> -->
 
   <div class="table-responsive">
     <table id="invoice_table" class="table table-sm" style="width: 100%">
@@ -271,16 +274,15 @@
         <tr>
           <th style="width:5%">Pay?</th>
           <th style="width:5%">Disc?</th>
-          <th style="width:30%">Description</th>
+          <th style="width:25%">Description</th>
           <th style="width:10%">QTY</th>
           <th style="width:10%">Unit Cost</th>
           <th style="width:10%">Discount (%)</th>
-          <th style="width:10%">Discount Value</th>
-          <th style="width:10%">Sub-total</th>
+          <th style="width:15%">Discount Value</th>
+          <th style="width:15%">Sub-total</th>
           <th style="width:5%">Action</th>
         </tr>
       </thead>
-
       <tbody>
       	<tr>
       		<td colspan="9"><a href="#" title="" class="add-rows" id="add_row">Add an item</a></td>
@@ -288,13 +290,15 @@
 
 				<tr>
 					<td colspan="7" align="right">Total: </td>
-					<td colspan="2" align="left">1,000.00</td>
-
+					<td colspan="1" align="right" id="total_value">0.00</td>
+					<td colspan="1" align="left"></td>
 				</tr>
       </tbody>
     </table>
   </div>
 </main>
+
+
 
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -329,51 +333,58 @@
       	'<tr id=' + rowNum + ' class="payment_values">' +
         '<td style="width:5%"><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="" checked disabled></td>' +
         '<td style="width:5%"><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value=' + rowNum + '></td>' +
-        '<td style="width:45%"><select class="products form-control form-control-sm" style="width:100%"><option> </option></select></td>' +
+        '<td style="width:25%"><select class="products form-control form-control-sm" style="width:100%"><option> </option></select></td>' +
         '<td style="width:10%" align="right"><input type="text" name="quantity[]" class="quantity form-control form-control-sm" style="width:100%; text-align: right" value="1.00"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="unit_cost[]" class="unit_cost form-control form-control-sm"style="width:100%; text-align: right"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="discount_percent[]" class="discount_percent form-control form-control-sm" style="width:100%; text-align: right"></td>' +
-        '<td style="width:10%" align="right"><input type="text" name="discount_value[]" class="discount_value form-control form-control-sm" style="width:100%; text-align: right"></td>' +
-        '<td style="width:10%"><input type="text" name="sub_total[]" class="sub_total form-control form-control-sm" style="width:100%; text-align: right"></td>' +
+        '<td style="width:15%" align="right"><input type="text" name="discount_value[]" class="discount_value form-control form-control-sm" style="width:100%; text-align: right"></td>' +
+        '<td style="width:15%"><input type="text" name="sub_total[]" class="sub_total form-control form-control-sm" style="width:100%; text-align: right"></td>' +
         '<td style="width:5%"><a href="#" class="delete-rows" id="delete_row"><span data-feather="trash-2"></span>Delete</a></td>'+
-        '<td style="width:5%"><a href="#" class="select-rows" id="select_row">Select</a></td>'
         '</tr>';
 
-      $.ajax({
-        type: "GET",
-        url: "/collections/other/show_products",
-        data: { _token: CSRF_TOKEN },
-        dataType: "JSON",
-        success: function(data)  {
-          console.log(data);
+				$.ajax({
+	        type: "GET",
+	        url: "/collections/other/show_products",
+	        data: { _token: CSRF_TOKEN },
+	        dataType: "JSON",
+	        success: function(data)  {
+	          console.log(data);
 
-          $(".products").select2({
-            data: data.data,
-            placeholder: "Select a product",
-            minimumResultsForSearch: 20, // at least 20 results must be displayed
-            allowClear:true
-          });
-        }
-      });
+	          $(".products").select2({
+	            data: data.data,
+	            placeholder: "Select a product",
+	            minimumResultsForSearch: 20, // at least 20 results must be displayed
+	            allowClear:true
+	          });
+	        }
+	      });
 
-      table.prepend(newRow);
+				table.prepend(newRow);
+				rowNum = rowNum + 1;
 
-      rowNum = rowNum + 1;
-    });
+    }); // end of click event
+
 
 
 		$('tbody').delegate('.products', 'select2:select', function(){
 			var id = $(this).val();
+			var description = ""
 			var row_id = $(this).closest('tr').attr('id');
+			var price = 0;
+
+			description = $('tr#'+ row_id + ' .products :selected').text();
+
+			alert('select product');
+			alert('id: ' + id);
+			alert('description: ' + description);
 
 			$.ajax({
 				type: "GET",
 				url: "/collections/other/get_latest_price",
-				data: { _token: CSRF_TOKEN, id: id, row_id: row_id },
+				data: { _token: CSRF_TOKEN, id: id, row_id: row_id, description: description },
 				dataType: "JSON",
 				success: function(data){
-					var price = "";
-					var row_id = data.row_id;
+					row_id = data.row_id;
 
 					console.log(data);
 					// alert(data.row_id);
@@ -386,31 +397,41 @@
 						charge_code = data.charge_code;
 						charge_table = data.charge_table;
 						discount_initial_value = Number(0.00);
+						total_value = Number($('#invoice_table').find('#total_value').text());
+
+						total_value = total_value + price;
+						amount_paid = amount_paid + price;
+
 
 						$('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val(Number(price).toFixed(2));
 						$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
 
 						$('#invoice_table').find('tr#'+ row_id).find('.discount_percent').val(discount_initial_value.toFixed(2));
 						$('#invoice_table').find('tr#'+ row_id).find('.discount_value').val(discount_initial_value.toFixed(2));
-							amount_paid = amount_paid + price;
+
 						$('#amount_paid').val(Number(amount_paid).toFixed(2));
+
+						$('#invoice_table').find('#total_value').text(Number(total_value).toFixed(2));
 
 						$('#charge_code').val(charge_code);
 						$('#charge_table').val(charge_table);
 
 						// alert(charge_code +',,, ' + charge_table);
+						alert(total_value);
 
 					})
 				}
 			});
 		});
 
-
+		// Click event delete row
     table.on('click', '#delete_row', function() {
       $(this).closest('tr').remove();
 
     });
 
+
+		// Keydown event quantity
 		table.on('keydown', '.quantity', function(event){
 			var id = $(this).val();
       var row_id = $(this).closest('tr').attr('id');
@@ -418,7 +439,7 @@
 
 			if(event.which == 13){
 				event.preventDefault();
-				alert('pressed enter in quantity column');
+				alert('pressed enter at quantity');
 				alert(id);
 
 				price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
@@ -436,11 +457,13 @@
 				})
 
 				$('#amount_paid').val(Number(sub_total_value).toFixed(2));
+				$('#invoice_table').find('#total_value').text(Number(sub_total_value).toFixed(2));
 
 				console.log(sub_total);
 			}
 		});
 
+		// Keydown event discount percent
 		table.on('keydown', '.discount_percent', function(event){
 			var id = $(this).val();
 			var discount_percent = Number(id) / 100;
@@ -451,7 +474,7 @@
 
 			if(event.which == 13){
 				event.preventDefault();
-				alert('pressed enter in discount percent column');
+				alert('pressed enter at discount percent column');
 				alert(id);
 
 				price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
@@ -466,10 +489,67 @@
 				sub_total = sub_total - discount_value;
 
 				$('#invoice_table').find('tr#'+ row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+
+				sub_total = 0;
+
+				$('.payment_values').each(function(){
+					var current_row = $(this);
+
+					sub_total = sub_total + Number(current_row.find('.sub_total').val());
+
+
+				});
+
+				sub_total = Number(sub_total).toFixed(2);
+				$('#amount_paid').val(sub_total);
+				$('#invoice_table').find('#total_value').text(sub_total);
+
 			}
+		}); // End of event keydown .discount_percent
+
+
+
+		// Focusout event quantity
+		table.on('focusout', '.quantity', function(event) {
+			var id = $(this).val();
+      var row_id = $(this).closest('tr').attr('id');
+			var sub_total_value = 0;
+
+			event.preventDefault();
+			// alert('pressed enter in quantity column');
+			// alert(id);
+
+
+			price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
+			quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
+			sub_total = price * quantity;
+
+			discount_percent = Number($('#invoice_table').find('tr#' + row_id).find('.discount_percent').val());
+
+			if (discount_percent > 0) {
+				sub_total = sub_total - (price * quantity) * (discount_percent / 100);
+
+			}
+
+
+			$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+			$('#invoice_table').find('tr#'+ row_id).find('.quantity').val(Number(quantity).toFixed(2));
+
+			$('.payment_values').each(function(){
+				var current_row = $(this);
+				sub_total_value =  sub_total_value + Number(current_row.find('.sub_total').val());
+
+			})
+
+			$('#amount_paid').val(Number(sub_total_value).toFixed(2));
+
+			console.log(sub_total);
+
+
 		});
 
-    $('#btn_save').click(function(event){
+
+    $('#btn_save').click(function(event) {
       event.preventDefault();
       alert('clicked save button');
 
@@ -485,7 +565,7 @@
       var user_id_value = $('#user_id').val();
       var prefix_or_number_value = $('#or_number').val();
       var payment_mode_value = $('#payment_mode').val();
-      var discount_percent_value = $('#discount_percent').val();
+			var discount_name_value = $('#discount_percent').val();
       var currency_value = $('#currency').val();
       var payment_type_value = $('#payment_type').val();
       var discount_computation_value = $('#discount_computation').val();
@@ -494,23 +574,37 @@
       var amount_change_value =  $('#change').val();
 			var charge_code_value = $('#charge_code').val();
 			var charge_table_value = $('#charge_table').val();
-
 			var created_at_value = date.getFullYear() + '-' +
 					(('' + month).length < 2 ? '0' : '') +
 					month + '-' + (('' + day).length < 2 ? '0' : '') + day +
 					' ' + hour + ':' + minute + ':' + second;
+			var discount_percent_value = 0;
+
+
+			if (discount_name_value === "SENIOR" || discount_name_value === "PWD") {
+
+				discount_percent_value = Number(20).toFixed(2);
+
+			} else {
+
+				discount_percent_value = Number(discount_name_value).toFixed(2);
+			}
+
+			alert(discount_name_value);
+			alert(discount_percent_value);
 
       var arrData=[];
 
-      //loop over each  table row (tr)
+      // loop over each  table row (tr)
       $('.payment_values').each(function(){
         var current_row = $(this);
         var product_id_value = current_row.find('.products').val();
         var quantity_value = current_row.find('.quantity').val();
         var unit_cost_value = current_row.find('.unit_cost').val();
-        var discount_percent_value = current_row.find('.discount_percent').val();
+        var discount_percent_table_value = current_row.find('.discount_percent').val();
         var discount_value_value = current_row.find('.discount_value').val();
         var sub_total_value = current_row.find('.sub_total').val();
+
         var obj = {};
 
         obj.prefix_or_number = prefix_or_number_value;
@@ -524,7 +618,8 @@
         obj.payment_mode = payment_mode_value;
         obj.item_code = product_id_value;
         obj.user_id = user_id_value;
-        obj.discount_percent = discount_percent_value;
+				obj.discount_name = discount_name_value;
+        obj.discount_percent = discount_percent_table_value;
         obj.discount_computation = discount_computation_value;
         obj.discount_value = discount_value_value;
         obj.amount_paid = amount_paid_value;
@@ -716,7 +811,7 @@
 					discount_percent = discount_percent / 100;
 				}
 
-
+				var total_value = 0;
 				$('.payment_values').each(function(){
 
 					var current_row = $(this);
@@ -737,7 +832,13 @@
 
 					discount_percent = discount_percent / 100;
 
+					total_value = total_value + Number(current_row.find('.sub_total').val());
 				});
+
+				// Set new value of total values
+				$('#invoice_table').find('#total_value').text(Number(total_value).toFixed(2));
+				$('#amount_paid').val(Number(total_value).toFixed(2));
+
 			}
 		});
 
@@ -749,6 +850,7 @@
 			var id = [];
 
 			var discount_percent = $.trim($('#discount_percent').val()); // discount percent  25
+			var total_value = 0;
 
 			$('input[name="discount_checkbox"]:checked').each(function(){
 				id.push($(this).val());
@@ -760,23 +862,23 @@
 
 			} else {
 
+				if (discount_percent === 'SENIOR' || discount_percent === 'PWD') {
+					discount_percent = 0.20;
+				} else {
+					discount_percent = discount_percent / 100;
+				}
+
+
 				/* check if there is checkedValues checkboxes, by default the length is 1 as it contains one single comma */
 				if (id.length > 0) {
-
-					if (discount_percent === 'SENIOR' || discount_percent === 'PWD') {
-						discount_percent = 0.20;
-
-					} else {
-						discount_percent = discount_percent / 100;
-
-					}
 
 					/* look for all checkboxes and check if it was checked */
 					$('input[name="discount_checkbox"]:checked').each(function() {
 						var row_id = $(this).val();
-						var discount_name = discount_percent * 100;
+						var discount_name = discount_percent * 100; // discount = 25
 						var sub_total = Number($('#invoice_table').find('tr#'+ row_id).find('.sub_total').val());
 						var discount_value = 0;
+
 
 						alert(row_id);
 						alert(sub_total);
@@ -790,13 +892,29 @@
 
 					});
 
+					$('.payment_values').each(function(){
+						var current_row = $(this);
+						var sub_total = Number(current_row.find('.sub_total').val());
+
+						total_value = total_value + sub_total;
+
+
+					});
+
+					total_value = Number(total_value).toFixed(2);
+
+					$('#total_value').text(total_value);
+
+					$('#amount_paid').val(total_value);
+
+
 				} else {
-					alert("Please at least check one of the checkbox");
+					alert("Please select at least check one checkbox");
 
-				}
+				} // if there is no selected checkboxes
 
 
-			}
+			} // discount is null
 
 		});
 	});
