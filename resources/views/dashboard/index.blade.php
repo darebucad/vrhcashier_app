@@ -4,7 +4,7 @@
 
 <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Index Dashboard</h1>
+    <h1 class="h4">Dashboard</h1>
     @if (session('status'))
                 <div class="alert alert-success" role="alert">
                     {{ session('status') }}
@@ -21,6 +21,29 @@
       </button>
     </div>
   </div>
+
+  <div class="form-group row">
+
+    <div class="col-md-4">
+      <img src="..." alt="..." class="img-thumbnail">
+    </div>
+
+    <div class="col-md-4">
+      <img src="..." alt="..." class="img-thumbnail">
+    </div>
+
+    <div class="col-md-4">
+      <img src="..." alt="..." class="img-thumbnail">
+    </div>
+
+  </div>
+
+
+<hr>
+  <div class="form-group row">
+    <h4>Total Sales: </h4>
+  </div>
+
 </main>
 
 @endsection

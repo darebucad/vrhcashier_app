@@ -1,9 +1,13 @@
 /*body{background: url('C:\laragon\www\vrhcashier_app\public\307730.jpg');}*/
 html,body{
-    position: relative;
-    height: 100%;
-    font-family: Arial;
-}
+    position: fixed;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    padding: 0;
+    margin: 0;
+    }
 
 .login-container{
     position: relative;
@@ -38,7 +42,7 @@ html,body{
     width: 100%;height: 100%;
     top: 3.5px;left: 0;
     background: #fff;
-        z-index: -1;
+    z-index: -1;
     -webkit-transform: rotateZ(4deg);
     -moz-transform: rotateZ(4deg);
     -ms-transform: rotateZ(4deg);
@@ -49,21 +53,18 @@ html,body{
 .login-container::after{
     top: 5px;
     z-index: -2;
-    -webkit-transform: rotateZ(-2deg);
-     -moz-transform: rotateZ(-2deg);
-      -ms-transform: rotateZ(-2deg);
+    -webkit-transform: rotateZ(-6deg);
+    -moz-transform: rotateZ(-2deg);
+    -ms-transform: rotateZ(-2deg);
 
 }
-
-.avatar{
-   
-   }
+ 
 
 .form-box input{
     width: 100%;
-    padding: 15px;
+    padding: 8px;
     text-align: left;
-    height: 30px;
+    height: 33px;
     border: 2px solid #ccc;
     background: white;
     transition:0.2s ease-in-out;
@@ -73,17 +74,23 @@ html,body{
 
 .form-box input:focus{
     outline: 0;
-    background: #eee;
+    background: #fff;
 }
 
-.form-box input[type="text"]{
-    border-radius: 5px 5px;
-    text-transform: lowercase;
-  
+
+
+.form-box input[type="username"]{
+    border-radius: 40px 40px;
+    font-size: 12px;
+    text-indent: 7px;
+
 }
+
 
 .form-box input[type="password"]{
-    border-radius: 5px 5px;
+    border-radius: 40px 40px;
+    font-size: 10px;
+    text-indent: 7px;
 
 }
 
@@ -93,10 +100,12 @@ html,body{
 }
 
 .form-box button.login{
+    width: 100%;
     margin-top: 10px;
     padding: 0px 0px;
-    background-color:mediumseagreen;
-    height: 30px;
+    background-color: mediumseagreen;
+    height: 25px;
+    border-radius: 40px 40px;
 }
 
 .animated {

@@ -4,8 +4,8 @@
 
 <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-		<h1 class="h2">Create Collections Other</h1>
-
+		<h1 class="h5"><a href="#">Other Collection</a> / Create</h1>
+		<!-- <h1 class="h5"><a href="#">Out-Patient Payment</a> / Create Out-Patient Payment</h1> -->
   		@if (session('status'))
           <div class="alert alert-success" role="alert">
               {{ session('status') }}
@@ -14,15 +14,26 @@
 
 		<div class="btn-toolbar mb-2 mb-md-0">
 		  <div class="btn-group mr-2">
-		    <button class="btn btn-sm btn-outline-secondary">Share</button>
+		    <button class="btn btn-sm btn-outline-secondary" id ="btn_print">
+					<span data-feather="printer"></span>
+					Print Receipt
+				</button>
 		    <button class="btn btn-sm btn-outline-secondary">Export</button>
 		  </div>
-		  <button class="btn btn-sm btn-outline-secondary dropdown-toggle">
+
+
+		  <!-- <button class="btn btn-sm btn-outline-secondary dropdown-toggle">
 		    <span data-feather="calendar"></span>
 		    This week
-		  </button>
+		  </button> -->
 		</div>
 	</div>
+
+
+	<div class="alert alert-success alert-dismissable" style="display: none">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+      Payment was successfully saved.
+  </div>
 
   <!-- <form action="/collections/other/create/payment" method="post" > -->
   <form id="collections_other">
@@ -35,59 +46,42 @@
     </div>
 
     <br />
+		<br>
 
     <input type="hidden" name="paystat" id="paystat" value="">
-
     <input type="hidden" name="paylock" id="paylock" value="">
-
     <input type="hidden" name="updsw" id="updsw" value="">
-
     <input type="hidden" name="confdl" id="confdl" value="">
-
     <input type="hidden" name="payctr" id="payctr" value="">
-
     <input type="hidden" name="status" id="status" value="">
-
     <input type="hidden" name="user_id" id="user_id" value="{{ Auth::user()->id }}">
-
     <input type="hidden" name="enccode" id="enccode" value="">
-
     <input type="hidden" name="hpercode" id="hpercode" value="">
-
     <input type="hidden" name="acctno" id="acctno" value="">
-
     <input type="hidden" name="pcchrgcod" id="pcchrgcod" value="">
-
 		<input type="hidden" name="charge_code" id="charge_code" value="">
-
 		<input type="hidden" name="charge_table" id="charge_table" value="">
-
-
-
+		<input type="hidden" name="product_id" id="product_id" value="">
 
 		<!-- Patient name control-->
   	<div id="patient_name_field" class="form-group row">
-  		<div class="input-group">
+
   			<label class="col-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
 
   			<div class="col-md-9">
-  				<!-- <select id="patient_name" class="form-control form-control-sm" required>
-  					<option></option>
-    					@foreach($patient_names as $name)
-    						<option value="{{ $name->patient_name }}">{{ $name->patient_name }}</option>
-    					@endforeach
-  				</select> -->
-					<input type="text" name="patient_name" value="" id ="patient_name" class="form-control form-control-sm">
-
+					<!-- <select class="form-control" name="patient_name" id="patient_name" required>
+						<option value=""> </option>
+					</select> -->
+					<input type="text" name="patient_name" value="" id="patient_name" class="form-control">
   			</div>
 
-				<div class="col-md-2">
+				<!-- <div class="col-md-2">
 					<a class="nav-link disabled" href="#" id="create_new">
 						<span data-feather="save"></span>
 						Create New <span class="sr-only"></span>
 					</a>
-				</div>
-  		</div>
+				</div> -->
+
   	</div>
 
     <!-- OR Date/Number Control -->
@@ -103,9 +97,10 @@
         </div>
       </div>
 
-      <label for="or_number" class="col-md-2 col-form-label text-md-left">{{ __('OR Number') }}</label>
+      <label for="or_number" class="col-md-1 col-form-label text-md-left">{{ __('OR Number') }}</label>
 
-      <div class="col-md-4">
+      <div class="col-md-3">
+
       	@if (count($payments) === 1)
           @foreach ($payments as $payment)
             <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '-' . $payment->next_or_number }}" style="background-color:#99ccff!important;" required autofocus>
@@ -125,15 +120,24 @@
         @endif
 
       </div>
+
+			<label class="col-md-1 col-form-label text-md-left">User:</label>
+			<label class="col-md-1 col-form-label text-md-left">{{ Auth::user()->name }}</label>
+
+			<div class="col-md-1 offset-md-1">
+				<button type="button" name="update_totals" id="update_totals" class="btn btn-outline-dark btn-sm">
+					Update Totals
+				</button>
+
+			</div>
+
     </div>
 
-
     <!-- Mode/Type of payment Control -->
-
-    <div class="form-group row" style="margin-bottom:1px;">
+    <div class="form-group row">
   		<label for="payment_mode" class="col-md-2 col-form-label text-md-left">{{ __('Mode of Payment') }}</label>
 
-  		<div class="col-md-3">
+  		<div class="col-md-2">
   			<select id="payment_mode" class="form-control form-control-sm" name="payment_mode">
   				<option value=" "> </option>
   				<option value="C" selected>Cash</option>
@@ -141,7 +145,7 @@
   			</select>
   		</div>
 
-  		<label for="discount_percent" class="col-md-2 col-form-label text-md-left">{{ __('Discount (%)') }}</label>
+  		<label for="discount_percent" class="col-md-1 col-form-label text-md-left">{{ __('Discount (%)') }}</label>
 
       <div class="col-md-3">
         <select  id="discount_percent" class="form-control form-control-sm" name="discount_percent">
@@ -157,12 +161,23 @@
         </select>
       </div>
 
+			<label for="amount_paid" class="col-md-2 col-form-label text-md-right">{{ __('Total Amount') }}</label>
+
+      <div class="col-md-2">
+        <input id="amount_paid" type="text" class="form-control" name="amount_paid" style="background-color:#99ccff!important;font-weight: bold; font-size: 25px;" value="0.00" autofocus>
+        @if ($errors->has('amount_paid'))
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $errors->first('amount_paid') }}</strong>
+            </span>
+        @endif
+      </div>
+
     </div>
 
-    <div class="form-group row" style="margin-bottom:1px;">
+    <div class="form-group row" style="margin-top: -10px;">
     	<label for="payment_type" class="col-md-2 col-form-label text-md-left">{{ __('Type of Payment') }}</label>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
   			<select id="payment_type" class="form-control form-control-sm" name="payment_type">
   				<option value=""> </option>
   				<option value="A">Additional Deposit</option>
@@ -175,7 +190,7 @@
 
 		  <label for="discount_computation" class="col-md-2 col-form-label text-md-left">{{ __('Discount Computation') }}</label>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
         <select name="discount_computation" id="discount_computation" class="form-control form-control-sm">
           <option value=" "> </option>
           <option value="normal" selected>Normal</option>
@@ -188,85 +203,67 @@
         @endif
       </div>
 
-    </div>
 
-    <div class="form-group row">
-		<label for="currency" class="col-md-2 col-form-label text-md-left">{{ __('Currency') }}</label>
-		<div class="col-md-3">
-	        <select id="currency" class="form-control form-control-sm" name="currency">
-						<option value=""> </option>
-						<option value="DOLLA">Dollars</option>
-						<option value="OTHER">Others</option>
-						<option value="PESO" selected>Php</option>
-						<option value="YEN">Yen</option>
-	        </select>
-		</div>
+			<label for="amount_tendered" class="col-md-2 col-form-label text-md-right">{{ __('Amount Tendered') }}</label>
 
-		<div class="col-md-1 offset-md-2">
-        <button type="button" id="apply_discount_all" class="btn btn-success btn-sm">
-          Apply to all
-        </button>
-      </div>
+			<div class="col-md-2">
+				<input id="amount_tendered" type="text" class="form-control" name="amount_tendered"  style="background-color:#99ccff!important;font-weight: bold; font-size: 25px;" value="0.00" autofocus>
 
-      <div class="col-md-1">
-        <button type="button" id="apply_discount_selected" class="btn btn-success btn-sm">
-          Apply to Selected
-        </button>
-      </div>
+				@if ($errors->has('amount_tendered'))
+						<span class="invalid-feedback" role="alert">
+								<strong>{{ $errors->first('amount_tendered') }}</strong>
+						</span>
+				@endif
 
+			</div>
 
     </div>
 
+    <div class="form-group row" style="margin-top:-10px;">
+			<label for="currency" class="col-md-2 col-form-label text-md-left">{{ __('Currency') }}</label>
 
+			<div class="col-md-2">
+			  <select id="currency" class="form-control form-control-sm" name="currency">
+					<option value=""> </option>
+					<option value="DOLLA">Dollars</option>
+					<option value="OTHER">Others</option>
+					<option value="PESO" selected>Php</option>
+					<option value="YEN">Yen</option>
+			  </select>
+			</div>
 
-    <!-- Amount paid  Amount tendered  Change Control  -->
-    <div class="form-group row">
+			<div class="col-md-1 offset-md-1">
+		    <button type="button" id="apply_discount_all" class="btn btn-success btn-sm">
+		      Apply to all
+		    </button>
+	  	</div>
 
-			<label for="" class="col-md-1 col-form-label text-me-left"><strong>P 1.0000</strong></label>
+	    <div class="col-md-1">
+		    <button type="button" id="apply_discount_selected" class="btn btn-success btn-sm">
+		      Apply to Selected
+		    </button>
+	    </div>
 
-      <label for="amount_paid" class="col-md-1 col-form-label text-md-left">{{ __('Amount Paid') }}</label>
+			<div class="col-md-1">
+				<button type="button" name="clear_discounts" id="clear_discounts" class="btn btn-outline-secondary btn-sm">
+					Clear Discounts
+				</button>
+			</div>
+
+			<label for="change" class="col-md-2 col-form-label text-md-right">{{ __('Change') }}</label>
 
       <div class="col-md-2">
-        <input id="amount_paid" type="text" class="form-control form-control-sm" name="amount_paid" style="background-color:#99ccff!important;" autofocus>
-        @if ($errors->has('amount_paid'))
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $errors->first('amount_paid') }}</strong>
-            </span>
-        @endif
-      </div>
-
-      <label for="amount_tendered" class="col-md-1 col-form-label text-md-left">{{ __('Amount Tendered') }}</label>
-
-      <div class="col-md-2">
-        <input id="amount_tendered" onBlur="computeChange()" type="text" class="form-control form-control-sm" name="amount_tendered"  style="background-color:#99ccff!important;" autofocus>
-
-        @if ($errors->has('amount_tendered'))
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $errors->first('amount_tendered') }}</strong>
-            </span>
-        @endif
-
-      </div>
-
-
-      <label for="change" class="col-md-1 col-form-label text-md-left">{{ __('Change') }}</label>
-
-      <div class="col-md-2">
-        <input id="change" type="text" class="form-control form-control-sm" name="change" autofocus>
+        <input id="change" type="text" class="form-control" name="change" style="font-weight: bold; font-size:25px;" value="0.00" autofocus>
         @if ($errors->has('change'))
             <span class="invalid-feedback" role="alert">
                 <strong>{{ $errors->first('change') }}</strong>
             </span>
         @endif
       </div>
-    </div>
-  </form>
 
-  <!-- <div class="form-group row">
-    <button type="button" name="update_charges" id="update_charges" class="btn btn-success btn-sm">
-      Update
-    </button>
-  </div> -->
+    </div>
+
+  </form>
 
   <div class="table-responsive">
     <table id="invoice_table" class="table table-sm" style="width: 100%">
@@ -274,12 +271,12 @@
         <tr>
           <th style="width:5%">Pay?</th>
           <th style="width:5%">Disc?</th>
-          <th style="width:25%">Description</th>
+          <th style="width:35%">Description</th>
           <th style="width:10%">QTY</th>
           <th style="width:10%">Unit Cost</th>
           <th style="width:10%">Discount (%)</th>
-          <th style="width:15%">Discount Value</th>
-          <th style="width:15%">Sub-total</th>
+          <th style="width:10%">Discount Value</th>
+          <th style="width:10%">Sub-total</th>
           <th style="width:5%">Action</th>
         </tr>
       </thead>
@@ -288,9 +285,14 @@
       		<td colspan="9"><a href="#" title="" class="add-rows" id="add_row">Add an item</a></td>
       	</tr>
 
+				@for ($i=0; $i < 2; $i++)
+				<tr>
+					<td colspan="9" style="color:white;"> .</td>
+				</tr>
+				@endfor
 				<tr>
 					<td colspan="7" align="right">Total: </td>
-					<td colspan="1" align="right" id="total_value">0.00</td>
+					<td colspan="1" align="right" id="total_value" style="font-weight:bold; font-size:20px;">0.00</td>
 					<td colspan="1" align="left"></td>
 				</tr>
       </tbody>
@@ -298,6 +300,20 @@
   </div>
 </main>
 
+
+<!-- <script>
+	$(document).ready(function() {
+		$("#patient_name").select2({
+			placeholder: 'Select a patient name',
+			allowClear:true,
+			minimumResultsForSearch: 3, // at least 3 characters to start displaying records
+			ajax: {
+				url: '/collections/other/get_patient_list',
+				dataType: 'JSON',
+			},
+		});
+	});
+</script> -->
 
 
 <script type="text/javascript">
@@ -307,154 +323,202 @@
     var newRow = '';
     var current_row = $('#invoice_table tr')
     var rowNum = 0;
+		var products = {};
 
-
-// 		var preload_data = {
-// 				results: [{
-// 						id: 'user0',
-// 						text: 'Disabled User',
-// 				}, {
-// 						id: 'user1',
-// 						text: 'Jane Doe'
-// 				}]
-// 		};
-//
-// 	$('#patient_name').select2({
-// 		data: preload_data,
-// 		placeholder: 'choose something',
-// 		allowClear: true
-//
-// });
-
-
+		// Add row event
     $('#add_row').click(function(event) {
       event.preventDefault();
       newRow =
       	'<tr id=' + rowNum + ' class="payment_values">' +
-        '<td style="width:5%"><input type="checkbox" name="pay_checkbox" id="pay_checkbox" value="" checked disabled></td>' +
-        '<td style="width:5%"><input type="checkbox" name="discount_checkbox" id="discount_checkbox" value=' + rowNum + '></td>' +
-        '<td style="width:25%"><select class="products form-control form-control-sm" style="width:100%"><option> </option></select></td>' +
+        '<td style="width:5%"><input type="checkbox" name="pay_checkbox" class="pay_checkbox" checked></td>' +
+        '<td style="width:5%"><input type="checkbox" name="discount_checkbox" class="discount_checkbox" value=' + rowNum + '></td>' +
+        '<td style="width:35%"><select class="products form-control form-control-sm" style="width:100%"><option> </option></select></td>' +
         '<td style="width:10%" align="right"><input type="text" name="quantity[]" class="quantity form-control form-control-sm" style="width:100%; text-align: right" value="1.00"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="unit_cost[]" class="unit_cost form-control form-control-sm"style="width:100%; text-align: right"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="discount_percent[]" class="discount_percent form-control form-control-sm" style="width:100%; text-align: right"></td>' +
-        '<td style="width:15%" align="right"><input type="text" name="discount_value[]" class="discount_value form-control form-control-sm" style="width:100%; text-align: right"></td>' +
-        '<td style="width:15%"><input type="text" name="sub_total[]" class="sub_total form-control form-control-sm" style="width:100%; text-align: right"></td>' +
+        '<td style="width:10%" align="right"><input type="text" name="discount_value[]" class="discount_value form-control form-control-sm" style="width:100%; text-align: right"></td>' +
+        '<td style="width:10%"><input type="text" name="sub_total[]" class="sub_total form-control form-control-sm" style="width:100%; text-align: right"></td>' +
         '<td style="width:5%"><a href="#" class="delete-rows" id="delete_row"><span data-feather="trash-2"></span>Delete</a></td>'+
         '</tr>';
-
-				$.ajax({
-	        type: "GET",
-	        url: "/collections/other/show_products",
-	        data: { _token: CSRF_TOKEN },
-	        dataType: "JSON",
-	        success: function(data)  {
-	          console.log(data);
-
-	          $(".products").select2({
-	            data: data.data,
-	            placeholder: "Select a product",
-	            minimumResultsForSearch: 20, // at least 20 results must be displayed
-	            allowClear:true
-	          });
-	        }
-	      });
-
 				table.prepend(newRow);
 				rowNum = rowNum + 1;
 
-    }); // end of click event
+				// Fetch data to select2 class products
+				$('.products').select2({
+					placeholder: 'Select a product/service',
+					// minimumInputLength: 1, // at least 1  characters to display records
+					allowClear: true,
+					ajax: {
+						url: '/collections/other/show_products',
+						dataType: 'JSON',
+						delay: 250,
+						data: function (params) {
+						 	return {
+								term: params.term,
+								page: params.page,
+								type: 'public',
+								success: function(resource){
+									console.log(resource);
+								}
+							};
+						},
+						processResults: function (data, params) {
+							params.page = params.page || 1;
+							return {
+								results:data.items,
+								pagination: {
+									more: (params.page * 30) < data.total_count
+								}
+							};
+						},
+						cache: true
+						// transport: function(params, success, failure) {
+						// 	var $request = $.ajax(params);
+						//
+						// 	$request.then(success);
+						// 	$request.fail(failure);
+						//
+						// 	return $request;
+						// }
+					},
+					escapeMarkup: function (markup) { return markup; }
 
-
+				});
+    });
 
 		$('tbody').delegate('.products', 'select2:select', function(){
 			var id = $(this).val();
-			var description = ""
 			var row_id = $(this).closest('tr').attr('id');
 			var price = 0;
+			var description = $('tr#'+ row_id + ' .products :selected').text();
 
-			description = $('tr#'+ row_id + ' .products :selected').text();
-
-			alert('select product');
-			alert('id: ' + id);
-			alert('description: ' + description);
+			// alert('click table product');
 
 			$.ajax({
 				type: "GET",
 				url: "/collections/other/get_latest_price",
 				data: { _token: CSRF_TOKEN, id: id, row_id: row_id, description: description },
 				dataType: "JSON",
-				success: function(data){
+				success: function(data) {
+					console.log(data);
+
 					row_id = data.row_id;
 
-					console.log(data);
-					// alert(data.row_id);
+					$.each(data.data, function(i, data) {
+						var item_code = '';
+						var price = 0;
+						var quantity = 0;
+						var sub_total = 0;
+						// var amount_paid = 0;
+						var charge_code = '';
+						var charge_table = '';
+						var discount_initial_value = Number(0.00);
 
-					$.each(data.data, function(i, data){
+
+						item_code = data.item_code;
 						price = Number(data.selling_price);
 						quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
+
+						// *Get the sum of price & quantity
 						sub_total = price * quantity;
-						amount_paid = Number($('#amount_paid').val());
+
+						// amount_paid = Number($('#amount_paid').val());
 						charge_code = data.charge_code;
 						charge_table = data.charge_table;
-						discount_initial_value = Number(0.00);
+
 						total_value = Number($('#invoice_table').find('#total_value').text());
-
 						total_value = total_value + price;
-						amount_paid = amount_paid + price;
+						// amount_paid = amount_paid + price;
+						// var comma_sub_total = numberWithCommas(Number(sub_total).toFixed(2));
 
+						$('#amount_paid').val(Number(total_value).toFixed(2));
 
 						$('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val(Number(price).toFixed(2));
-						$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
-
 						$('#invoice_table').find('tr#'+ row_id).find('.discount_percent').val(discount_initial_value.toFixed(2));
 						$('#invoice_table').find('tr#'+ row_id).find('.discount_value').val(discount_initial_value.toFixed(2));
-
-						$('#amount_paid').val(Number(amount_paid).toFixed(2));
-
+						$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(sub_total.toFixed(2));
 						$('#invoice_table').find('#total_value').text(Number(total_value).toFixed(2));
-
+						$('#invoice_table').find('tr#' + row_id).find('.pay_checkbox').val(item_code);
 						$('#charge_code').val(charge_code);
 						$('#charge_table').val(charge_table);
 
-						// alert(charge_code +',,, ' + charge_table);
-						alert(total_value);
+						// alert('class products: ' + item_code);
 
-					})
+					}) // each data.data function
 				}
 			});
 		});
 
 		// Click event delete row
     table.on('click', '#delete_row', function() {
+			var total_value = 0;
+
       $(this).closest('tr').remove();
 
+			$('.payment_values').each(function(){
+				var current_row = $(this);
+				var quantity = Number(current_row.find('.quantity').val());
+				var unit_cost = Number(current_row.find('.unit_cost').val());
+				var sub_total = Number(quantity * unit_cost);
+				total_value = total_value + sub_total;
+			});
+				total_value = Number(total_value).toFixed(2);
+				$('#total_value').text(total_value);
     });
 
-
-		// Keydown event quantity
-		table.on('keydown', '.quantity', function(event){
+		// Quantity keydown event press enter
+		table.on('keydown', '.quantity', function(event) {
 			var id = $(this).val();
       var row_id = $(this).closest('tr').attr('id');
 			var sub_total_value = 0;
-
 			if(event.which == 13){
 				event.preventDefault();
-				alert('pressed enter at quantity');
-				alert(id);
-
+				// alert('pressed enter at quantity');
+				// alert(id);
 				price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
 				quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
 				sub_total = price * quantity;
-
-
+				$('#invoice_table').find('tr#' + row_id).find('.discount_percent').val(Number(0.00).toFixed(2));
+				$('#invoice_table').find('tr#' + row_id).find('.discount_value').val(Number(0.00).toFixed(2));
 				$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
 				$('#invoice_table').find('tr#'+ row_id).find('.quantity').val(Number(quantity).toFixed(2));
-
 				$('.payment_values').each(function(){
 					var current_row = $(this);
 					sub_total_value =  sub_total_value + Number(current_row.find('.sub_total').val());
-
 				})
+				$('#amount_paid').val(Number(sub_total_value).toFixed(2));
+				$('#invoice_table').find('#total_value').text(Number(sub_total_value).toFixed(2));
+				console.log(sub_total);
+			}
+		});
+
+
+		// Unit cost keydown event press enter
+		table.on('keydown', '.unit_cost', function(event) {
+			var id = $(this).val();
+			var row_id = $(this).closest('tr').attr('id');
+			var sub_total_value = 0;
+			var discount_initial_value = 0.00;
+
+			if (event.which == 13) {
+				event.preventDefault();
+				// alert('Pressed enter at unit cost column');
+				// alert(id);
+
+				price = Number($('#invoice_table').find('tr#' + row_id).find('.unit_cost').val());
+				quantity = Number($('#invoice_table').find('tr#' + row_id).find('.quantity').val());
+				sub_total = (price * quantity);
+
+				$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+				$('#invoice_table').find('tr#' + row_id).find('.quantity').val(Number(quantity).toFixed(2));
+				$('#invoice_table').find('tr#' + row_id).find('.unit_cost').val(Number(price).toFixed(2));
+				$('#invoice_table').find('tr#' + row_id).find('.discount_percent').val(Number(discount_initial_value).toFixed(2));
+				$('#invoice_table').find('tr#' + row_id).find('.discount_value').val(Number(discount_initial_value).toFixed(2));
+
+				$('.payment_values').each(function(){
+					var current_row = $(this);
+					sub_total_value = sub_total_value + Number(current_row.find('.sub_total').val());
+				});
 
 				$('#amount_paid').val(Number(sub_total_value).toFixed(2));
 				$('#invoice_table').find('#total_value').text(Number(sub_total_value).toFixed(2));
@@ -462,6 +526,7 @@
 				console.log(sub_total);
 			}
 		});
+
 
 		// Keydown event discount percent
 		table.on('keydown', '.discount_percent', function(event){
@@ -471,11 +536,10 @@
 			var discount_value = 0;
 			var sub_total = 0;
 
-
 			if(event.which == 13){
 				event.preventDefault();
-				alert('pressed enter at discount percent column');
-				alert(id);
+				// alert('pressed enter at discount percent row');
+				// alert(id);
 
 				price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
 				quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
@@ -494,67 +558,87 @@
 
 				$('.payment_values').each(function(){
 					var current_row = $(this);
-
 					sub_total = sub_total + Number(current_row.find('.sub_total').val());
-
-
 				});
 
 				sub_total = Number(sub_total).toFixed(2);
-				$('#amount_paid').val(sub_total);
+				// $('#amount_paid').val(sub_total);
 				$('#invoice_table').find('#total_value').text(sub_total);
 
 			}
 		}); // End of event keydown .discount_percent
 
 
+		// Discount value keydown event
+		table.on('keydown', '.discount_value', function(event){
+			var row_id = $(this).closest('tr').attr('id');
+			var id = $(this).val();
+			var discount_percent = 0;
+			var discount_value = id;
+			var sub_total = 0;
+
+			if (event.which == 13) {
+				event.preventDefault();
+
+				price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
+				quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
+				sub_total = Number(price * quantity);
+
+				$('#invoice_table').find('tr#'+ row_id).find('.discount_value').val(Number(discount_value).toFixed(2));
+
+				sub_total = sub_total - discount_value;
+				$('#invoice_table').find('tr#'+ row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+
+				sub_total = Number(0);
+				$('.payment_values').each(function(){
+					var current_row = $(this);
+					sub_total = sub_total + Number(current_row.find('.sub_total').val());
+				});
+
+				sub_total = Number(sub_total).toFixed(2);
+				$('#invoice_table').find('#total_value').text(sub_total);
+				$('#amount_paid').val(sub_total);
+			}
+		});
 
 		// Focusout event quantity
 		table.on('focusout', '.quantity', function(event) {
 			var id = $(this).val();
       var row_id = $(this).closest('tr').attr('id');
 			var sub_total_value = 0;
-
 			event.preventDefault();
-			// alert('pressed enter in quantity column');
-			// alert(id);
-
 
 			price = Number($('#invoice_table').find('tr#'+ row_id).find('.unit_cost').val());
 			quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
 			sub_total = price * quantity;
 
-			discount_percent = Number($('#invoice_table').find('tr#' + row_id).find('.discount_percent').val());
-
-			if (discount_percent > 0) {
-				sub_total = sub_total - (price * quantity) * (discount_percent / 100);
-
-			}
-
-
-			$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+			// discount_percent = Number($('#invoice_table').find('tr#' + row_id).find('.discount_percent').val());
+			//
+			// if (discount_percent > 0) {
+			// 	sub_total = sub_total - (price * quantity) * (discount_percent / 100);
+			// }
 			$('#invoice_table').find('tr#'+ row_id).find('.quantity').val(Number(quantity).toFixed(2));
+			$('#invoice_table').find('tr#' + row_id).find('.discount_percent').val(Number(0.00).toFixed(2));
+			$('#invoice_table').find('tr#' + row_id).find('.discount_value').val(Number(0.00).toFixed(2));
+			$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
 
 			$('.payment_values').each(function(){
 				var current_row = $(this);
 				sub_total_value =  sub_total_value + Number(current_row.find('.sub_total').val());
-
 			})
-
-			$('#amount_paid').val(Number(sub_total_value).toFixed(2));
-
+			$('#invoice_table').find('#total_value').text(sub_total_value.toFixed(2));
+			$('#amount_paid').val(sub_total_value.toFixed(2));
+			// $('#amount_paid').val(Number(sub_total_value).toFixed(2));
 			console.log(sub_total);
-
 
 		});
 
-
     $('#btn_save').click(function(event) {
       event.preventDefault();
-      alert('clicked save button');
+      // alert('clicked save button');
 
 	    var date = new Date();
-	    var month = date.getMonth()+1;
+	    var month = date.getMonth() + 1;
 	    var day = date.getDate();
 			var hour = date.getHours();
 			var minute = date.getMinutes();
@@ -569,85 +653,113 @@
       var currency_value = $('#currency').val();
       var payment_type_value = $('#payment_type').val();
       var discount_computation_value = $('#discount_computation').val();
-      var amount_paid_value = $('#amount_paid').val();
+      // var amount_paid_value = $('#amount_paid').val();
+			var amount_paid_value = $('#total_value').text();
       var amount_tendered_value = $('#amount_tendered').val();
       var amount_change_value =  $('#change').val();
 			var charge_code_value = $('#charge_code').val();
 			var charge_table_value = $('#charge_table').val();
-			var created_at_value = date.getFullYear() + '-' +
-					(('' + month).length < 2 ? '0' : '') +
-					month + '-' + (('' + day).length < 2 ? '0' : '') + day +
-					' ' + hour + ':' + minute + ':' + second;
 			var discount_percent_value = 0;
+			var arrData=[];
+			var created_at_value = date.getFullYear() + '-' + (('' + month).length < 2 ? '0' : '') +
+					month + '-' + (('' + day).length < 2 ? '0' : '') + day + ' ' + hour + ':' + minute + ':' + second;
 
 
-			if (discount_name_value === "SENIOR" || discount_name_value === "PWD") {
-
+			if (discount_name_value == "SENIOR" || discount_name_value == "PWD") {
 				discount_percent_value = Number(20).toFixed(2);
-
 			} else {
-
 				discount_percent_value = Number(discount_name_value).toFixed(2);
 			}
 
-			alert(discount_name_value);
-			alert(discount_percent_value);
 
-      var arrData=[];
+			if (patient_name_value == ' ' || patient_name_value == null) {
+				alert('Please fill up Field: Patient Name');
+			} else {
 
-      // loop over each  table row (tr)
-      $('.payment_values').each(function(){
-        var current_row = $(this);
-        var product_id_value = current_row.find('.products').val();
-        var quantity_value = current_row.find('.quantity').val();
-        var unit_cost_value = current_row.find('.unit_cost').val();
-        var discount_percent_table_value = current_row.find('.discount_percent').val();
-        var discount_value_value = current_row.find('.discount_value').val();
-        var sub_total_value = current_row.find('.sub_total').val();
+				var row_count = $('#invoice_table tbody tr').length;
+				if (row_count <= 2) {
+					alert('Please add at least one product/service to proceed');
 
-        var obj = {};
+				} else {
+					// loop over each  table row (tr)
+		      $('.payment_values').each(function(){
+		        var current_row = $(this);
+		        var product_id_value = current_row.find('.pay_checkbox').val();
+		        var quantity_value = current_row.find('.quantity').val();
+		        var unit_cost_value = current_row.find('.unit_cost').val();
+		        var discount_percent_table_value = current_row.find('.discount_percent').val();
+		        var discount_value_value = current_row.find('.discount_value').val();
+		        var sub_total_value = current_row.find('.sub_total').val();
+						var is_pay_value = 0;
+						var is_discount_value = 0
 
-        obj.prefix_or_number = prefix_or_number_value;
-        obj.or_date = or_date_value;
-        obj.patient_name = patient_name_value;
-        obj.unit_cost = unit_cost_value;
-        obj.quantity = quantity_value;
-        obj.sub_total = sub_total_value;
-        obj.currency_code = currency_value;
-        obj.payment_type = payment_type_value;
-        obj.payment_mode = payment_mode_value;
-        obj.item_code = product_id_value;
-        obj.user_id = user_id_value;
-				obj.discount_name = discount_name_value;
-        obj.discount_percent = discount_percent_table_value;
-        obj.discount_computation = discount_computation_value;
-        obj.discount_value = discount_value_value;
-        obj.amount_paid = amount_paid_value;
-        obj.amount_tendered = amount_tendered_value;
-        obj.amount_change = amount_change_value;
-				obj.created_at = created_at_value;
-				obj.charge_code = charge_code_value;
-				obj.charge_table = charge_table_value;
-        arrData.push(obj);
+						if (current_row.find('.pay_checkbox').is(':checked')) {
+							is_pay_value = 1;
 
-      });
+						}
 
-      alert(arrData);
-      console.log(arrData);
-      console.log(created_at_value);
+						if (current_row.find('.discount_checkbox').is(':checked')) {
+							is_discount_value = 1;
 
-      $.ajax({
-        type: "POST",
-        url: "/collections/other/store_payment",
-        data: { _token: CSRF_TOKEN, data: arrData },
-        dataType: "JSON",
-        success: function(data){
-          alert(data);
-          console.log(data);
-        }
-      });
+						}
 
+
+
+						  // $('#show').html(this.checked ? this.value : '');
+						var obj = {};
+
+						obj.prefix_or_number = prefix_or_number_value;
+						obj.or_date = or_date_value;
+						obj.patient_name = patient_name_value;
+						obj.unit_cost = unit_cost_value;
+						obj.quantity = quantity_value;
+						obj.sub_total = sub_total_value;
+						obj.currency_code = currency_value;
+						obj.payment_type = payment_type_value;
+						obj.payment_mode = payment_mode_value;
+						obj.item_code = product_id_value;
+						obj.user_id = user_id_value;
+						obj.discount_name = discount_name_value;
+						obj.discount_percent = discount_percent_table_value;
+						obj.discount_computation = discount_computation_value;
+						obj.discount_value = discount_value_value;
+						obj.amount_paid = amount_paid_value;
+						obj.amount_tendered = amount_tendered_value;
+						obj.amount_change = amount_change_value;
+						obj.created_at = created_at_value;
+						obj.charge_code = charge_code_value;
+						obj.charge_table = charge_table_value;
+						obj.is_pay = is_pay_value;
+						obj.is_discount = is_discount_value;
+
+						arrData.push(obj);
+		      });
+
+		      // alert(arrData);
+		      console.log(arrData);
+		      console.log(created_at_value);
+		      $.ajax({
+		        type: "POST",
+		        url: "/collections/other/store_payment",
+		        data: { _token: CSRF_TOKEN, data: arrData, or_number: prefix_or_number_value },
+		        dataType: "JSON",
+		        success: function(data){
+		          // alert(data);
+		          console.log(data);
+
+
+							 $('.alert').show();
+		        }
+		      }); // End of  url: "/collections/other/store_payment",
+
+
+					// similar behavior as an HTTP redirect
+					// window.location.replace("/collections/other");
+
+				} // End of if (row_count < 2) {
+			} // End of if (patient_name_value == ' ' || patient_name_value == null) {
     });
+
 
     $('#invoice_table').on('click', '.select-rows', function(){
       var current_row = $(this).closest('tr');
@@ -664,30 +776,30 @@
                   'discount percent: ' + discount_percent + '\n' +
                   'discount value: ' + discount_value + '\n' +
                   'sub total: ' + sub_total + '\n';
-      alert(data);
+      // alert(data);
       console.log(data);
     });
 
-		$('#create_new').click(function(event){
-			var id = $(this).val();
-			var patient_name = $('#patient_name').val();
-			var data = $('#patient_name').select2('data');
-			var description = $('select2-container select2-container--default select2-container--open select2-dropdown select2-dropdown--below select2-search select2-search--dropdown input.select2-search__field').val();
-
-			event.preventDefault();
-			alert('clicked create new');
-			alert(data[0].text);
-			alert(data[0].id);
-			alert(id);
-			alert(description);
-
-			// var newOption = new Option(data[0].text, data[0].id, true, true);
-			// $('#patient_name').append(newOption).trigger('change');
-
-			$('#patient_name').val('Select2 Config');
-
-		});
-
+		//
+		// $('#create_new').click(function(event){
+		// 	var id = $(this).val();
+		// 	var patient_name = $('#patient_name').val();
+		// 	var data = $('#patient_name').select2('data');
+		// 	var description = $('select2-container select2-container--default select2-container--open select2-dropdown select2-dropdown--below select2-search select2-search--dropdown input.select2-search__field').val();
+		//
+		// 	event.preventDefault();
+		// 	alert('clicked create new');
+		// 	alert(data[0].text);
+		// 	alert(data[0].id);
+		// 	alert(id);
+		// 	alert(description);
+		//
+		// 	// var newOption = new Option(data[0].text, data[0].id, true, true);
+		// 	// $('#patient_name').append(newOption).trigger('change');
+		//
+		// 	$('#patient_name').val('Select2 Config');
+		//
+		// });
   }); // $.(document).ready(function(){})
 </script>
 
@@ -731,78 +843,22 @@
             closeOnSelect: true
         }) -->
 
-<!-- <script>
-	$(document).ready(function() {
-
-		var patient_name = $('#patient_name').val();
-		var newOption = new Option(patient_name, patient_name, false, false);
-
-		$("#patient_name").select2({
-			placeholder: 'Select a patient name',
-			allowClear:true,
-		});
-
-			$('#patient_name').append(newOption).trigger('change');
-
-	});
-
-</script> -->
-
-<!-- <script type="text/javascript">
-  $(document).ready(function(){
-       $('tbody').delegate('.quantity, .unit_cost, .discount_percent, .discount_value, .sub_total', 'keyup', function(){
-      alert("test");
-    });
-  });
-</script> -->
 
 
-
-<script type="text/javascript">
-  $(document).ready(function(){
-    // code to read selected table row cell data (values).
-    $('#invoice_table').on('click', '#btn_save', function(){
-      var current_row = $(this).closest('tr');
-    })
-  });
-</script>
-
-<script type="text/javascript">
-	$("#patient_name").select2({
-		createSearchChoice:function(term, data) { if ($(data).filter(function() { return this.text.localeCompare(term)===0; }).length===0) {return {id:term, text:term};} },
-		multiple: true,
-		data: [{id: 0, text: 'story'},{id: 1, text: 'bug'},{id: 2, text: 'task'}]
-	});
-
-	$("#patient_name")
-	.on("change", function(e) { log("change " + JSON.stringify({val:e.val, added:e.added, removed:e.removed})); })
-	.on("select2-opening", function() { log("opening"); })
-	.on("select2-open", function() { log("open"); })
-	.on("select2-close", function() { log("close"); })
-	.on("select2-highlight", function(e) { log ("highlighted val="+ e.val+" choice="+ JSON.stringify(e.choice));})
-	.on("select2-selecting", function(e) { log ("selecting val="+ e.val+" choice="+ JSON.stringify(e.choice));})
-	.on("select2-removing", function(e) { log ("removing val="+ e.val+" choice="+ JSON.stringify(e.choice));})
-	.on("select2-removed", function(e) { log ("removed val="+ e.val+" choice="+ JSON.stringify(e.choice));})
-	.on("select2-loaded", function(e) { log ("loaded (data property omitted for brevity)");})
-	.on("select2-focus", function(e) { log ("focus");})
-	.on("select2-blur", function(e) { log ("blur");});
-</script>
-
+<!-- Start of apply to all discount button -->
 <script type="text/javascript">
 	$(document).ready(function(){
 		$('#apply_discount_all').click(function(event){
 			event.preventDefault();
-			alert('clicked apply discount all button');
+			// alert('clicked apply discount all button');
 
 			var discount_percent = $.trim($('#discount_percent').val());
 			var discount_name = discount_percent;
 
 			if (discount_percent === '') {
-				discount_percent = 'No Discount(%) found.';
-				alert(discount_percent);
+				discount_percent = 'No discount(%) found';
+				// alert(discount_percent);
 			} else {
-
-
 
 				if (discount_percent === 'SENIOR' || discount_percent ==='PWD') {
 					discount_percent = 0.20;
@@ -812,10 +868,14 @@
 				}
 
 				var total_value = 0;
+
+				$('input[name="discount_checkbox"]:not(:checked)').each(function(){
+					$(this).prop('checked', true);
+				});
+
 				$('.payment_values').each(function(){
 
 					var current_row = $(this);
-
 	        var product_id_value = Number(current_row.find('.products').val());
 	        var quantity_value = Number(current_row.find('.quantity').val());
 	        var unit_cost_value = Number(current_row.find('.unit_cost').val());
@@ -840,11 +900,14 @@
 				$('#amount_paid').val(Number(total_value).toFixed(2));
 
 			}
-		});
+		}); // End of apply to all discount button
 
+
+
+		// start of apply to selected discount button
 		$('#apply_discount_selected').click(function(event){
 			event.preventDefault();
-			alert('clicked apply discount selected button');
+			// alert('clicked apply discount selected button');
 
 			/* declare an checkbox array */
 			var id = [];
@@ -854,12 +917,10 @@
 
 			$('input[name="discount_checkbox"]:checked').each(function(){
 				id.push($(this).val());
-
 			});
 
 			if (discount_percent === '') {
 				alert('No Discount(%) found.');
-
 			} else {
 
 				if (discount_percent === 'SENIOR' || discount_percent === 'PWD') {
@@ -867,7 +928,6 @@
 				} else {
 					discount_percent = discount_percent / 100;
 				}
-
 
 				/* check if there is checkedValues checkboxes, by default the length is 1 as it contains one single comma */
 				if (id.length > 0) {
@@ -879,10 +939,8 @@
 						var sub_total = Number($('#invoice_table').find('tr#'+ row_id).find('.sub_total').val());
 						var discount_value = 0;
 
-
-						alert(row_id);
-						alert(sub_total);
-
+						// alert(row_id);
+						// alert(sub_total);
 						discount_value = sub_total * discount_percent;
 						sub_total = sub_total - discount_value;
 
@@ -895,31 +953,224 @@
 					$('.payment_values').each(function(){
 						var current_row = $(this);
 						var sub_total = Number(current_row.find('.sub_total').val());
-
 						total_value = total_value + sub_total;
-
-
 					});
 
 					total_value = Number(total_value).toFixed(2);
-
 					$('#total_value').text(total_value);
-
 					$('#amount_paid').val(total_value);
-
 
 				} else {
 					alert("Please select at least check one checkbox");
 
 				} // if there is no selected checkboxes
-
-
 			} // discount is null
-
 		});
+
+		$('#clear_discounts').click(function(event){
+			event.preventDefault();
+			var total_value = 0;
+			// alert('clear discounts button clicked');
+			var q = confirm('Do you want to clear all the discounts made?\nYour changes will be lost if you clear the discounts.');
+
+			if (q == true) {
+				$('#discount_percent').val('');
+
+				$('input[name="pay_checkbox"]:not(:checked)').each(function(){
+					$(this).prop("checked", true);
+				});
+
+				$('input[name="discount_checkbox"]:checked').each(function(){
+					$(this).prop("checked", false);
+				});
+
+
+				$('.payment_values').each(function(){
+					var current_row = $(this);
+					var quantity = Number(current_row.find('.quantity').val());
+					var unit_cost = Number(current_row.find('.unit_cost').val());
+					var sub_total = Number(quantity * unit_cost);
+					var discount_default_value = Number(0.00).toFixed(2);
+					total_value = total_value + sub_total;
+
+					current_row.find('.discount_percent').val(discount_default_value);
+					current_row.find('.discount_value').val(discount_default_value);
+					current_row.find('.sub_total').val(Number(sub_total).toFixed(2));
+				});
+
+					total_value = Number(total_value).toFixed(2);
+					$('#total_value').text(total_value);
+					$('#amount_paid').val(total_value);
+
+			} else {
+
+			}
+
+		}); // end of clear discounts function
+
+
+		$('#update_totals').click(function(event){
+			event.preventDefault()
+			// alert('clicked update totals button');
+
+			/* declare an checkbox array */
+			var id = [];
+			var row_id = 0;
+
+			$('input[name="pay_checkbox"]:not(:checked)').each(function(){
+				row_id = $(this).closest('tr').attr('id');
+
+				id.push(row_id);
+				// alert(row_id);
+			});
+
+			if (id.length > 0) {
+				var current_row = $(this);
+				var null_value = Number(0.00).toFixed(2);
+				var total = Number(0);
+				var discount_percent = $('#discount_percent').val();
+				var row_id = 0;
+				var discount_id = [];
+				var sub_total = 0;
+				var discount_value = 0;
+
+				$.each(id, function(i, value){
+					row_id = value;
+					$('#invoice_table').find('tr#' + row_id).find('.discount_percent').val(null_value);
+					$('#invoice_table').find('tr#' + row_id).find('.discount_value').val(null_value);
+					$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(null_value);
+					// alert(row_id);
+					});
+
+					if (discount_percent == '' || discount_percent == null || discount_percent == 0) {
+						// code...
+					}
+					else {
+						$('input[name="discount_checkbox"]:checked').each(function(){
+							discount_id.push($(this).val());
+
+						});
+
+						if (discount_id.length > 0) {
+							// var current_row = $(this);
+							// alert(current_row);
+
+							$.each(discount_id, function(i, value){
+								row_id = value;
+								sub_total = $('#invoice_table').find('tr#' + row_id).find('.sub_total').val();
+
+								if (discount_percent == 'SENIOR' || discount_percent == 'PWD') {
+									discount_percent = 20;
+								}
+
+								discount_value = (sub_total * (discount_percent/100));
+
+								sub_total = sub_total - discount_value;
+
+								$('#invoice_table').find('tr#' + row_id).find('.discount_percent').val(Number(discount_percent).toFixed(2));
+								$('#invoice_table').find('tr#' + row_id).find('.discount_value').val(Number(discount_value).toFixed(2));
+								$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+
+								// alert(row_id);
+							});
+						}
+					}
+
+					$('.payment_values').each(function(){
+						var current_row = $(this);
+						var sub_total = Number(current_row.find('.sub_total').val());
+						total = total + sub_total;
+						// alert(total);
+
+					});
+					// alert(total);
+					total = Number(total).toFixed(2);
+					$('#total_value').text(total);
+					$('#amount_paid').val(total);
+
+
+
+			}
+		})
+
+	}); // end of document function
+</script>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+			$('#btn_print').click(function(event) {
+				event.preventDefault();
+				var prefix_or_number = $('#or_number').val();
+				// alert('button print receipt clicked');
+				//
+				// 	$.ajax({
+				// 		type: 'GET',
+				// 		url: '/collections/other/print/pdf',
+				// 		data: { id: prefix_or_number },
+				// 	});
+
+				// $('#btn_save').click();
+
+				window.location.replace("/collections/other/print/pdf/" + prefix_or_number);
+
+			});
 	});
 </script>
 
+<script type="text/javascript">
+
+	data = [
+		'Juan',
+		'Thoo',
+		'Thrie'
+	];
+
+	$('#patient_name').autocomplete({
+		source: "{{ url('/collections/other/autocomplete-search') }}",
+		// minLength: 2,
+		select: function(key, value){
+			// console.log(value);
+			// alert('id: '+ value.item.id + '; ' + 'value:' + value.item.value);
+
+		}
+	});
+
+</script>
+
+<script type="text/javascript">
+  function computeChange(){
+
+    var amount_paid = Number($('#amount_paid').val());
+    var amount_tendered = Number($('#amount_tendered').val());
+    var compute = 0;
+
+    if (amount_paid > amount_tendered) {
+      alert('Amount tendered must be greater than the total amount.');
+      $('#change').val(Number(0.00).toFixed(2));
+    } else {
+      compute = amount_tendered - amount_paid;
+      $('#amount_tendered').val(Number(amount_tendered).toFixed(2));
+      $('#change').val(Number(compute).toFixed(2));
+    }
+  }
+
+  $('#search_barcode').keydown(function(event){
+    if (event.which == 13 ) {
+      // alert('pressed enter at search barcode field');
+      $('#post_data').click();
+    }
+  });
+
+  $('#amount_tendered').keydown(function(event){
+    // event.preventDefault();
+    if (event.which == 13) {
+      // alert('pressend enter at amount tendered field');
+      computeChange();
+      // $('#change').focus();
+    }
+  });
+
+</script>
 
 
 

@@ -2,6 +2,14 @@
 
 return [
 
+
+    /* Server name
+    |
+    | This value is the name of the server.
+    */
+
+    'server' => env('DB_HOST', 'Localhost'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -147,6 +155,7 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
+
         /*
          * Package Service Providers...
          */
@@ -156,11 +165,13 @@ return [
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
+        App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Yajra\DataTables\DataTablesServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
+        Sentry\Laravel\ServiceProvider::class,
+        JasperPHP\JasperPHPServiceProvider::class
 
     ],
 
@@ -212,6 +223,8 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
         'DataTables' => Yajra\DataTables\Facades\DataTables::class,
         'PDF' => Barryvdh\DomPDF\Facade::class,
+        'Sentry' => Sentry\Laravel\Facade::class,
+
 
     ],
 

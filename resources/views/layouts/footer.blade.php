@@ -1,4 +1,4 @@
-  
+
   	<!-- Popper JS -->
     <script type="text/javascript" src="{{ asset('/js/popper-1.14.3.min.js') }}"></script>
 
@@ -13,7 +13,12 @@
 
     <!-- Select2 JS -->
     <script type="text/javascript" src="{{ asset('/js/select2_4.0.6-rc.0.min.js') }}"></script>
-    
+
+    <!-- DataTables-1.10.18\js\jquery.dataTables.min.js -->
+    <!-- <script type="text/javascript" src="{{ asset('/DataTables-1.10.18/js/jquery.dataTables.min.js') }}"> -->
+
+    </script>
+
 
 	<script type="text/javascript">
 		$.ajaxSetup({
@@ -22,7 +27,7 @@
 			}
 		});
 	</script>
-	    
+
 	<script>
 		feather.replace()
 	</script>
@@ -45,6 +50,3 @@
 			});
 		});
 	</script>
-
-
-  

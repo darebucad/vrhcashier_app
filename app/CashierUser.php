@@ -27,4 +27,12 @@ class CashierUser extends Authenticatable
         'password', 'remember_token',
     ];
 
+
+    /**
+     * The database table
+     *
+     * @var string
+     */
+    protected $table = 'cashier_users';
+
 }

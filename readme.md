@@ -8,6 +8,3 @@
 </p>
 
 VRH Cashier System
-
-
-# MySQL Database - Localhost
