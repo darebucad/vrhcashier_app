@@ -62,8 +62,6 @@ class CollectionsOtherController extends Controller
     public function create($id) {
         // dd($id);
         $user_id = $id;
-
-
         // $payments = ViewPaymentORNumber::select('next_or_number', 'or_prefix')
         //     ->where('id', $user_id)
         //     ->limit(1)
@@ -114,10 +112,10 @@ class CollectionsOtherController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function showProducts(Request $request) {
-        $search = ucfirst($request->term);
+        $search = $request->term;
 
         $products = ViewProducts::select('item_code AS id', 'description AS text')
-        ->where('description', 'LIKE', '%' .  $search . '%')
+        ->where('lower_description', 'LIKE', '%' .  $search . '%')
         ->orderBy('description', 'ASC')
         ->get();
 

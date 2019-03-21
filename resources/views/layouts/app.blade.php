@@ -13,9 +13,13 @@
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
 
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{{ asset('/css/bootstrap.min.css') }}" type="text/css">
+
     <!-- Fonts -->
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet" type="text/css">
+    <!-- <link rel="stylesheet" href="{{ asset('css/font.css') }}" text="text/css"> -->
 
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">

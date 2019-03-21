@@ -1,7 +1,9 @@
 <nav class="col-md-2 d-none d-md-block bg-light sidebar">
   <div class="sidebar-sticky">
     <ul class="nav flex-column">
-
+      <li class="nav-item">
+        <img src="{{ asset('vrhlogo.png') }}" alt="..." class="img-thumbnail" style="width:200px; height:200px; margin-left: 10%;">
+      </li>
       <li class="nav-item">
         <h6 class="d-flex justify-content-between align-items-center px-4 mt-4 mb-1 text-muted">
           Dashboard
@@ -81,7 +83,7 @@
       </li>
 
       <li class="nav-item" style=@if(Auth::user()->isAdmin === '0') display:none @endif>
-        <a class="nav-link" href="#" style="text-indent: 2em">
+        <a class="nav-link" href="{{ url('settings/cashier-management') }}" style="text-indent: 2em">
           Cashier Management
         </a>
       </li>

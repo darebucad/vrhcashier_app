@@ -24,11 +24,13 @@
 
   <div class="form-group row">
 
-    <div class="col-md-4">
+    <div class="col-md-2">
+      <!-- <img src="{{ asset('vrhlogo.png') }}" alt="..." class="img-thumbnail" style="width:200px; height:200px;"> -->
       <img src="..." alt="..." class="img-thumbnail">
     </div>
 
     <div class="col-md-4">
+      <!-- <img src="{{ asset('laravel.png') }}" alt="..." class="img-thumbnail" style="width:250px; height:200px;"> -->
       <img src="..." alt="..." class="img-thumbnail">
     </div>
 
@@ -41,7 +43,7 @@
 
 <hr>
   <div class="form-group row">
-    <h4>Total Sales: </h4>
+    <h5 class="text-primary">Total Sales: </h5>
   </div>
 
 </main>

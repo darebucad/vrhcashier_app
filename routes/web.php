@@ -40,11 +40,15 @@ Route::get('collections/inpatient', 'CollectionsInpatientController@index')->nam
 
 // Collections Walkin
 Route::get('collections/walkin', 'CollectionsWalkinController@index');
-Route::get('collections/walkin/create', 'CollectionsWalkinController@create')->name('collections.walkin.create');
+Route::get('collections/walkin/create/{id}', 'CollectionsWalkinController@create')->name('collections.walkin.create');
+Route::post('collections/walkin/create/search-walkin-charges', 'CollectionsWalkinController@searchWalkinCharges');
 
 //Settings User Account
 Route::get('settings/user_account', 'UsersController@index')->name('settings.user_account');
 Route::get('settings/user_account/create', 'UsersController@create');
+
+// Settings Cashier Management
+Route::get('settings/cashier-management', 'SettingsCashierController@index');
 
 //Success
 Route::get('/auth/success', ['as'   => 'auth.success','uses' => 'Auth\AuthController@success']);

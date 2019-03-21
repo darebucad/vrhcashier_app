@@ -101,7 +101,7 @@
 
       <div class="col-md-3">
 
-      	@if (count($payments) === 1)
+      	@if (count($payments) > 0)
           @foreach ($payments as $payment)
             <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '-' . $payment->next_or_number }}" style="background-color:#99ccff!important;" required autofocus>
             <input type="hidden" name="or_number_only" value="{{ $payment->next_or_number }}">
@@ -381,7 +381,7 @@
 						// 	return $request;
 						// }
 					},
-					escapeMarkup: function (markup) { return markup; }
+					// escapeMarkup: function (markup) { return markup; }
 
 				});
     });
@@ -1166,10 +1166,23 @@
     if (event.which == 13) {
       // alert('pressend enter at amount tendered field');
       computeChange();
-      // $('#change').focus();
+      $('#change').focus();
     }
   });
 
+
+
+
+</script>
+
+<script type="text/javascript">
+  $('#collections_other').on('keyup keypress', function(e) {
+    var keyCode = e.keyCode || e.which;
+    if (keyCode === 13) {
+      e.preventDefault();
+      return false;
+    }
+  });
 </script>
 
 

@@ -44,7 +44,7 @@
     <h6>Loading...</h6>
   </div>
 
-  <form action="/collections/outpatient/create/payment" method="post" >
+  <form id="collections_outpatient" action="/collections/outpatient/create/payment" method="post">
     @csrf
 
     <div class="row" style="margin-top:10px;">
@@ -316,7 +316,7 @@ $( document ).ajaxComplete(function() {
           type: "POST",
           url: "/collections/outpatient/create/post_data",
           data: { _token: CSRF_TOKEN, charge_slip: charge_slip, user_id: user_id },
-          dataType: 'JSON',
+          dataType: "JSON",
           error: function(jqXHR, textStatus, errorThrown) {
               alert('Please provide a valid charge slip number / barcode');
           },
@@ -330,6 +330,7 @@ $( document ).ajaxComplete(function() {
             //   $('.alert').show();
             //
             // } else {
+
               $('#acctno').val(data.new_account_number);
 
               // Get list of patient and payment details
@@ -708,11 +709,22 @@ $( document ).ajaxComplete(function() {
   $('#amount_tendered').keydown(function(event){
     // event.preventDefault();
     if (event.which == 13) {
-      alert('pressend enter at amount tendered field');
+      // alert('pressend enter at amount tendered field');
       computeChange();
-      $('#change').focus();
+      // $('#change').focus();
     }
   });
+
+  $('#button_save').keydown(function(event){
+    event.preventDefault();
+    if (event.which == 13) {
+      // alert('pressed enter at button save');
+    }
+  });
+
+
+
+
 
 </script>
 
@@ -932,15 +944,20 @@ $(document).ready(function() {
       }
 
 
-
-
-
       // alert('unchecked pay checkboxes: ' + id);
       // console.log(id);
 
-
-
     });
+  });
+</script>
+
+<script type="text/javascript">
+  $('#collections_outpatient').on('keyup keypress', function(e) {
+    var keyCode = e.keyCode || e.which;
+    if (keyCode === 13) {
+      e.preventDefault();
+      return false;
+    }
   });
 </script>
 

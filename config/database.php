@@ -52,7 +52,7 @@ return [
             // 'charset' => 'utf8mb4',
             // 'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
-            'strict' => true,
+            'strict' => false, // for MySQL server <= 5.6
             'engine' => null,
             'options'   => [
                     \PDO::ATTR_EMULATE_PREPARES => true

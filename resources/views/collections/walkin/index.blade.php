@@ -1,8 +1,10 @@
 @extends ('layouts.master')
+
 @section ('content')
 <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h5">Index Walk-In Payment</h1>
+
     @if (session('status'))
       <div class="alert alert-success" role="alert">
         {{ session('status') }}
@@ -21,8 +23,12 @@
     </div>
   </div>
 
+    <h4 class="text-primary">Ongoing development ....</h4>
+
+    <br>
+
   <div class="row">
-    <a class="btn btn-sm btn-primary" href="{{ route('collections.walkin.create') }}">Create</a>
+    <a class="btn btn-sm btn-primary" href="{{ route('collections.walkin.create',['' => Auth::user()->id]) }}">Create</a>
   </div>
 
   <br />
