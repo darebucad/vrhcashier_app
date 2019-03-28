@@ -2,7 +2,7 @@
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top flex-md-nowrap p-0 shadow">
 
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Veterans Regional Hospital</a>
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Region II Trauma and Medical Center</a>
 
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>

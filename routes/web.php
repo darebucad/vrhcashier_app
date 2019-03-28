@@ -1,5 +1,4 @@
 <?php
-
 Auth::routes();
 
 Route::get('/', 'DashboardController@index')->name('dashboard');
@@ -42,6 +41,15 @@ Route::get('collections/inpatient', 'CollectionsInpatientController@index')->nam
 Route::get('collections/walkin', 'CollectionsWalkinController@index');
 Route::get('collections/walkin/create/{id}', 'CollectionsWalkinController@create')->name('collections.walkin.create');
 Route::post('collections/walkin/create/search-walkin-charges', 'CollectionsWalkinController@searchWalkinCharges');
+Route::post('collections/walkin/create/get-discount-percent', 'CollectionsWalkinController@getDiscountPercent');
+Route::post('collections/walkin/create/apply-discount-all', 'CollectionsWalkinController@applyDiscountAll');
+Route::post('collections/walkin/create/apply-discount-selected', 'CollectionsWalkinController@applyDiscountSelected');
+Route::post('collections/walkin/create/clear-discount', 'CollectionsWalkinController@clearDiscount');
+Route::post('collections/walkin/create/update-totals', 'CollectionsWalkinController@updateTotals');
+Route::post('collections/walkin/create/save-walkin-charges', 'CollectionsWalkinController@saveWalkinCharges');
+Route::get('collections/walkin/create/print-pdf/{id}', 'CollectionsWalkinController@printPdf');
+Route::get('collections/walkin/get-walkin-payment-data', 'CollectionsWalkinController@getWalkinPaymentDataIndex');
+
 
 //Settings User Account
 Route::get('settings/user_account', 'UsersController@index')->name('settings.user_account');

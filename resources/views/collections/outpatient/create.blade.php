@@ -330,9 +330,7 @@ $( document ).ajaxComplete(function() {
             //   $('.alert').show();
             //
             // } else {
-
               $('#acctno').val(data.new_account_number);
-
               // Get list of patient and payment details
               $.each(data.data, function(i, data) {
                 $('#patient_name').val(data.patient_name);
@@ -608,12 +606,14 @@ $( document ).ajaxComplete(function() {
       var discount = 0;
       var q = confirm('Do you want to clear all the discounts made?\nYour changes will be lost if you clear the discounts.');
 
-     $('#discount_percent').val('');
-     $('#amount_paid').val('0.00');
-     $('#amount_tendered').val('0.00');
-     $('#change').val('0.00');
+
 
      if (q == true) {
+       $('#discount_percent').val('');
+       $('#amount_paid').val('0.00');
+       $('#amount_tendered').val('0.00');
+       $('#change').val('0.00');
+       
        $.ajax({
           type: "POST",
           url: "/collections/outpatient/create/clear_discount",

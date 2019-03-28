@@ -777,10 +777,12 @@ class CollectionsOutpatientController extends Controller
 
         } else {
           $selected_patient_charges = ViewOutpatientChargeExam::whereIn('order_number', $ids)->get();
+
         }
 
         if ($discount_name == 'SENIOR' || $discount_name == 'PWD'){
             $discount_percent = 20;
+            
         } else {
           // code...
         }

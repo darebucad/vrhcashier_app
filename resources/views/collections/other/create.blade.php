@@ -37,7 +37,6 @@
 
   <!-- <form action="/collections/other/create/payment" method="post" > -->
   <form id="collections_other">
-
     @csrf
 
     <div class="row" style="margin-top:10px;">
@@ -300,7 +299,6 @@
   </div>
 </main>
 
-
 <!-- <script>
 	$(document).ready(function() {
 		$("#patient_name").select2({
@@ -314,7 +312,6 @@
 		});
 	});
 </script> -->
-
 
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -414,7 +411,6 @@
 						var charge_table = '';
 						var discount_initial_value = Number(0.00);
 
-
 						item_code = data.item_code;
 						price = Number(data.selling_price);
 						quantity = Number($('#invoice_table').find('tr#'+ row_id).find('.quantity').val());
@@ -452,7 +448,6 @@
 		// Click event delete row
     table.on('click', '#delete_row', function() {
 			var total_value = 0;
-
       $(this).closest('tr').remove();
 
 			$('.payment_values').each(function(){
@@ -736,17 +731,16 @@
 		      });
 
 		      // alert(arrData);
-		      console.log(arrData);
-		      console.log(created_at_value);
+		      // console.log(arrData);
+		      // console.log(created_at_value);
+
 		      $.ajax({
 		        type: "POST",
 		        url: "/collections/other/store_payment",
 		        data: { _token: CSRF_TOKEN, data: arrData, or_number: prefix_or_number_value },
 		        dataType: "JSON",
 		        success: function(data){
-		          // alert(data);
 		          console.log(data);
-
 
 							 $('.alert').show();
 		        }
@@ -1098,22 +1092,19 @@
 
 <script type="text/javascript">
 	$(document).ready(function() {
-			$('#btn_print').click(function(event) {
-				event.preventDefault();
-				var prefix_or_number = $('#or_number').val();
-				// alert('button print receipt clicked');
-				//
-				// 	$.ajax({
-				// 		type: 'GET',
-				// 		url: '/collections/other/print/pdf',
-				// 		data: { id: prefix_or_number },
-				// 	});
-
-				// $('#btn_save').click();
-
-				window.location.replace("/collections/other/print/pdf/" + prefix_or_number);
-
-			});
+		$('#btn_print').click(function(event) {
+			event.preventDefault();
+			var prefix_or_number = $('#or_number').val();
+			// alert('button print receipt clicked');
+			//
+			// 	$.ajax({
+			// 		type: 'GET',
+			// 		url: '/collections/other/print/pdf',
+			// 		data: { id: prefix_or_number },
+			// 	});
+			// $('#btn_save').click();
+			window.location.replace("/collections/other/print/pdf/" + prefix_or_number);
+		});
 	});
 </script>
 

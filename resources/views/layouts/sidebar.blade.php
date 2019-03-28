@@ -2,7 +2,7 @@
   <div class="sidebar-sticky">
     <ul class="nav flex-column">
       <li class="nav-item">
-        <img src="{{ asset('vrhlogo.png') }}" alt="..." class="img-thumbnail" style="width:200px; height:200px; margin-left: 10%;">
+        <img src="{{ asset('r2tmc.png') }}" alt="..." class="img-thumbnail" style="width:200px; height:200px; margin-left: 10%;">
       </li>
       <li class="nav-item">
         <h6 class="d-flex justify-content-between align-items-center px-4 mt-4 mb-1 text-muted">

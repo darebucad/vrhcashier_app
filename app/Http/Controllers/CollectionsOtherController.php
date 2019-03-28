@@ -315,10 +315,9 @@ class CollectionsOtherController extends Controller
            <tr style="line-height: 17px">
               <td style="font-family: Times New Roman; font-size: 10px; width:60%;"> ' . $payment->description . '</td>
               <td style="font-family: Times New Roman; font-size: 12px; margin-right=20px" align="right">'  . number_format($sub_total, 2) . '</td>
-            </tr>';
+          </tr>';
 
         } // foreach ($payment_data as $payment) {
-
           $supplemental_row = (8 - $payment_count);
           $counter = $supplemental_row;
           if($supplemental_row != 0) {
@@ -399,6 +398,7 @@ class CollectionsOtherController extends Controller
      public function getOtherCollectionData() {
        $payments = ViewOtherCollection::select('prefix_or_number', 'or_number', 'receipt_date', 'patient_name', 'discount', 'amount_paid', 'name', 'payment_status')
        ->distinct()
+       ->whereNull('charge_slip_number')
        ->orderByRaw('created_at DESC')
        ->get();
 
