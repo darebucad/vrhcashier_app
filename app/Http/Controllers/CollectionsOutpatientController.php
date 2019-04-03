@@ -782,7 +782,7 @@ class CollectionsOutpatientController extends Controller
 
         if ($discount_name == 'SENIOR' || $discount_name == 'PWD'){
             $discount_percent = 20;
-            
+
         } else {
           // code...
         }

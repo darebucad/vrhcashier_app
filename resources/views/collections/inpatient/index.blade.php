@@ -23,7 +23,17 @@
     </div>
   </div>
 
+  <input type="hidden" name="user_id" value="{{ Auth::user()->id }}" id="user_id">
+
   <h4 class="text-primary">Ongoing development ....</h4>
+  <br>
+
+  <div class="row">
+    <a href="{{ url('collections/inpatient/create') }}" class="btn btn-primary btn-sm">Create</a>
+  </div>
+
+
+
 </main>
 
 @endsection

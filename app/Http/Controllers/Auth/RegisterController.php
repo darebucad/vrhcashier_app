@@ -58,12 +58,15 @@ class RegisterController extends Controller
      */
     protected function validator(array $data)
     {
-        return Validator::make($data, [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:cashier_users',
-            'username' => 'required|string|unique:cashier_users',
-            'password' => 'required|string|min:5|confirmed',
-        ]);
+      // 'email' => 'required|string|email|max:255|unique:cashier_users',
+      return Validator::make($data, [
+        'name' => 'required|string|max:255',
+        'username' => 'required|string|unique:cashier_users',
+        'password' => 'required|string|min:5|confirmed',
+        'area' => 'required|string',
+        'is_active' => 'required|string',
+        'is_admin' => 'string',
+      ]);
     }
 
     /**
@@ -74,11 +77,14 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+      // 'email' => $data['email'],
         return CashierUser::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'username' => $data['username'],
-            'password' => Hash::make($data['password']),
+          'name' => $data['name'],
+          'username' => $data['username'],
+          'password' => Hash::make($data['password']),
+          'area' => $data['area'],
+          'is_active' => $data['is_active'],
+          'is_admin' => $data['is_admin'],
         ]);
     }
 }

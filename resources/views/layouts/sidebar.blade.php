@@ -67,7 +67,7 @@
         </a>
       </li>
 
-      <li class="nav-item" style=@if(Auth::user()->isAdmin === '0') display:none @endif>
+      <li class="nav-item" style=@if(Auth::user()->is_admin === '0') display:none @endif>
         <h6 class=" d-flex justify-content-between align-items-center px-4 mt-4 mb-1 text-muted">
           <span>Settings</span>
           <a class="d-flex align-items-center text-muted" href="#">
@@ -76,13 +76,13 @@
         </h6>
       </li>
 
-      <li class="nav-item" style=@if(Auth::user()->isAdmin === '0') display:none @endif>
+      <li class="nav-item" style=@if(Auth::user()->is_admin === '0') display:none @endif>
         <a class="nav-link" href="{{ url('settings/user_account') }}" style="text-indent: 2em">
           User Accounts
         </a>
       </li>
 
-      <li class="nav-item" style=@if(Auth::user()->isAdmin === '0') display:none @endif>
+      <li class="nav-item" style=@if(Auth::user()->is_admin === '0') display:none @endif>
         <a class="nav-link" href="{{ url('settings/cashier-management') }}" style="text-indent: 2em">
           Cashier Management
         </a>

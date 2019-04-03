@@ -88,14 +88,16 @@ class CollectionsWalkinController extends Controller
       $walkin_charges = WalkinCharge::where('chargeslipno', $charge_slip_number)->get();
       $patient_name = WalkinCharge::select('patient')->where('chargeslipno', $charge_slip_number)->first();
 
-      $discount_id = $walkin_charges[0]->discount_id;
+      // $discount_id = $walkin_charges[0]->discount_id;
+
+      // $discount_id = WalkinCharge::where('chargeslipno', $charge_slip_number)->whereNotNull('')
 
       $response = array(
         'data' => $walkin_charges,
         'charge_slip_number' => $charge_slip_number,
         'user_id' => $user_id,
-        'patient_name' => $patient_name,
-        'discount_id' => $discount_id
+        'patient_name' => $patient_name
+        // 'discount_id' => $discount_id
       );
 
       return response()->json($response);
@@ -663,6 +665,10 @@ class CollectionsWalkinController extends Controller
         $payment_status = 'Paid';
         $amount = 0;
 
+        if ($is_pay == null) {
+          $is_pay = '1';
+        }
+
         if ($discount_id != null) {
           $discount_percent = $this::getDiscount($discount_id);
           // code...
@@ -711,7 +717,8 @@ class CollectionsWalkinController extends Controller
       }
 
       $response = array(
-        'data' => $walkin_charges
+        'data' => $walkin_charges,
+        'is_pay' => $is_pay
       );
 
       return response()->json($response);

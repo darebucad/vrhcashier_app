@@ -34,8 +34,13 @@ Route::get('/collections/other/print/pdf/{id}', 'CollectionsOtherController@prin
 Route::get('/collections/other/autocomplete-search', 'CollectionsOtherController@search');
 Route::get('/collections/outpatient/get-other-collection-data', 'CollectionsOtherController@getOtherCollectionData');
 
+
 // Collections Inpatient
 Route::get('collections/inpatient', 'CollectionsInpatientController@index')->name('collections.inpatient');
+Route::get('collections/inpatient/create', 'CollectionsInpatientController@create');
+Route::get('collections/inpatient/create/get-patient-bill', 'CollectionsInpatientController@getPatientBill');
+Route::get('collections/inpatient/create/autocomplete-search', 'CollectionsInpatientController@autoCompleteSearch');
+
 
 // Collections Walkin
 Route::get('collections/walkin', 'CollectionsWalkinController@index');

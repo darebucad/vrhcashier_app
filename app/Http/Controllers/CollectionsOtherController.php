@@ -384,7 +384,6 @@ class CollectionsOtherController extends Controller
       foreach ($patients as $key => $value) {
         $data[] = ['id'=>$value->hpercode, 'value'=>$value->patient_name ];
 
-
       }
       return response($data);
     }

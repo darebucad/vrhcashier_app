@@ -6,7 +6,7 @@
 
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
 
-    <h1 class="h5"><a href="#">Out-Patient Payment</a> / Create Out-Patient Payment</h1>
+    <h1 class="h5"><a href="{{ url('collections/outpatient') }}">Out-Patient Payment</a> / Create Out-Patient Payment</h1>
 
     <div class="btn-toolbar mb-2 mb-md-0">
       <div class="btn-group mr-2">
@@ -22,9 +22,14 @@
     </div>
   </div>
 
-  <div class="alert alert-success alert-dismissable" style="display: none">
+  <!-- <div class="alert alert-success alert-dismissable" style="display: none">
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
       This charge slip was already paid.
+  </div> -->
+
+  <div class="alert alert-success alert-dismissable" style="display: none">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+      Payment was successfully saved.
   </div>
 
 <style media="screen" type="text/css">
@@ -613,7 +618,7 @@ $( document ).ajaxComplete(function() {
        $('#amount_paid').val('0.00');
        $('#amount_tendered').val('0.00');
        $('#change').val('0.00');
-       
+
        $.ajax({
           type: "POST",
           url: "/collections/outpatient/create/clear_discount",
@@ -958,6 +963,10 @@ $(document).ready(function() {
       e.preventDefault();
       return false;
     }
+  });
+
+  $('#collections_outpatient').on('submit', function() {
+    $('.alert').show();
   });
 </script>
 

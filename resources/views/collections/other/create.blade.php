@@ -71,7 +71,7 @@
 					<!-- <select class="form-control" name="patient_name" id="patient_name" required>
 						<option value=""> </option>
 					</select> -->
-					<input type="text" name="patient_name" value="" id="patient_name" class="form-control">
+					<input type="text" name="patient_name" value="" id="patient_name" class="form-control" style="background-color: #99ccff!important;" required>
   			</div>
 
 				<!-- <div class="col-md-2">
@@ -743,6 +743,8 @@
 		          console.log(data);
 
 							 $('.alert').show();
+
+							 $('#btn_print').click();
 		        }
 		      }); // End of  url: "/collections/other/store_payment",
 
@@ -1122,7 +1124,6 @@
 		select: function(key, value){
 			// console.log(value);
 			// alert('id: '+ value.item.id + '; ' + 'value:' + value.item.value);
-
 		}
 	});
 

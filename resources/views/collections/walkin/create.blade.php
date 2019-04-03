@@ -204,7 +204,7 @@
       <label for="amount_tendered" class="col-md-2 col-form-label text-md-right">Amount tendered</label>
 
       <div class="col-md-2">
-        <input id="amount_tendered" type="text" onBlur="computeChange()" class="form-control" name="amount_tendered"  style="background-color:#99ccff!important; font-weight: bold; font-size: 25px;" value="0.00" autofocus>
+        <input id="amount_tendered" type="text"  class="form-control" name="amount_tendered"  style="background-color:#99ccff!important; font-weight: bold; font-size: 25px;" value="0.00" autofocus>
 
         @if ($errors->has('amount_tendered'))
             <span class="invalid-feedback" role="alert">
@@ -287,6 +287,19 @@
 </main>
 
 <script type="text/javascript">
+
+
+</script>
+
+<script type="text/javascript">
+  $(document).ajaxStart(function(){
+    $('#spinner').show();
+  });
+
+  $(document).ajaxComplete(function(){
+    $('#spinner').hide();
+  });
+
   $(document).ready(function() {
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
 
@@ -343,10 +356,10 @@
           var id = 0;
           var is_pay = '';
           var is_discount = '';
-          var discount_id = data.discount_id;
+          // var discount_id = data.discount_id;
 
           $('#patient_name').val(patient_name);
-          $('#discount_percent').val(discount_id);
+          // $('#discount_percent').val(discount_id);
 
           $('#invoice_data').empty();
           $.each(data.data, function(i, value) {
@@ -361,8 +374,8 @@
             discount_value = Number(value.discount_value);
             total = Number(value.total);
             sub_total = Number(value.sub_total);
-            is_pay = Number(value.is_pay);
-            is_discount = Number(value.is_discount);
+            is_pay = value.is_pay;
+            is_discount = value.is_discount;
             status = 'Invoiced';
             id = value.id;
 
@@ -496,10 +509,8 @@
     //   return discount_percent;
     // }
 
-    $('#collections_walkin').on('keydown', function(event) {
-      event.preventDefault();
 
-    });
+
 
     $('#apply_discount_selected').on('click', function(event) {
       event.preventDefault();
@@ -733,7 +744,9 @@
         data: { _token: _t, data: d, or_number: or_n, charge_slip_number: cslip },
         dataType: "JSON",
         success: function(data) {
-          // console.log(data);
+          console.log(data);
+          console.log(data.is_pay);
+
           $('.alert').show();
 
           $('#charge_slip_number').hide();
@@ -741,6 +754,8 @@
 
           $('#print_button').show();
           $('#export_button').show();
+
+          $('#print_button').click();
 
         }
       });
@@ -753,6 +768,39 @@
       var prefix_or_number = $('#or_number').val();
       window.location.replace("/collections/walkin/create/print-pdf/" + prefix_or_number);
 
+    });
+
+    function computeChange(){
+
+      var amount_paid = Number($('#amount_paid').val());
+      var amount_tendered = Number($('#amount_tendered').val());
+      var compute = 0;
+
+      if (amount_paid > amount_tendered) {
+        alert('Amount tendered must be greater than the total amount.');
+        $('#change').val(Number(0.00).toFixed(2));
+      } else {
+        compute = amount_tendered - amount_paid;
+        $('#amount_tendered').val(Number(amount_tendered).toFixed(2));
+        $('#change').val(Number(compute).toFixed(2));
+      }
+    }
+
+    $('#amount_tendered').keydown(function(event){
+      // event.preventDefault();
+      if (event.which == 13) {
+        // alert('pressend enter at amount tendered field');
+        computeChange();
+        $('#change').focus();
+      }
+    });
+
+    $('#collections_walkin').on('keyup keypress', function(e) {
+      var keyCode = e.keyCode || e.which;
+      if (keyCode === 13) {
+        e.preventDefault();
+        return false;
+      }
     });
 
 

@@ -3,7 +3,7 @@
 @section ('content')
 <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h2 class="h5">Index Settings User Account</h2>
+    <h2 class="h5">Settings-User Accounts</h2>
 
     @if (session('status'))
       <div class="alert alert-success" role="alert">
@@ -29,14 +29,16 @@
   <br>
 
   <div class="row">
-    <button type="button" name="button" class="btn btn-primary btn-sm" id="btn_create" style="padding: 2px 20px;">Create</button>
+
+    <!-- <button type="button" name="button" class="btn btn-primary btn-sm" id="btn_create" style="padding: 2px 20px;">Create</button> -->
+    <a href="{{ url('settings/user_account/create') }}" class="btn btn-primary btn-sm">Create</a>
       </div>
 </main>
 
 <script type="text/javascript">
   $(document).ready(function() {
     $('#btn_create').click(function() {
-      alert('clicked button create');
+      // alert('clicked button create');
       window.location.replace('/settings/user_account/create');
     });
   });

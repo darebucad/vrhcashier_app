@@ -15,7 +15,7 @@ class CashierUser extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'username', 'password',
+        'name', 'username', 'password', 'area', 'is_active', 'is_admin',
     ];
 
     /**
