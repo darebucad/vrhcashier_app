@@ -31,7 +31,7 @@
   <br />
 
 	<style rel="stylsheet" type="text/css" media="screen">
-	
+
 	</style>
 
   <table id="other_collection_table" class="table table-sm table-striped table-hover" style="width:100%">
@@ -69,6 +69,7 @@
 
 <script type="text/javascript">
 	$(document).ready(function(){
+		
 		var table = $('#other_collection_table').DataTable({
 			"processing": true,
 			"ordering": false,
@@ -95,8 +96,32 @@
 				},
 				{ "data": "name" },
 				{ "data": "payment_status" },
-				{ defaultContent: '<button class="btn btn-sm btn-outline-danger print"><span data-feather="printer"></span> Reprint Receipt</button>' }
+
+				{ defaultContent:
+					'',
+					render: function(data, type, row, meta) {
+						if (row.payment_status === 'Cancelled') {
+							ret_val = '<button class="btn btn-sm btn-outline-secondary draft" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Set to Draft</button>';
+
+						}
+
+						else if (row.payment_status === 'Draft') {
+							ret_val = '<button class="btn btn-sm btn-outline-warning paid" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Mark as Paid</button>';
+
+						} else {
+							ret_val = '<button class="btn btn-sm btn-outline-danger print"><span data-feather="printer"></span> Reprint Receipt</button>' +
+							' <button class="btn btn-sm btn-outline-dark cancel" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span> Cancel</button>';
+
+						}
+
+						return ret_val;
+					},
+
+				},
+
+
 			],
+
 			"order": [
 				[ 0, "desc"]
 			]
@@ -109,6 +134,39 @@
       console.log(data);
       window.location.href = '/collections/other/print/pdf/' + data;
     });
+
+		$('#other_collection_table tbody').on('click', '.cancel', function(){
+			var row = $(this).closest('tr');
+			var or_number = table.row(row).data().prefix_or_number;
+			var user_id = $('#user_id').val();
+			var q = confirm('Are you sure you want to cancel this payment ?');
+
+			if (q == true) {
+				// console.log(or_number);
+				window.location.href = '/collections/other/cancel-payment/' + or_number;
+			}
+		});
+
+		$('#other_collection_table tbody').on('click', '.draft', function(){
+			var row = $(this).closest('tr');
+			var or_number = table.row(row).data().prefix_or_number;
+			var user_id = $('#user_id').val();
+
+			// console.log(or_number);
+			window.location.href = '/collections/other/draft-payment/' + or_number;
+		});
+
+		$('#other_collection_table tbody').on('click', '.paid', function() {
+			var row = $(this).closest('tr');
+			var or_number = table.row(row).data().prefix_or_number;
+			var user_id = $('#user_id').val();
+			var q = confirm('Are you sure you want to mark this payment as paid ?');
+
+			if (q == true) {
+				// console.log(or_number);
+				window.location.href = '/collections/other/mark-paid/' + or_number;
+			}
+		});
 
 	});
 </script>

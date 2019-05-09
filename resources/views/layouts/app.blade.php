@@ -10,6 +10,9 @@
 
   <title>{{ 'IES Cashiering' }}</title>
 
+  <!-- Website Icon -->
+  <link rel="icon" href="{{ asset('r2tmc.ico') }}">
+
   <!-- Scripts -->
   <script src="{{ asset('js/app.js') }}" defer></script>
 
@@ -19,11 +22,12 @@
   <!-- Fonts -->
   <!-- <link rel="dns-prefetch" href="https://fonts.gstatic.com"> -->
   <!-- <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet" type="text/css"> -->
-  <link rel="stylesheet" href="{{ asset('css/font.css') }}" text="text/css">
+  <!-- <link rel="stylesheet" href="{{ asset('css/font.css') }}" text="text/css"> -->
 
   <!-- Styles -->
   <link rel="stylesheet" href="{{ asset('css/login.css') }}">
   <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+
 </head>
 <body>
 
@@ -39,7 +43,7 @@
 
 <!-- Footer -->
 <footer class="page-footer font-small blue">
-    <div class="footer-copyright text-center py-3">© 2018. Management Information System Department</div>
+    <div class="footer-copyright text-center py-3 display-4" style="font-size: 15px;">© 2018. Management Information System Department</div>
 </footer>
 
 </html>

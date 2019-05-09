@@ -11,7 +11,7 @@
       </div>
     @endif
 
-    <div class="btn-toolbar mb-2 mb-md-0">
+    <!-- <div class="btn-toolbar mb-2 mb-md-0">
       <div class="btn-group mr-2">
         <button class="btn btn-sm btn-outline-secondary">Share</button>
         <button class="btn btn-sm btn-outline-secondary">Export</button>
@@ -20,7 +20,7 @@
         <span data-feather="calendar"></span>
         This week
       </button>
-    </div>
+    </div> -->
   </div>
 
     <!-- <h4 class="text-primary">Ongoing development ....</h4> -->
@@ -80,7 +80,29 @@
         },
         { "data": "name" },
         { "data": "payment_status" },
-        { defaultContent: '<button class="btn btn-sm btn-outline-danger print"><span data-feather="printer"></span> Reprint Receipt</button>' }
+
+        { defaultContent:
+          '',
+          render: function(data, type, row, meta) {
+            if (row.payment_status === 'Cancelled') {
+              ret_val = '<button class="btn btn-sm btn-outline-secondary draft" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Set to Draft</button>';
+
+            }
+
+            else if (row.payment_status === 'Draft') {
+              ret_val = '<button class="btn btn-sm btn-outline-warning paid" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Mark as Paid</button>';
+
+            } else {
+              ret_val = '<button class="btn btn-sm btn-outline-danger print"><span data-feather="printer"></span> Reprint Receipt</button>' +
+              ' <button class="btn btn-sm btn-outline-dark cancel" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span> Cancel</button>';
+
+            }
+
+            return ret_val;
+          },
+
+        },
+
       ],
       "order": [
         [ 0, "desc" ]
@@ -95,6 +117,41 @@
       window.location.href = '/collections/walkin/create/print-pdf/' + data;
 
     });
+
+    $('#walkin_table tbody').on('click', '.cancel', function(){
+      var row = $(this).closest('tr');
+      var or_number = table.row(row).data().prefix_or_number;
+      var user_id = $('#user_id').val();
+      var q = confirm('Are you sure you want to cancel this payment ?');
+
+      if (q == true) {
+        // console.log(or_number);
+        window.location.href = '/collections/walkin/cancel-payment/' + or_number;
+      }
+    });
+
+    $('#walkin_table tbody').on('click', '.draft', function(){
+      var row = $(this).closest('tr');
+      var or_number = table.row(row).data().prefix_or_number;
+      var user_id = $('#user_id').val();
+
+      // console.log(or_number);
+      window.location.href = '/collections/walkin/draft-payment/' + or_number;
+    });
+
+    $('#walkin_table tbody').on('click', '.paid', function() {
+      var row = $(this).closest('tr');
+      var or_number = table.row(row).data().prefix_or_number;
+      var user_id = $('#user_id').val();
+      var q = confirm('Are you sure you want to mark this payment as paid ?');
+
+      if (q == true) {
+        // console.log(or_number);
+        window.location.href = '/collections/walkin/mark-paid/' + or_number;
+      }
+    });
+
+
 
 
   });

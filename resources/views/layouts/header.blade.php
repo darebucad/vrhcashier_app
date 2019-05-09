@@ -7,7 +7,10 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>VRH Cashier</title>
+    <title>IES Cashiering</title>
+
+    <!-- Website Icon -->
+    <link rel="icon" href="{{ asset('r2tmc.ico') }}">
 
     <!-- jQuery core JS -->
     <script type="text/javascript" src="{{ asset('/js/jquery-3.3.1.js') }}"></script>
@@ -43,6 +46,9 @@
 
     <!-- Custom styles for this template -->
     <link href="/css/dashboard.css" rel="stylesheet">
+
+
+
 
 
   </head>

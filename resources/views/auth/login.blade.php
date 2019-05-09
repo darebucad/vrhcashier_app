@@ -12,8 +12,8 @@
 
             <div class="form-group">
               <img src="banner4.png" style="width: 290px; border-left: 0px">
-                <center><h5 style="font-size: 17px;"><b>iHOMIS Extension Systems</b></h5></center>
-                <center><h5 style="font-size: 20px;"><b>CASHIERING</b></h5></center>
+                <center><p class="display-4" style="font-size:20px;"><b>iHOMIS Extension Systems</b></p></center>
+                <center><p class="h6" style="font-size: 20px; margin-top: -10px;">Cashiering</p></center>
             </div>
 
             <div class="form-group">
@@ -40,13 +40,14 @@
             </div>
 
             <div>
-                <label style=" display: block;  padding-left:0px;  text-indent: 0px; font-size: 10px">
-                <input type="checkbox" style="width: 13px;  height: 16px;  padding: 0;  margin:0;  vertical-align: bottom;  position: relative;  top: -1px;  *overflow: hidden; ">Remember me</label>
+                <label style=" display: block;  padding-left:0px;  text-indent: 0px; font-size: 12px" class="display-2">
+                <input type="checkbox" class="form-check-input" style="width: 13px;  height: 16px;  padding: 0;  margin:0;  vertical-align: bottom;  position: relative;  top: -1px;  *overflow: hidden; "> Remember me
+              </label>
             </div>
 
             <div class="form-group">
                 <center><button class="btn btn-info btn-block login" type="submit" style="font-size: 10px"><b>Login</b></button></center>
-                <a href="{{ route('password.request') }}"; style="font-size: 10px" >{{ __('Forgot Your Password?') }}</a>
+                <a href="{{ route('password.request') }}"; style="font-size: 12px" class="display-2"><strong>{{ __('Forgot Password') }}</strong></a>
                 <!-- <a href="{{ route('register') }}"; style="font-size: 10px; text-align: right; padding-bottom: 0px">Register</a> -->
             </div>
 

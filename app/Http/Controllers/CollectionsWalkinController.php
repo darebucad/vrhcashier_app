@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use App;
 use App\PaymentOther;
 use App\ViewPaymentOR;
 use App\WalkinCharge;
@@ -13,11 +14,16 @@ use App\WalkinDrugs;
 use App\WalkinSupply;
 use App\WalkinExam;
 use App\WalkinMisc;
-use App;
+use App\ViewOtherCollection;
+use App\ViewCollection;
+use App\ViewWalkinChargeDrugs;
+use App\ViewWalkinChargeExam;
+use App\ViewWalkinChargeMisc;
+use App\ViewWalkinChargeSupply;
 
 use Carbon\Carbon;
 use NumberToWords\NumberToWords;
-use App\ViewOtherCollection;
+
 
 class CollectionsWalkinController extends Controller
 {
@@ -85,22 +91,41 @@ class CollectionsWalkinController extends Controller
     public function searchWalkinCharges(Request $request) {
       $charge_slip_number = $request->charge_slip_number;
       $user_id = $request->user_id;
-      $walkin_charges = WalkinCharge::where('chargeslipno', $charge_slip_number)->get();
-      $patient_name = WalkinCharge::select('patient')->where('chargeslipno', $charge_slip_number)->first();
-
-      // $discount_id = $walkin_charges[0]->discount_id;
-
-      // $discount_id = WalkinCharge::where('chargeslipno', $charge_slip_number)->whereNotNull('')
+      $or_number = $request->or_number;
+      $get_walkin_charges = $this::getWalkinCharges($charge_slip_number);
+      $discount = Discount::select('id', 'discount_percent')->get();
 
       $response = array(
-        'data' => $walkin_charges,
+        'data' => $get_walkin_charges,
         'charge_slip_number' => $charge_slip_number,
         'user_id' => $user_id,
-        'patient_name' => $patient_name
-        // 'discount_id' => $discount_id
+        'discount' => $discount,
       );
 
       return response()->json($response);
+    }
+
+    public function getWalkinCharges($cslip) {
+      $charge_slip_number = $cslip;
+      // $prefix = strpos($charge_slip_number, "-");
+      $prefix = substr($charge_slip_number, 0, 2);
+
+      if ($prefix == 'WD' || $prefix == 'wd') {
+        $walkin_charges = ViewWalkinChargeDrugs::where('charge_slip_number', $charge_slip_number)->get();
+
+      } elseif ($prefix == 'WS' || $prefix == 'ws') {
+        $walkin_charges = ViewWalkinChargeSupply::where('charge_slip_number', $charge_slip_number)->get();
+
+      } elseif ($prefix == 'WM' || $prefix == 'wm') {
+        $walkin_charges = ViewWalkinChargeMisc::where('charge_slip_number', $charge_slip_number)->get();
+
+      } else {
+        $walkin_charges = ViewWalkinChargeExam::where('charge_slip_number', $charge_slip_number)->get();
+
+      }
+
+      return $walkin_charges;
+
     }
 
 
@@ -622,103 +647,46 @@ class CollectionsWalkinController extends Controller
     */
     public function saveWalkinCharges(Request $request) {
       $_token = $request->_token;
-      $array_data = $request->data;
+      $array_data = $request->arrData;
       $or_number = $request->or_number;
-      $charge_slip_number = $request->charge_slip_number;
       $payment_counter = 0;
+      $current_time = Carbon::now('Asia/Manila');
+      $or_n = substr($or_number, strpos($or_number, "-") + 1);
 
-      // Walk-in details
-      foreach ($array_data as $value) {
-        $patient_name = $value['patient_name'];
-        $or_date = $value['or_date'];
-        $id = $value['user_id'];
-        $prefix_or_number = $value['prefix_or_number'];
-        $payment_mode = $value['payment_mode'];
-        $discount_id = $value['discount_id'];
-        $currency = $value['currency'];
-        $payment_type = $value['payment_type'];
-        $discount_computation = $value['discount_computation'];
-        $amount_paid = $value['amount_paid'];
-        $amount_tendered = $value['amount_tendered'];
-        $amount_change = $value['amount_change'];
-        // $charge_code = $value['charge_code'];
-        // $charge_table = $value['charge_table'];
-        $created_at = $value['created_at'];
-        break;
-      }
-
-      // Walk-in charges
-      $walkin_charges = WalkinCharge::where('chargeslipno', $charge_slip_number)->get();
-
-      // Loop walkin charges
-      foreach ($walkin_charges as $key => $value) {
-        $unit_cost = $walkin_charges[$key]->price;
-        $quantity = $walkin_charges[$key]->qty;
-        $total = $walkin_charges[$key]->total;
-        $sub_total = $walkin_charges[$key]->sub_total;
-        $charge_code = $walkin_charges[$key]->chargetype;
-        $item_code = $walkin_charges[$key]->itemcode;
-        $is_pay = $walkin_charges[$key]->is_pay;
-        $is_discount = $walkin_charges[$key]->is_discount;
-        $discount_percent = $discount_id;
-        $charge_table = '';
-        $payment_status = 'Paid';
-        $amount = 0;
-
-        if ($is_pay == null) {
-          $is_pay = '1';
-        }
-
-        if ($discount_id != null) {
-          $discount_percent = $this::getDiscount($discount_id);
-          // code...
-        }
-
-        if ($sub_total == 0 && ($discount_percent == 100 || $is_pay == 0)) {
-          // code...
-          $amount = $sub_total;
-
-        } elseif ($sub_total == 0) {
-          $amount = $total;
-
-        } else {
-          $amount = $sub_total;
-
-        }
-
+      foreach ($array_data as $item) {
         $data = array(
-          'prefix_or_number' => $prefix_or_number,
-          'or_number' => substr($prefix_or_number, 2),
-          'or_date' => date('Y-m-d H:i:s', strtotime(str_replace('-', '/', $or_date))),
-          'patient_name' => $patient_name,
-          'unit_cost' => $unit_cost,
-          'quantity' => $quantity,
-          'sub_total' => $amount,
-          'currency_code' => $currency,
-          'payment_type' => $payment_type,
-          'payment_mode' => $payment_mode,
+          'prefix_or_number' => $item['or_number'],
+          'or_number' => $or_n,
+          'or_date' => date('Y-m-d H:i:s', strtotime(str_replace('-', '/', $item['or_date']))),
+          'patient_id' => $item['patient_id'],
+          'patient_name' => $item['patient_name'],
+          'unit_cost' => $item['unit_price'],
+          'quantity' => $item['quantity'],
+          'sub_total' => $item['sub_total'],
+          'currency_code' => $item['currency'],
+          'payment_type' => $item['payment_type'],
+          'payment_mode' => $item['payment_mode'],
           'payment_counter' => $payment_counter,
-          'charge_code' => $charge_code,
-          'charge_table' => $charge_table,
-          'item_code' => $item_code,
-          'id' => $id,
-          'discount_id' => $discount_id,
-          'payment_status' => $payment_status,
-          'amount_paid' => $amount_paid,
-          'amount_tendered' => $amount_tendered,
-          'amount_change' => $amount_change,
-          'created_at' => $created_at,
-          'is_pay' => $is_pay,
-          'is_discount' => $is_discount,
-          'charge_slip_number' => $charge_slip_number
+          'charge_code' => $item['charge_code'],
+          'item_code' => $item['product_id'],
+          'id' => $item['user_id'],
+          'discount_id' => $item['discount_id'],
+          'payment_status' => $item['payment_status'],
+          'amount_paid' => $item['amount_paid'],
+          'amount_tendered' => $item['amount_tendered'],
+          'amount_change' => $item['amount_change'],
+          'created_at' => $current_time->toDateTimeString(),
+          'is_pay' => $item['is_pay'],
+          'is_discount' => $item['is_discount'],
+          'charge_slip_number' => $item['charge_slip_number']
         );
+
         PaymentOther::insert($data);
         $payment_counter += + 1;
       }
 
       $response = array(
-        'data' => $walkin_charges,
-        'is_pay' => $is_pay
+        'data' => $data,
       );
 
       return response()->json($response);
@@ -736,8 +704,6 @@ class CollectionsWalkinController extends Controller
     private function convertDataToHtml($or_n) {
       $numberToWords = new NumberToWords();
       $numberTransformer = $numberToWords->getNumberTransformer('en');
-      $payment_data = $this->getWalkinPaymentData($or_n);
-      $payment_count = $payment_data->count();
       $sub_total = 0;
       $total = 0;
       $decimal_value = 0;
@@ -745,6 +711,9 @@ class CollectionsWalkinController extends Controller
       $output = '';
       $sub_total_value = 0;
       $or_number = $or_n;
+      $payment_data = $this->getWalkinPaymentData($or_n);
+      $payment_count = $payment_data->count();
+      // $payment_count = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
       $receipt_date = $payment_data[0]->receipt_date;
       $hospital_name = 'Veterans Regional Hospital';
       $patient_name = $payment_data[0]->patient_name;
@@ -752,15 +721,16 @@ class CollectionsWalkinController extends Controller
       $cashier_officer_name = 'TERESITA T. TAGUINOD';
       $cashier_officer_designation = 'Supervising Administrative Officer';
 
+
       $output .= '<html>
         <head>
         <style>@page { margin-left: 17px; margin-right: 27px; }</style>
         </head>
         <body><br><br><br><br><br>
-        <p align="center" style="font-family: Times New Roman; font-size: 15px; margin-right: -70px; margin-top: -26px;">'. $or_number .'</p>
-        <p align="right" style="font-family: Times New Roman; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">' . $receipt_date . '</p>
-        <p style="font-family: Times New Roman; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">'. $hospital_name .'</p>
-        <p style="font-family: Times New Roman; font-size: 15px; margin-left: 43px;  margin-bottom: 10px">' . $patient_name . '</p><br><br>';
+        <p align="center" style="font-family: Helvetica; font-size: 15px; margin-right: -70px; margin-top: -26px;">'. $or_number .'</p>
+        <p align="right" style="font-family: Helvetica; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">' . $receipt_date . '</p>
+        <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">'. $hospital_name .'</p>
+        <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px;  margin-bottom: 10px">' . $patient_name . '</p><br><br>';
 
       $output .= '<table width="100%">';
 
@@ -771,8 +741,8 @@ class CollectionsWalkinController extends Controller
           $description = $payment->description;
           $output .= '
             <tr style="line-height: 17px">
-              <td style="font-family: Times New Roman; font-size: 10px; width:60%;"> ' . $description . '</td>
-              <td style="font-family: Times New Roman; font-size: 12px; margin-right=20px" align="right">'  . number_format($sub_total, 2) . '</td>
+              <td style="font-family: Helvetica; font-size: 10px; width:60%;"> ' . $description . '</td>
+              <td style="font-family: Helvetica; font-size: 12px; margin-right=20px" align="right">'  . number_format($sub_total, 2) . '</td>
             </tr>';
         }
 
@@ -788,36 +758,58 @@ class CollectionsWalkinController extends Controller
           }
         }
       } else {
-        // code...
+        foreach ($payment_data as $payment) {
+          $sub_total = $payment->amount_paid;
+          $total = $sub_total;
+          $charge_description = $payment->charge_description;
+          $output .= '
+            <tr style="line-height: 17px;">
+              <td style="font-family: Helvetica; font-size: 11px; width:195px;">'. $charge_description .'</td>
+              <td style="font-family: Helvetica; font-size: 12px; margin-right: 20px;" align="right">' .number_format($sub_total, 2). '</td>
+            </tr>';
+
+          $supplemental_row = 7;
+          $counter = $supplemental_row;
+
+          for($counter; $counter > 0; $counter--) {
+            $output .='
+              <tr style="line-height: 17px; color: white;">
+                <td>.</td>
+              </tr>
+            ';
+          }
+
+          break;
+        }
       }
 
-        $decimal_value = Str::substr(($total * 100), -2);
+      $decimal_value = Str::substr(($total * 100), -2);
 
-        if ($decimal_value == 00) {
-          $decimal_value = ' and 00/00 only';
+      if ($decimal_value == 00) {
+        $decimal_value = ' and 00/100 only';
 
-          // code...
-        } elseif ($decimal_value < 02) {
-          $decimal_value = ' and ' . $decimal_value . '/100 only';
+        // code...
+      } elseif ($decimal_value < 02) {
+        $decimal_value = ' and ' . $decimal_value . '/100 only';
 
-          // code...
-        } else {
-          $decimal_value = ' and ' . $decimal_value . '/100 only';
-        }
+        // code...
+      } else {
+        $decimal_value = ' and ' . $decimal_value . '/100 only';
+      }
 
-        $output .= '</table>';
+      $output .= '</table>';
 
-        $output .= '
-          <p align="right" style="font-family: Times New Roman; font-size: 13px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
-          <p align="left" style="font-family: Times New Roman; font-size: 12px; margin-top: -10px; margin-left: 90px">'. ucfirst($numberTransformer->toWords($total)) . $decimal_value .'</p>
-          <br>
-          <br>
-          <br>
-          <br>
-          <br>
-          <p align="right" style="font-family: Times New Roman ; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">'. $cashier_officer_name .'</p>
-          <p align="right" style="font-family: Times New Roman; font-size: 10px; margin-right: 20px">'. $cashier_officer_designation .'</p>
-          <p align="left" style="font-family: Times New Roman; font-size: 14px; margin-top: -8px; margin-left:15px">'. $employee_name .'</p>';
+      $output .= '
+        <p align="right" style="font-family: Helvetica; font-size: 13px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
+        <p align="left" style="font-family: Helvetica; font-size: 13px; margin-top: -10px; margin-left: 90px">'. ucfirst($numberTransformer->toWords($total)) . $decimal_value .'</p>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <p align="right" style="font-family: Helvetica; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">'. $cashier_officer_name .'</p>
+        <p align="right" style="font-family: Helvetica; font-size: 10px; margin-right: 20px">'. $cashier_officer_designation .'</p>
+        <p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -8px; margin-left:15px">'. $employee_name .'</p>';
 
 
       return $output;
@@ -834,6 +826,7 @@ class CollectionsWalkinController extends Controller
     public function getWalkinPaymentDataIndex() {
       $walkin_payments = ViewOtherCollection::select('prefix_or_number', 'or_number', 'receipt_date', 'patient_name', 'discount_name', 'amount_paid', 'name', 'payment_status', 'charge_slip_number')
       ->distinct()
+      ->groupBy('prefix_or_number')
       ->whereNotNull('charge_slip_number')
       ->orderByRaw('created_at DESC')
       ->get();
@@ -842,5 +835,109 @@ class CollectionsWalkinController extends Controller
 
       return response()->json($response);
     }
+
+
+    public function checkORDuplicate(Request $request) {
+      $_token = $request->_token;
+      $or_number = $request->or_number;
+      $arrData = $request->arrData;
+      // $charge_slip_number = $request->charge_slip_number;
+
+      $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
+      // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
+
+      $data = $getPaymentData;
+
+      $response = array(
+        'data' => $data,
+        'or_number' => $or_number,
+        '_token' => $_token,
+        'arrData' => $arrData,
+        // 'charge_slip_number' => $charge_slip_number,
+      );
+
+      return response()->json($response);
+    }
+
+
+
+
+    /**
+     * Cancel selected other payment.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function cancelPayment(Request $request, $id){
+      $or_number = $id;
+        // $or_no = $request->id;
+        $user_id = $request->user_id;
+        $current_time = Carbon::now('Asia/Manila');
+
+        PaymentOther::where('prefix_or_number', $or_number)
+        ->update([
+            'payment_status' => 'Cancelled',
+            // 'id' => $user_id,
+            'updated_at' => $current_time->toDateTimeString()
+        ]);
+        return redirect('/collections/walkin');
+    }
+
+    /**
+     * Selected payment will be set to draft .
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function draftPayment(Request $request, $id){
+      $or_number = $id;
+        // $or_no = $request->id;
+        $user_id = $request->user_id;
+        $current_time = Carbon::now('Asia/Manila');
+
+        PaymentOther::where('prefix_or_number', $or_number)
+        ->update([
+            'payment_status' => 'Draft',
+            // 'id' => $user_id,
+            'updated_at' => $current_time->toDateTimeString()
+        ]);
+        return redirect('/collections/walkin');
+    }
+
+
+    /**
+     * Mark as paid payment.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function markPaid(Request $request, $id){
+      $or_number = $id;
+        // $or_no = $request->id;
+        $user_id = $request->user_id;
+        $current_time = Carbon::now('Asia/Manila');
+
+        PaymentOther::where('prefix_or_number', $or_number)
+        ->update([
+            'payment_status' => 'Paid',
+            // 'id' => $user_id,
+            'updated_at' => $current_time->toDateTimeString()
+        ]);
+        return redirect('/collections/walkin');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

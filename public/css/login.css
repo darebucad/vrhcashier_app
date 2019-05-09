@@ -56,9 +56,7 @@ html,body{
     -webkit-transform: rotateZ(-6deg);
     -moz-transform: rotateZ(-2deg);
     -ms-transform: rotateZ(-2deg);
-
 }
- 
 
 .form-box input{
     width: 100%;

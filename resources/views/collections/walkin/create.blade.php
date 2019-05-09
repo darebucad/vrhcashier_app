@@ -3,23 +3,16 @@
 @section ('content')
 <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h5"><a href="{{ url('collections/walkin') }}">Walk-In Payment</a> / Create Walk-In Payment</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-      <div class="btn-group mr-2">
-        <input  type="text" name="charge_slip_number" id="charge_slip_number" class="form-control form-control-sm"  placeholder="Charge Slip Number"  style="background-color:#99ccff!important;" required autofocus>
-      </div>
-      <div class="btn-group mr-2">
-        <button id="post_data" class="btn btn-outline-info pull-right btn-sm">
-          Search
-        </button>
-      </div>
 
+    <h1 class="h5"><a href="{{ url('collections/walkin') }}">Walk-In Payment</a> / Create Walk-In Payment</h1>
+
+    <div class="btn-toolbar mb-2 mb-md-0">
       <div class="btn-group mr-2">
         <button class="btn btn-sm btn-outline-secondary" id ="print_button" style="display: none;">
           <span data-feather="printer"></span>
           Print Receipt
         </button>
-        <button class="btn btn-sm btn-outline-secondary" id ="export_button" style="display: none;">Export</button>
+        <!-- <button class="btn btn-sm btn-outline-secondary" id ="export_button" style="display: none;">Export</button> -->
       </div>
 
     </div>
@@ -28,7 +21,7 @@
 
   <div class="alert alert-success alert-dismissable" style="display: none">
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-      Payment was successfully saved.
+      <span id="alert_value">Payment was successfully saved.</span>
   </div>
 
 <!-- <div class="row text-primary">
@@ -62,6 +55,10 @@
     @csrf
 
     <div class="row" style="margin-top:10px;">
+      <!-- New button -->
+      <button class="btn btn-sm btn-danger" id="btn_new" style="display: none; margin-right: 5px;">New</button>
+
+      <!-- Save button -->
       <button class="btn btn-sm btn-primary" id="save_button">Save</button>
       <p id="button-cancel">or <a class="btn-link" href="{{ url('collections/walkin') }}">Cancel</a></p>
     </div>
@@ -76,17 +73,32 @@
     <input type="hidden" name="payctr" id="payctr" value="">
     <input type="hidden" name="status" id="status" value="">
     <input type="hidden" name="user_id" id="user_id" value="{{ Auth::user()->id }}">
-    <input type="hidden" name="enccode" id="enccode" value="">
-    <input type="hidden" name="hpercode" id="hpercode" value="">
-    <input type="hidden" name="acctno" id="acctno" value="">
-    <input type="hidden" name="pcchrgcod" id="pcchrgcod" value="">
+    <input type="hidden" name="patient_id" id="patient_id" value="">
+    <!-- <input type="hidden" name="charge_slip_number" id="charge_slip_number" value=""> -->
+    <input type="hidden" name="discount_array" value="" id="discount_array">
+    <input type="hidden" name="charge_code" value="" id="charge_code">
+
+
+    <!-- Charge Details Row -->
+    <div class="form-group row">
+      <label for="charge_slip_number" class="col-md-1 col-form-label">Charge Details: </label>
+      <div class="col-md-3">
+        <!-- Search barcode input -->
+        <div class="input-group mb-3">
+          <input type="text" name="charge_slip_number" id="charge_slip_number" class="form-control form-control-sm" placeholder="Charge Slip Number / Barcode" aria-label="Charge Slip Number / Barcode" aria-describedby="post_data" style="background-color:#99ccff!important;" required autofocus>
+          <div class="input-group-append">
+          <button class="btn btn-success btn-sm" id="post_data">Search</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Patient Name Input-->
-    <div id="patient_name_field" class="form-group row">
+    <div id="patient_name_field" class="form-group row" style="margin-top: -20px;">
       <div class="input-group">
         <label for="patient_name" class="col-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
         <div class="col-md-9">
-          <input type="text" name="patient_name" id="patient_name" value="" class="form-control form-control-sm" style="background-color:#99ccff!important;" required>
+          <input type="text" name="patient_name" id="patient_name" value="" class="form-control form-control-sm" style="background-color:#99ccff!important;" readonly>
         </div>
       </div>
     </div>
@@ -96,7 +108,7 @@
       <label for="ordate" class="col-md-1 col-form-label text-md-left">{{ __('OR Date') }}</label>
       <div class="col-md-2">
         <div class="input-group mb-3">
-          <input id="or_date" type="text" class="form-control form-control-sm" name="or_date" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required autofocus>
+          <input id="or_date" type="text" class="form-control form-control-sm" name="or_date" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required >
             <!-- <span data-feather="calender"></span> -->
         </div>
       </div>
@@ -106,13 +118,16 @@
       <div class="col-md-3">
         @if (count($payments) > 0)
           @foreach ($payments as $payment)
-            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '-' . $payment->next_or_number }}" style="background-color:#99ccff!important;" required autofocus>
+            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . $payment->next_or_number }}" style="background-color:#99ccff!important;" required >
             <input type="hidden" name="or_number_only" value="{{ $payment->next_or_number }}">
           @endforeach
 
         @else
-          <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ '0000001' }}" style="background-color:#99ccff!important;" required autofocus>
-          <input type="hidden" name="or_number_only" value="{{ '0000001' }}">
+          @foreach ($payments as $payment)
+            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '0000001' }}" style="background-color:#99ccff!important;" required >
+            <input type="hidden" name="or_number_only" value="{{ '0000001' }}">
+          @endforeach
+
 
         @endif
 
@@ -148,24 +163,22 @@
       <div class="col-md-3">
         <select  id="discount_percent" class="form-control form-control-sm" name="discount_percent">
           <option value="" selected> </option>
-
-          @foreach ($discounts as $discount)
-            <option value="{{ $discount->id }}">{{ $discount->discount_name }}</option>
-          @endforeach
-
-          <!-- <option value="SENIOR">Senior Citizen</option>
-          <option value="10">10% Discount</option>
-          <option value="20">20% Discount</option>
-          <option value="25">25% Discount</option>
-          <option value="50">50% Discount</option>
-          <option value="75">75% Discount</option>
-          <option value="100">100% Discount</option> -->
-        </select>
+            @foreach ($discounts as $discount)
+              <option value="{{ $discount->id }}">{{ $discount->discount_name }}</option>
+            @endforeach
+            <!-- <option value="SENIOR">Senior Citizen</option>
+            <option value="10">10% Discount</option>
+            <option value="20">20% Discount</option>
+            <option value="25">25% Discount</option>
+            <option value="50">50% Discount</option>
+            <option value="75">75% Discount</option>
+            <option value="100">100% Discount</option> -->
+          </select>
       </div>
 
       <label for="amount_paid" class="col-md-2 col-form-label text-md-right">{{ __('Total Amount') }}</label>
       <div class="col-md-2">
-        <input id="amount_paid" type="text" class="form-control" name="amount_paid" style="background-color:#99ccff!important; font-weight: bold; font-size: 25px;" value="0.00" autofocus>
+        <input id="amount_paid" type="text" class="form-control" name="amount_paid" style="background-color:#99ccff!important; font-weight: bold; font-size: 25px;" value="0.00" >
         @if ($errors->has('amount_paid'))
             <span class="invalid-feedback" role="alert">
                 <strong>{{ $errors->first('amount_paid') }}</strong>
@@ -204,7 +217,7 @@
       <label for="amount_tendered" class="col-md-2 col-form-label text-md-right">Amount tendered</label>
 
       <div class="col-md-2">
-        <input id="amount_tendered" type="text"  class="form-control" name="amount_tendered"  style="background-color:#99ccff!important; font-weight: bold; font-size: 25px;" value="0.00" autofocus>
+        <input id="amount_tendered" type="text"  class="form-control" name="amount_tendered"  style="background-color:#99ccff!important; font-weight: bold; font-size: 25px;" value="0.00" >
 
         @if ($errors->has('amount_tendered'))
             <span class="invalid-feedback" role="alert">
@@ -240,18 +253,18 @@
       </div>
 
       <div class="col-md-1">
-        <button type="button" name="clear_discount" id="clear_discount" class="btn btn-outline-secondary btn-sm">
+        <button type="button" name="clear_discount" id="clear_discount" class="btn btn-outline-dark btn-sm">
           Clear Discount
         </button>
       </div>
 
-      <label for="change" class="col-md-2 col-form-label text-md-right" style="font-size: 13px">{{ __('Change') }}</label>
+      <label for="amount_change" class="col-md-2 col-form-label text-md-right" style="font-size: 13px">{{ __('Change') }}</label>
 
       <div class="col-md-2">
-        <input id="change" type="text" class="form-control" name="change" style="font-weight: bold; font-size: 25px;" value="0.00" autofocus>
-        @if ($errors->has('change'))
+        <input id="amount_change" type="text" class="form-control" name="amount_change" style="font-weight: bold; font-size: 25px;" value="0.00" >
+        @if ($errors->has('amount_change'))
             <span class="invalid-feedback" role="alert">
-                <strong>{{ $errors->first('change') }}</strong>
+                <strong>{{ $errors->first('amount_change') }}</strong>
             </span>
         @endif
       </div>
@@ -259,7 +272,7 @@
   </form>
 
   <div class="table-responsive">
-    <table id="invoice_table" class="table table-sm" style="width: 100%">
+    <table id="invoice_table" class="table table-sm table-striped" style="width: 100%">
       <thead>
         <tr>
           <th>Pay?</th>
@@ -276,20 +289,16 @@
         </tr>
       </thead>
       <tbody id="invoice_data">
-        @for ($i = 0; $i < 4; $i++)
+        <!-- @for ($i = 0; $i < 4; $i++)
         <tr>
           <td colspan="11" style="color:white;"> .</td>
         </tr>
-        @endfor
+        @endfor -->
       </tbody>
     </table>
   </div>
 </main>
 
-<script type="text/javascript">
-
-
-</script>
 
 <script type="text/javascript">
   $(document).ajaxStart(function(){
@@ -300,193 +309,254 @@
     $('#spinner').hide();
   });
 
+
   $(document).ready(function() {
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
+    var editor = new SimpleTableCellEditor("invoice_table");
+    editor.SetEditableClass("editMe");
+    var d_array = '';
+
+    // Select charge slip number content
+    $('#charge_slip_number').on('click', function(){
+      $(this).select();
+    });
 
     // Search for walk-in charges by its charge slip number .
-    $('#post_data').click(function() {
+    $('#post_data').click(function(e) {
+      e.preventDefault();
+
+      var _token = CSRF_TOKEN;
       var charge_slip_number = $('#charge_slip_number').val();
       var user_id = $('#user_id').val();
-      var _token = CSRF_TOKEN;
+      var duplicate = '';
+      var or_number = $('#or_number').val();
 
       if (charge_slip_number == '') {
         alert('Please input charge slip number .');
 
       } else {
-        // A function that will search and get walk-in charges .
-        searchWalkinCharges(_token, charge_slip_number, user_id);
+
+        duplicate = checkDuplicateChargeSlipNumber(charge_slip_number);
+        if (duplicate == true) {
+          alert('Please input another charge slip number / barcode (Duplicate Entry)');
+
+        } else {
+          // A function that will search and get walk-in charges .
+          searchWalkinCharges(_token, charge_slip_number, user_id, or_number);
+
+        }
       }
     });
 
-    $('#charge_slip_number').on('keydown', function(event) {
-      if (event.which == 13) {
-        $('#post_data').click();
-
+    function checkDuplicateChargeSlipNumber(cslip){
+      var result = false;
+      var row_count = $('#invoice_table tbody tr').length;
+      if (row_count > 0) {
+        $('.charge_items').each(function(){
+          var row = $(this);
+          var charge_slip_number = row.closest('tr').find('.charge_slip_number').text();
+          if (charge_slip_number == cslip) {
+            result = true;
+          }
+        });
       }
-    });
+      return result;
+    }
 
-    function searchWalkinCharges( _token, cnumber, uid ) {
+    function searchWalkinCharges( _token, cnumber, uid, orn ) {
+      var discount = 0;
+      var content = '';
+      var date_created = '';
+      var charge_slip_number = '';
+      var product_id = '';
+      var product_description = '';
+      var quantity = 0;
+      var unit_price = 0;
+      var discount_percent = 0;
+      var discount_value = 0;
+      var sub_total = 0;
+      var status = '';
+      var row_number = 0;
+      var id = 0;
+      var is_pay = '';
+      var is_discount = '';
+      var charge_code = '';
+      var or_count = 0;
+
       $.ajax({
         type: "POST",
         url: "/collections/walkin/create/search-walkin-charges",
-        data: { _token: _token, charge_slip_number: cnumber, user_id: uid  },
+        data: { _token: _token, charge_slip_number: cnumber, user_id: uid, or_number: orn  },
         dataType: "JSON",
+        error: function(jqXHR, textStatus, errorThrown) {
+          alert('Please provide a valid charge slip number / barcode .');
+        },
         success: function(data) {
+          // var total_discount_value = 0;
+          // var total_amount = Number(0);
+          discount = data.discount;
+
+          d_array = discount;
           // console.log(data);
           // console.log(data.charge_slip_number);
           // console.log(data.user_id);
           // console.log(data.patient_name);
           // console.log(data.discount_id);
+          // console.log(discount);
+          // console.log(d_array);
+          $('#discount_array').val(discount);
 
-          var patient_name = data.patient_name.patient;
-          var content = '';
-          var date_created = '';
-          var charge_slip_number = '';
-          var product_code = '';
-          var product_description = '';
-          var quantity = 0;
-          var unit_price = 0;
-          var discount_percent = 0;
-          var discount_value = 0;
-          var sub_total = 0;
-          var status = '';
-          var total_discount_value = 0;
-          var total_amount = Number(0);
-          var row_number = 0;
-          var id = 0;
-          var is_pay = '';
-          var is_discount = '';
-          // var discount_id = data.discount_id;
-
-          $('#patient_name').val(patient_name);
-          // $('#discount_percent').val(discount_id);
-
-          $('#invoice_data').empty();
+          // $('#invoice_data').empty();
           $.each(data.data, function(i, value) {
-            // alert(total_amount);
-            date_created = value.date_created;
-            charge_slip_number = value.chargeslipno;
-            product_code = value.itemcode;
-            product_description = value.description;
-            quantity = Number(value.qty);
-            unit_price = Number(value.price);
+            id = value.id;
+            date_created = value.date_created_formatted;
+            charge_slip_number = value.charge_slip_number;
+            product_id = value.product_id;
+            product_description = value.product_description;
+            quantity = Number(value.quantity);
+            unit_price = Number(value.unit_price);
+            sub_total = Number(value.amount);
             discount_percent = Number(value.discount_percent);
             discount_value = Number(value.discount_value);
-            total = Number(value.total);
-            sub_total = Number(value.sub_total);
             is_pay = value.is_pay;
             is_discount = value.is_discount;
             status = 'Invoiced';
-            id = value.id;
+            patient_id = value.patient_id;
+            patient_name = value.patient_name;
+            charge_code = value.charge_code;
 
-            // Discount percent value
-            if (discount_percent == null || discount_percent == '' || discount_percent == 0) {
-              discount_percent = Number(0);
-            }
+            if (is_pay == null || is_pay == 1) { is_pay = 'checked'; }
+            else { is_pay = ''; }
 
-            // Discount value
-            if (discount_value == null || discount_value == '' || discount_percent == 0) {
-              discount_value = Number(0);
-            }
+            if (is_discount == null || is_discount == 0) {  is_discount = '';  }
+            else {  is_discount = 'checked';   }
 
-            // alert(sub_total);
-
-            // Sub total value
-            if (sub_total == 0 && (discount_percent == 100 || is_pay == 0)) {
-
-            } else if (sub_total == 0) {
-              sub_total = total;
-
-            } else {
-              // sub_total = Number(value.sub_total);
-            }
-
-            if (is_pay == null || is_pay == 1) {
-              is_pay = 'checked';
-
-            } else {
-              is_pay = '';
-            }
-
-            if (is_discount == null || is_discount == 0) {
-              is_discount = '';
-
-            } else {
-              is_discount = 'checked';
-            }
-
-            total_discount_value += discount_value;
-            total_amount += sub_total;
-
-            content = '<tr id="'+ row_number +'">';
-            content += '<td><input type="checkbox" name="pay_checkbox" id="'+ id +'" class="pay_checkbox" value="'+ row_number +'"'+ is_pay +'></td>';
-            content += '<td><input type="checkbox" name="discount_checkbox" id="'+ id +'" class="discount_checkbox" value="'+ row_number +'"'+  is_discount +'></td>';
+            $('#patient_id').val(patient_id);
+            $('#patient_name').val(patient_name);
+            $('#charge_code').val(charge_code);
+            content = '<tr id="'+ id +'" class="charge_items">';
+            content += '<td><input type="checkbox" name="pay_checkbox" id="'+ id +'" class="pay_checkbox" value="'+ id +'"'+ is_pay +'></td>';
+            content += '<td><input type="checkbox" name="discount_checkbox" id="'+ id +'" class="discount_checkbox" value="'+ id +'"'+  is_discount +'></td>';
             content += '<td>'+ date_created +'</td>';
-            content += '<td>'+ charge_slip_number +'</td>';
-            content += '<td>'+ product_description +'</td>';
-            content += '<td align="right">'+ quantity.toFixed(2) +'</td>';
-            content += '<td align="right">'+ unit_price.toFixed(2) +'</td>';
-            content += '<td align="right">'+ discount_percent.toFixed(2) +'</td>';
-            content += '<td align="right">'+ discount_value.toFixed(2) +'</td>';
-            content += '<td align="right">'+ sub_total.toFixed(2) +'</td>';
+            content += '<td class="charge_slip_number">'+ charge_slip_number +'</td>';
+            content += '<td id="'+ product_id +'">'+ product_description +'</td>';
+            content += '<td align="right" class="quantity">'+ quantity.toFixed(2) +'</td>';
+            content += '<td align="right" class="unit_price">'+ unit_price.toFixed(2) +'</td>';
+            content += '<td align="right" class="discount_percent">'+ discount_percent.toFixed(2) +'</td>';
+            content += '<td align="right" class="discount_value editMe">'+ discount_value.toFixed(2) +'</td>';
+            content += '<td align="right" class="sub_total">'+ sub_total.toFixed(2) +'</td>';
             content += '<td>'+ status +'</td>';
             content += '</tr>';
+
             $(content).appendTo('#invoice_data');
-
-            row_number = row_number + 1;
           });
-          content = '<tr>';
-          content += '<td colspan="8" align="right">Totals: </td>';
-          content += '<td align="right"><strong>'+ total_discount_value.toFixed(2) +'</strong></td>';
-          content += '<td align="right"><strong>'+ total_amount.toFixed(2) +'</strong></td>';
-          content += '</tr>';
-          $(content).appendTo('#invoice_data');
-
+          // content = '<tr>';
+          // content += '<td colspan="8" align="right">Totals: </td>';
+          // content += '<td align="right"><strong>'+ total_discount_value.toFixed(2) +'</strong></td>';
+          // content += '<td align="right"><strong>'+ total_amount.toFixed(2) +'</strong></td>';
+          // content += '</tr>';
+          // $(content).appendTo('#invoice_data');
           // alert(total_amount);
+          // $('#amount_paid').val(total_amount.toFixed(2));
 
-          $('#amount_paid').val(total_amount.toFixed(2));
-
+          $('#amount_paid').val(calculateTotalAmount().toFixed(2));
         }
       });
     }
+
+    function calculateTotalAmount() {
+      var sub_total = 0;
+      var total = 0;
+
+      $('.charge_items').each(function(){
+        sub_total = Number($(this).closest('tr').find('.sub_total').text());
+        total += sub_total;
+      });
+
+      // $('#total_amount').val(total.toFixed(2));
+      return total;
+    }
+
+    $('#charge_slip_number').on('keydown', function(event) {
+      if (event.which == 13) {
+        $('#post_data').click();
+      }
+    });
+
 
     $('#apply_discount_all').on('click', function(event){
       event.preventDefault();
 
       var _token = CSRF_TOKEN;
       var discount_id = $('#discount_percent').val();
-      var charge_slip_number = $('#charge_slip_number').val();
-      var user_id = $('#user_id').val();
+      var discount = d_array;
+      var discount_percent = getDiscountPercent(discount, discount_id);
+      // var charge_slip_number = $('#charge_slip_number').val();
+      // var user_id = $('#user_id').val();
+      // var discount_array = $('#discount_array').val();
 
+      // console.log(discount_array);
+      // console.log(discount_id);
+      // console.log(d_array);
       if (discount_id == '') {
-        alert('Please select a discount percent .');
+        alert('Please select a discount percent(%) .');
 
       } else {
-        applyDiscountAll(_token, discount_id, charge_slip_number, user_id);
+        applyDiscountAll(discount_percent);
       }
     });
 
-    function applyDiscountAll(_t, d_id, cnumber, u_id) {
-      $.ajax({
-        type: "POST",
-        url: "/collections/walkin/create/apply-discount-all",
-        data: { _token: _t, discount_id: d_id, charge_slip_number: cnumber, user_id: u_id },
-        dataType: "JSON",
-        success: function(data) {
-          // console.log(data);
-          // console.log(data.discount_id);
-          // console.log(data.charge_slip_number);
-          // console.log(data.user_id);
-          // console.log(data.token);
+    function applyDiscountAll(d) {
+      var row = '';
+      var row_id = '';
+      var product_id = '';
+      var quantity = 0;
+      var unit_price = 0;
+      var discount_percent = d;
+      var discount_value = 0;
+      var sub_total = 0;
+      var total = 0;
+      // console.log(discount_percent);
 
-          discount_id = data.discount_id;
-          charge_slip_number = data.charge_slip_number;
-          user_id = data.user_id;
-          _token = data.token;
+      $('input[name="discount_checkbox"]:not(:checked)').each(function(){
+        $(this).prop('checked', true);
+      });
 
-          searchWalkinCharges( _token, charge_slip_number, user_id );
+      $('.charge_items').each(function(){
+        row = $(this);
+        row_id = $(this).closest('tr').attr('id');
+        product_id = $(this).closest('tr').find('td:eq(4)').attr('id');
+        quantity = Number($(this).closest('tr').find('.quantity').text());
+        unit_price = Number($(this).closest('tr').find('.unit_price').text());
+        sub_total = quantity * unit_price;
+        discount_percent_value = (discount_percent * 100);
+        discount_value = sub_total * discount_percent;
+        sub_total = sub_total - discount_value;
+        total += sub_total;
+
+        $(this).closest('tr').find('.discount_percent').text(discount_percent_value.toFixed(2));
+        $(this).closest('tr').find('.discount_value').text(discount_value.toFixed(2));
+        $(this).closest('tr').find('.sub_total').text(sub_total.toFixed(2));
+      });
+
+      $('#amount_paid').val(calculateTotalAmount().toFixed(2));
+
+    }
+
+    function getDiscountPercent(d_a, d_id){
+      var id = 0;
+      var percent = 0;
+      var discount_percent = 0;
+
+      $.each(d_a, function(i, value){
+        id = value.id;
+        percent = value.discount_percent;
+
+        if (id == d_id) {
+          discount_percent = percent;
         }
       });
+      return discount_percent;
     }
 
     // function getDiscountPercent( token, d_id ) {
@@ -516,151 +586,319 @@
       event.preventDefault();
 
       var _token = CSRF_TOKEN;
+      var discount = d_array;
       var discount_id = $('#discount_percent').val();
-      var charge_slip_number = $('#charge_slip_number').val();
-      var user_id = $('#user_id').val();
-      var id = [];
-      var row_id = 0;
-      var product_id = '';
+      var discount_percent = getDiscountPercent(discount, discount_id);
+      var discount_ids = [];
 
       $('input[name="discount_checkbox"]:checked').each(function(){
-        row_id = $(this).val();
-        product_id = $('#invoice_table').find('tr#' + row_id).find('.discount_checkbox').attr('id');
-        id.push(product_id);
+        discount_ids.push($(this).val());
       });
 
-
       if (discount_id == '') {
-        alert('Please select a discount percent .');
+        alert('Please select a discount percent(%) .');
+
       } else {
-        if (id.length > 0) {
-          applyDiscountSelected(  _token, discount_id, charge_slip_number, id, user_id );
+        if (discount_ids.length > 0) {
+          applyDiscountSelected( discount_percent, discount_ids );
 
         } else {
           alert('Please select at least one(1) discount checkbox .');
+
         }
       }
     });
 
-    function applyDiscountSelected(_t, d_id, cslip, id, u_id) {
-      $.ajax({
-        type: "POST",
-        url: "/collections/walkin/create/apply-discount-selected",
-        data: { _token: _t, discount_id: d_id, charge_slip_number: cslip, id: id, user_id: u_id },
-        dataType: "JSON",
-        success: function(data){
-          _token = data._token;
-          charge_slip_number = data.charge_slip_number;
-          user_id = data.user_id;
-          // console.log(data);
-          // console.log(data.id);
-          // console.log(data.token);
-          // console.log(data.charge_slip_number);
-          searchWalkinCharges( _token, charge_slip_number, user_id );
-        }
+    function applyDiscountSelected(d, dids) {
+      var is_discount = 0;
+      var is_pay = 0;
+      var discount_name = '';
+      var discount_percent = d;
+      var discount_ids = dids;
+      var row_id = '';
+      var product_id = '';
+      var quantity = 0;
+      var unit_price = 0;
+      var sub_total = 0;
+      var discount_value = 0;
+      var total = 0;
+      var row_id_table = '';
+
+      $.each(discount_ids, function(i, data) {
+        // console.log(data);
+        row_id = data;
+        $('.charge_items').each(function(){
+          row_id_table = $(this).closest('tr').attr('id');
+          if (row_id_table == row_id) {
+            product_id = $(this).closest('tr').find('td:eq(4)').attr('id');
+            quantity = Number($(this).closest('tr').find('.quantity').text());
+            unit_price = Number($(this).closest('tr').find('.unit_price').text());
+            sub_total = quantity * unit_price;
+            discount_percent_value = discount_percent * 100;
+            discount_value = sub_total * discount_percent;
+            sub_total = sub_total - discount_value;
+            total += sub_total;
+
+            $(this).closest('tr').find('.discount_percent').text(discount_percent_value.toFixed(2));
+            $(this).closest('tr').find('.discount_value').text(discount_value.toFixed(2));
+            $(this).closest('tr').find('.sub_total').text(sub_total.toFixed(2));
+          }
+        });
       });
+      $('#amount_paid').val(calculateTotalAmount().toFixed(2));
+
+
+      // $.ajax({
+      //   type: "POST",
+      //   url: "/collections/walkin/create/apply-discount-selected",
+      //   data: { _token: _t, discount_id: d_id, charge_slip_number: cslip, id: id, user_id: u_id },
+      //   dataType: "JSON",
+      //   success: function(data){
+      //     _token = data._token;
+      //     charge_slip_number = data.charge_slip_number;
+      //     user_id = data.user_id;
+      //     // console.log(data);
+      //     // console.log(data.id);
+      //     // console.log(data.token);
+      //     // console.log(data.charge_slip_number);
+      //     searchWalkinCharges( _token, charge_slip_number, user_id );
+      //   }
+      // });
     }
 
     $('#clear_discount').on('click', function(event) {
       event.preventDefault();
-      var _token = CSRF_TOKEN;
-      var charge_slip_number = $('#charge_slip_number').val();
-      var user_id = $('#user_id').val();
-      var discount_id = null;
-      var q = confirm('Do you want to clear the discount(s)?');
-      var discount_percent = '';
-      var default_value = '0.00';
 
+      var q = confirm('Are you sure you want to clear the discount(s) ?');
       if (q == true) {
-        clearDiscount( _token, discount_id, charge_slip_number, user_id );
-
-        $('#discount_percent').val(discount_percent);
-        $('#amount_paid').val(default_value);
-        $('#amount_tendered').val(default_value);
-        $('#change').val(default_value);
-
+        clearDiscount();
       }
+
     });
 
-    function clearDiscount(_t, d_id, cslip, u_id) {
-      $.ajax({
-        type: "POST",
-        url: "/collections/walkin/create/clear-discount",
-        data: { _token: _t, discount_id: d_id, charge_slip_number: cslip, user_id: u_id },
-        dataType: "JSON",
-        success: function(data) {
-          // console.log(data);
-          // console.log(data.token);
-          // console.log(data.charge_slip_number);
-          // console.log(data.user_id);
+    function clearDiscount() {
+      var sub_total = 0;
+      var blank_value = Number(0).toFixed(2);
 
-          _token = data.token;
-          charge_slip_number = data.charge_slip_number;
-          user_id = data.user_id;
-
-          searchWalkinCharges(_token, charge_slip_number, user_id);
-        }
+      $('input[name="pay_checkbox"]:not(:checked)').each(function(){
+        $(this).prop("checked", true);
       });
+
+      $('input[name="discount_checkbox"]:checked').each(function(){
+        $(this).prop("checked", false);
+      });
+
+      $('.alert').hide();
+      $('#discount_percent').val('');
+      $('#amount_paid').val(blank_value);
+      $('#amount_tendered').val(blank_value);
+      $('#amount_change').val(blank_value);
+
+      $('.charge_items').each(function(){
+        product_id = $(this).closest('tr').find('td:eq(4)').attr('id');
+        quantity = Number($(this).closest('tr').find('.quantity').text());
+        unit_price = Number($(this).closest('tr').find('.unit_price').text());
+        sub_total = quantity * unit_price;
+        discount_percent_value = blank_value;
+        discount_value = blank_value;
+
+        $(this).closest('tr').find('.discount_percent').text(discount_percent_value);
+        $(this).closest('tr').find('.discount_value').text(discount_value);
+        $(this).closest('tr').find('.sub_total').text(sub_total.toFixed(2));
+      });
+
+      $('#amount_paid').val(calculateTotalAmount().toFixed(2));
     }
 
     $('#update_totals').on('click', function(event) {
       event.preventDefault();
 
-      var _token = CSRF_TOKEN;
-      var charge_slip_number = $('#charge_slip_number').val();
-      var user_id = $('#user_id').val();
+      var discount = d_array;
       var discount_id = $('#discount_percent').val();
-      var q = confirm('Are you sure you want to update the total amount?');
+      var discount_percent = getDiscountPercent(discount, discount_id);
+      var q = confirm('Are you sure you want to update the total charges ?');
 
-      var q = true;
-      var pay_ids = [];
-      var discount_ids = [];
       var row_id = 0;
       var product_id = '';
 
       if (q == true) {
-        $('input[name="pay_checkbox"]:not(:checked)').each(function(){
-          row_id = $(this).val();
-          product_id = $('#invoice_table').find('tr#' + row_id).find('.pay_checkbox').attr('id');
-          pay_ids.push(product_id);
-        });
-
-        $('input[name="discount_checkbox"]:checked').each(function(){
-          row_id = $(this).val();
-          product_id = $('#invoice_table').find('tr#' + row_id).find('.discount_checkbox').attr('id');
-          discount_ids.push(product_id);
-        });
-
-        updateTotals( _token, charge_slip_number, user_id, discount_id, pay_ids, discount_ids );
+        console.log(discount_percent);
+        updateTotals( discount_percent );
       }
     });
 
-    function updateTotals(_t, cslip, u_id, d_id, pids, dids) {
+    function updateTotals(d) {
+      var discount = Number(d);
+      var quantity = 0;
+      var unit_price = 0;
+      var discount_percent = 0;
+      var discount_value = 0;
+      var sub_total = 0;
 
-      $.ajax({
-        type: "POST",
-        url: "/collections/walkin/create/update-totals",
-        data: { _token: _t, charge_slip_number: cslip, user_id: u_id, discount_id: d_id, pay_ids: pids, discount_ids: dids },
-        dataType: "JSON",
-        success: function(data) {
-          // console.log(data);
+      $('.charge_items').each(function(){
+        var is_pay = 0;
+        var is_discount = 0;
+        var disc = discount;
+        var row = $(this);
 
-          _token = data.token;
-          charge_slip_number = data.charge_slip_number;
-          user_id = data.user_id;
+        if (row.closest('tr').find('.pay_checkbox').is(':checked')) { is_pay = 1; }
+        if (row.closest('tr').find('.discount_checkbox').is(':checked')) { is_discount = 1; }
 
-          searchWalkinCharges(_token,charge_slip_number,user_id);
+        quantity = Number(row.closest('tr').find('.quantity').text());
+        unit_price = Number(row.closest('tr').find('.unit_price').text());
+        discount_value = Number(row.closest('tr').find('.discount_value').text());
+        sub_total = quantity * unit_price;
+        if (is_pay == 0) {
+          discount_percent = 0;
+          discount_value = 0;
+          sub_total = 0;
 
-        }
+        } else {
+          if (discount_value == 0) {
+            if (is_discount == 1) {
+              if (disc == 0) {
+                $('#alert_value').text('Please select discount percent(%) .');
+                $('.alert').show();
+                console.log('enter discount_percent');
+
+              } else {
+                discount_percent = disc * 100;
+                discount_value = sub_total * disc;
+                sub_total = sub_total - discount_value;
+              }
+            } else {
+              discount_percent = 0;
+              discount_value = 0;
+
+            } //check if discount checkbox is checked
+          } else {
+            if (discount_value > sub_total) {
+              $('#alert_value').text('Discount value is greater than sub total value .');
+              $('.alert').show();
+              discount_percent = 0;
+              discount_value = 0;
+            } else {
+              discount_percent = 0;
+              sub_total = sub_total - discount_value;
+            }
+          } // check if the value of  discount value is zero
+        } // check if free product
+
+        $(this).closest('tr').find('.discount_percent').text(discount_percent.toFixed(2));
+        $(this).closest('tr').find('.discount_value').text(discount_value.toFixed(2));
+        $(this).closest('tr').find('.sub_total').text(sub_total.toFixed(2));
       });
-    }
+
+      $('#amount_paid').val(calculateTotalAmount().toFixed(2));
+    } // Update Totals
+
+
 
 
     $('#save_button').on('click', function(event) {
       event.preventDefault();
-      // alert('clicked save button');
 
       var _token = CSRF_TOKEN;
+      var or_number = $('#or_number').val();
+      var charge_slip_number = $('#charge_slip_number').val();
+      var row_count = $('#invoice_table tbody tr').length;
+
+      // Check the value of charge slip number/barcode .
+      if (charge_slip_number == '') {
+        alert('Please input charge slip number / barcode .');
+
+      } else {
+        // Check the value of patient name input .
+        if (patient_name == '') {
+          alert('Please input valid charge slip number / barcode .');
+
+        } else {
+          // Save payment function
+          saveWalkinCharges(_token, or_number, row_count );
+        }
+      }
+
+      // var _token = CSRF_TOKEN;
+      // var date = new Date();
+      // var month = date.getMonth() + 1;
+      // var day = date.getDate();
+      // var hour = date.getHours();
+      // var minute = date.getMinutes();
+      // var second = date.getSeconds();
+      //
+      // var charge_slip_number_value = $('#charge_slip_number').val();
+      // var patient_name_value = $('#patient_name').val();
+      // var or_date_value = $('#or_date').val();
+      // var user_id_value = $('#user_id').val();
+      // var prefix_or_number_value = $('#or_number').val();
+      // var payment_mode_value = $('#payment_mode').val();
+      // var discount_id_value = $('#discount_percent').val();
+      // var currency_value = $('#currency').val();
+      // var payment_type_value = $('#payment_type').val();
+      // var discount_computation_value = $('#discount_computation').val();
+      // var amount_paid_value = $('#amount_paid').val();
+      // var amount_tendered_value = $('#amount_tendered').val();
+      // var amount_change_value = $('#change').val();
+      // // var charge_code_value = $('#charge_code').val();
+      // // var charge_table_value = $('#charge_table').val();
+      // var created_at_value = date.getFullYear() + '-' + (('' + month).length < 2 ? '0' : '') +
+			// 		month + '-' + (('' + day).length < 2 ? '0' : '') + day + ' ' + hour + ':' + minute + ':' + second;
+      // var row_count = 0;
+      // var obj = {};
+      // var arrData = [];
+      //
+      //
+      // if (charge_slip_number_value == '' || charge_slip_number_value == null) {
+      //   alert('Please input charge slip number .');
+      //   $('#charge_slip_number').focus();
+      //
+      // } else if (patient_name_value == '' || patient_name_value == null) {
+      //   alert('Please fill out patient name .');
+      //   $('#patient_name').focus();
+      //
+      // } else {
+      //   var q = confirm('Are you sure you want to save this payment?');
+      //
+      //   row_count = $('#invoice_table tbody tr').length;
+      //
+      //   if (row_count > 0) {
+      //     if (q == true) {
+      //       for (var i = 0; i < row_count - 1; i++) {
+      //         obj.charge_slip_number = charge_slip_number_value;
+      //         obj.patient_name = patient_name_value;
+      //         obj.or_date = or_date_value;
+      //         obj.user_id = user_id_value;
+      //         obj.prefix_or_number = prefix_or_number_value;
+      //         obj.payment_mode = payment_mode_value;
+      //         obj.discount_id = discount_id_value;
+      //         obj.currency = currency_value;
+      //         obj.payment_type = payment_type_value;
+      //         obj.discount_computation = discount_computation_value;
+      //         obj.amount_paid = amount_paid_value;
+      //         obj.amount_tendered = amount_tendered_value;
+      //         obj.amount_change = amount_change_value;
+      //         // obj.charge_code = charge_code_value;
+      //         // obj.charge_table = charge_table_value;
+      //         obj.created_at = created_at_value;
+      //
+      //         arrData.push(obj);
+      //       }
+      //
+      //       saveWalkinCharges(_token, arrData, prefix_or_number_value, charge_slip_number_value);
+      //     }
+      //
+      //   } else {
+      //     alert('No walk-in charges found .');
+      //   }
+      // }
+
+    });
+
+    function saveWalkinCharges(_t, or, rc) {
+      var _token = _t;
+      var or_number_value = or;
+      var row_count = rc;
+      var arrData=[];
       var date = new Date();
       var month = date.getMonth() + 1;
       var day = date.getDate();
@@ -668,97 +906,105 @@
       var minute = date.getMinutes();
       var second = date.getSeconds();
 
-      var charge_slip_number_value = $('#charge_slip_number').val();
+      var patient_id_value = $('#patient_id').val();
       var patient_name_value = $('#patient_name').val();
+      var payment_status_value = 'Paid';
       var or_date_value = $('#or_date').val();
       var user_id_value = $('#user_id').val();
-      var prefix_or_number_value = $('#or_number').val();
       var payment_mode_value = $('#payment_mode').val();
       var discount_id_value = $('#discount_percent').val();
       var currency_value = $('#currency').val();
       var payment_type_value = $('#payment_type').val();
       var discount_computation_value = $('#discount_computation').val();
-      var amount_paid_value = $('#amount_paid').val();
-      var amount_tendered_value = $('#amount_tendered').val();
-      var amount_change_value = $('#change').val();
-      // var charge_code_value = $('#charge_code').val();
-      // var charge_table_value = $('#charge_table').val();
-      var created_at_value = date.getFullYear() + '-' + (('' + month).length < 2 ? '0' : '') +
-					month + '-' + (('' + day).length < 2 ? '0' : '') + day + ' ' + hour + ':' + minute + ':' + second;
-      var row_count = 0;
+      var amount_paid_value = Number($('#amount_paid').val());
+      var amount_tendered_value = Number($('#amount_tendered').val());
+      var amount_change_value =  Number($('#amount_change').val());
+      var charge_code_value = $('#charge_code').val();
+      var discount_percent_value = 0;
+      var created_at_value = date.getFullYear() + '-' + (('' + month).length < 2 ? '0' : '') + month + '-' + (('' + day).length < 2 ? '0' : '') + day + ' ' + hour + ':' + minute + ':' + second;
 
+      // loop over each charge table row (tr)
+      $('.charge_items').each(function() {
+        var current_row = $(this);
+        var charge_slip_number_value = current_row.closest('tr').find('.charge_slip_number').text();
+        var product_id_value = current_row.closest('tr').find('td:eq(4)').attr('id');
+        var quantity_value = Number(current_row.closest('tr').find('.quantity').text());
+        var unit_price_value = Number(current_row.closest('tr').find('.unit_price').text());
+        var discount_percent_value = Number(current_row.closest('tr').find('.discount_percent').text());
+        var discount_value_value = Number(current_row.closest('tr').find('.discount_value').text());
+        var sub_total_value = Number(current_row.closest('tr').find('.sub_total').text());
+        var is_pay_value = 0;
+        var is_discount_value = 0;
+        var obj = {};
 
-      var obj = {};
+        if (current_row.closest('tr').find('.pay_checkbox').is(':checked')) { is_pay_value = 1; }
+        if (current_row.closest('tr').find('.discount_checkbox').is(':checked')) { is_discount_value = 1; }
 
-      var arrData = [];
+        obj.charge_slip_number = charge_slip_number_value;
+        obj.patient_id = patient_id_value;
+        obj.patient_name = patient_name_value;
+        obj.or_number = or_number_value;
+        obj.or_date = or_date_value;
+        obj.currency = currency_value;
+        obj.payment_type = payment_type_value;
+        obj.payment_mode = payment_mode_value;
+        obj.user_id = user_id_value;
+        obj.discount_computation = discount_computation_value;
+        obj.amount_paid = amount_paid_value;
+        obj.amount_tendered = amount_tendered_value;
+        obj.amount_change = amount_change_value;
+        obj.created_at = created_at_value;
+        obj.charge_code = charge_code_value;
+        obj.payment_status = payment_status_value;
 
+        obj.product_id = product_id_value;
+        obj.quantity = quantity_value;
+        obj.unit_price = unit_price_value;
+        obj.sub_total = sub_total_value;
+        obj.discount_id = discount_id_value;
+        obj.discount_percent = discount_percent_value;
+        obj.discount_value = discount_value_value;
+        obj.is_pay = is_pay_value;
+        obj.is_discount = is_discount_value;
 
-
-      if (charge_slip_number_value == '' || charge_slip_number_value == null) {
-        alert('Please input charge slip number .');
-
-      } else if (patient_name_value == '' || patient_name_value == null) {
-        alert('Please fill out patient name .');
-
-      } else {
-        var q = confirm('Are you sure you want to save this payment?');
-
-        row_count = $('#invoice_table tbody tr').length;
-
-        if (row_count > 0) {
-          if (q == true) {
-            for (var i = 0; i < row_count - 1; i++) {
-              obj.charge_slip_number = charge_slip_number_value;
-              obj.patient_name = patient_name_value;
-              obj.or_date = or_date_value;
-              obj.user_id = user_id_value;
-              obj.prefix_or_number = prefix_or_number_value;
-              obj.payment_mode = payment_mode_value;
-              obj.discount_id = discount_id_value;
-              obj.currency = currency_value;
-              obj.payment_type = payment_type_value;
-              obj.discount_computation = discount_computation_value;
-              obj.amount_paid = amount_paid_value;
-              obj.amount_tendered = amount_tendered_value;
-              obj.amount_change = amount_change_value;
-              // obj.charge_code = charge_code_value;
-              // obj.charge_table = charge_table_value;
-              obj.created_at = created_at_value;
-
-              arrData.push(obj);
-            }
-            saveWalkinCharges(_token, arrData, prefix_or_number_value, charge_slip_number_value);
-          }
-
-        } else {
-          alert('No walk-in charges found .');
-
-        }
-      }
-    });
-
-    function saveWalkinCharges(_t, d, or_n, cslip) {
-      $.ajax({
-        type: "POST",
-        url: "/collections/walkin/create/save-walkin-charges",
-        data: { _token: _t, data: d, or_number: or_n, charge_slip_number: cslip },
-        dataType: "JSON",
-        success: function(data) {
-          console.log(data);
-          console.log(data.is_pay);
-
-          $('.alert').show();
-
-          $('#charge_slip_number').hide();
-          $('#post_data').hide();
-
-          $('#print_button').show();
-          $('#export_button').show();
-
-          $('#print_button').click();
-
-        }
+        arrData.push(obj);
       });
+
+      var q = confirm('Are you sure you want to save this payment ?');
+      if (q == true) {
+        $.ajax({
+          type: "POST",
+          url: "/collections/walkin/create/check-or-duplicate",
+          data: { _token: _t, arrData: arrData, or_number: or_number_value },
+          dataType: "JSON",
+          success: function(data) {
+            var _token = data._token;
+            var or_count = data.data;
+            var or_number = data.or_number;
+            var arrData = data.arrData;
+            if (or_count > 0) {
+              // console.log('duplicate OR');
+              alert('Please use another OR Number (Duplicate Entry) .');
+
+            } else {
+              $.ajax({
+                type: "POST",
+                url: "/collections/walkin/create/save-walkin-charges",
+                data: { _token: _token, arrData: arrData, or_number: or_number_value },
+                dataType: "JSON",
+                success: function(data){
+                  $('#alert_value').val('Payment was successfully saved.');
+                   $('.alert').show();
+                   $('#btn_new').show();
+                   $('#print_button').show();
+                   $('#print_button').click();
+                   $('#save_button').hide();
+                }
+              }); // End of  ajax url:"/collections/other/store_payment",
+            }
+          }
+        });
+      } // end of confirmation
     }
 
     $('#print_button').on('click', function(event){
@@ -778,11 +1024,11 @@
 
       if (amount_paid > amount_tendered) {
         alert('Amount tendered must be greater than the total amount.');
-        $('#change').val(Number(0.00).toFixed(2));
+        $('#amount_change').val(Number(0.00).toFixed(2));
       } else {
         compute = amount_tendered - amount_paid;
         $('#amount_tendered').val(Number(amount_tendered).toFixed(2));
-        $('#change').val(Number(compute).toFixed(2));
+        $('#amount_change').val(Number(compute).toFixed(2));
       }
     }
 
@@ -791,16 +1037,24 @@
       if (event.which == 13) {
         // alert('pressend enter at amount tendered field');
         computeChange();
-        $('#change').focus();
+        $('#amount_change').focus();
       }
     });
 
-    $('#collections_walkin').on('keyup keypress', function(e) {
+    $('#collections_walkin').on('keypress', function(e) {
       var keyCode = e.keyCode || e.which;
       if (keyCode === 13) {
         e.preventDefault();
         return false;
       }
+    });
+
+    $('#btn_new').click(function(e){
+      e.preventDefault();
+
+      var user_id = $('#user_id').val();
+
+      window.location.replace("/collections/walkin/create/" + user_id);
     });
 
 

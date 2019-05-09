@@ -9,6 +9,7 @@
         "barryvdh/laravel-dompdf": "^0.8.3",
         "cossou/jasperphp": "^2.8",
         "fideloper/proxy": "^4.0",
+        "geekcom/phpjasper": "^3.0",
         "kwn/number-to-words": "^1.5",
         "laravel/framework": "5.6.*",
         "laravel/tinker": "^1.0",

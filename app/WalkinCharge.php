@@ -7,5 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class WalkinCharge extends Model
 {
 
-    protected $table = 'vw_walkin_items';
+    // protected $table = 'vw_walkin_items';
+    protected $table = 'tbl_walkin';
+    
 }

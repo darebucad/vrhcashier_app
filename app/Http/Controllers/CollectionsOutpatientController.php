@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use App;
 use App\Payment;
 use App\PatientAccount;
 use App\ViewOutpatientCharge;
@@ -17,7 +18,13 @@ use App\ViewOutpatientChargeLab;
 use App\DoctorsOrder;
 use App\ViewPaymentMainOR;
 use App\SuppliesCharge;
-use App;
+use App\ViewPaymentOR;
+use App\ViewOutpatientChargeSupply;
+use App\ViewOutpatientChargeExam;
+use App\ViewOutpatientChargeDrugs;
+use App\ViewOutpatientChargeMisc;
+use App\Discount;
+use App\ViewCollection;
 
 use DataTables;
 use DB;
@@ -26,8 +33,7 @@ use NumberToWords\NumberToWords;
 use Carbon\Carbon;
 
 
-use App\ViewOutpatientChargeSupply;
-use App\ViewOutpatientChargeExam;
+
 
 class CollectionsOutpatientController extends Controller
 {
@@ -68,18 +74,240 @@ class CollectionsOutpatientController extends Controller
     public function create(Request $request, $id)
     {
         $user_id = $id;
-        $or_number = Payment::select('orno')->where('id', $user_id)->orderByRaw('created_at DESC')->count();
 
-        if ( $or_number == 0 ) {
-            // $or_number = Payment::select('orno')->orderByRaw('created_at DESC')->get();
-            $or_number = ViewPaymentMainOR::select('orno','or_prefix')->get();
+        $payments = ViewPaymentOR::select('next_or_number', 'or_prefix')->where('id', $user_id)
+                    ->limit(1)
+                    ->count();
+
+        if ($payments > 0) {
+          $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
+          ->where('id', $user_id)
+          ->limit(1)
+          ->orderBy('created_at', 'desc')
+          ->get();
+          // code...
+        } else {
+          $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
+          ->limit(1)
+          ->orderBy('created_at', 'desc')
+          ->get();
+
         }
-        else {
-            $or_number = ViewPaymentMainOR::select('orno','or_prefix')
-            ->where('id', $user_id)
-            ->get();
+        // $or_number = Payment::select('orno')->where('id', $user_id)->orderByRaw('created_at DESC')->count();
+        //
+        // if ( $or_number == 0 ) {
+        //     // $or_number = Payment::select('orno')->orderByRaw('created_at DESC')->get();
+        //     $or_number = ViewPaymentMainOR::select('orno','or_prefix')->get();
+        // }
+        // else {
+        //     $or_number = ViewPaymentMainOR::select('orno','or_prefix')
+        //     ->where('id', $user_id)
+        //     ->get();
+        // }
+
+        $discounts = Discount::all();
+
+        return view('collections.outpatient.create', compact('payments', 'discounts'));
+
+        // return view('collections.outpatient.create')->with('payments', $payments);
+    }
+
+    /**
+     * Display outpatient charges filtered by charge slip number.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function postData(Request $request) {
+
+        $current_time = Carbon::now('Asia/Manila');
+        $_token = $request->_token;
+        $charge_slip_number = $request->charge_slip_number;
+        $user_id = $request->user_id;
+        $account_number = '';
+        $encounter_code = '';
+        $patient_id = '';
+        $new_account_number = '';
+        $get_outpatient_charges = $this::getOutpatientCharges($charge_slip_number);
+
+
+        foreach ($get_outpatient_charges as $value) {
+          $account_number = $value->account_number;
+          $encounter_code = $value->encounter_code;
+          $patient_id = $value->patient_id;
+          break;
         }
-        return view('collections.outpatient.create')->with('or_number', $or_number);
+
+        if ($account_number == '' or $account_number == null) {
+          $patient_account = ViewPatientAccount::select('next_account_no_year', 'next_account_no_increment')->first();
+          $new_account_number = $patient_account->next_account_no_year . '-' . $patient_account->next_account_no_increment;
+          $data = array(
+              'paacctno'   => $new_account_number,
+              'enccode'   =>  $encounter_code,
+              'hpercode'  =>  $patient_id,
+              'upicode'   =>  null,
+              'padteas'   =>  $current_time->toDateTimeString(),
+              'patmeas'   =>  $current_time->toDateTimeString(),
+              'patotchrg' =>  '0',
+              'patotprof' =>  '0',
+              'patotamt'  =>  '0',
+              'patotdisc' =>  '0',
+              'patmsstot' =>  '0',
+              'panetamt'  =>  '0',
+              'papay'     =>  '0',
+              'pabal'     =>  '0',
+              'pastat'    =>  'A',
+              'palock'    =>  'N',
+              'datemod'   =>  null,
+              'updsw'     =>  'N',
+              'confdl'    =>  'N',
+              'ptdisc'    =>  '0',
+              'paphic'    =>  '0',
+              'id'        =>  $user_id,
+              'created_at'=>  $current_time->toDateTimeString(),
+              'updated_at'=>  $current_time->toDateTimeString()
+          );
+
+          PatientAccount::insert($data);
+        } else {
+            $new_account_number = $account_number;
+        }
+
+        $response = array(
+          'charge_slip_number' => $charge_slip_number,
+          'data'  =>  $get_outpatient_charges,
+          'account_number' => $account_number,
+          'new_account_number' => $new_account_number,
+          'user_id' => $user_id,
+          'current_time' => $current_time,
+          '_token' => $_token,
+          // 'is_paid' => $is_paid
+        );
+        return response()->json($response);
+    }
+
+    public function getOutpatientCharges($cslip) {
+      $charge_slip_number = $cslip;
+      $prefix = substr($charge_slip_number, 0, 1);
+
+      if ($prefix == 'P' || $prefix == 'p') {
+        $outpatient_charges = ViewOutpatientChargeDrugs::where('charge_slip_number', $charge_slip_number)->get();
+
+      } elseif ($prefix == 'C' || $prefix == 'c') {
+        $outpatient_charges = ViewOutpatientChargeSupply::where('charge_slip_number', $charge_slip_number)->get();
+
+      } elseif ($prefix == 'B' || $prefix == 'b') {
+        $outpatient_charges = ViewOutpatientChargeMisc::where('charge_slip_number', $charge_slip_number)->get();
+
+      } else {
+        $outpatient_charges = ViewOutpatientChargeExam::where('charge_slip_number', $charge_slip_number)->get();
+
+      }
+
+      return $outpatient_charges;
+
+    }
+
+
+
+
+    /**
+     * Apply discount to all patient charges from database.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function applyDiscountAll(Request $request) {
+
+        $current_time = Carbon::now('Asia/Manila');
+
+        $_token = $request->_token;
+        $charge_slip_number = $request->charge_slip_number;
+        $discount_id = $request->discount;
+        $user_id = $request->user_id;
+        // $discount_name = $request->discount;
+        // $discount_percent = $request->discount;
+        // $prefix_charge_slip = substr($charge_slip_number, 0, 1);
+
+        $get_outpatient_charges = ViewOutpatientCharge::where('charge_slip_number', $charge_slip_number)->get();
+
+        // if ($prefix_charge_slip == 'P' || $prefix_charge_slip == 'p') {
+        //   $outpatient_charges = ViewOutpatientCharge::where('charge_slip_number', $charge_slip_number)->get();
+        //
+        // } elseif ($prefix_charge_slip == 'C' || $prefix_charge_slip == 'c') {
+        //   $outpatient_charges = ViewOutpatientChargeSupply::where('charge_slip_number', $charge_slip_number)->get();
+        //
+        // } else {
+        //   $outpatient_charges = ViewOutpatientChargeExam::where('charge_slip_number', $charge_slip_number)->get();
+        // }
+
+        // if ($discount_name == 'SENIOR' || $discount_name == 'PWD') {
+        //     $discount_percent = 20;
+        //
+        // } else {
+        //   code...
+        // }
+
+        // $discount_percent = $discount_percent / 100;
+
+        // foreach ($get_outpatient_charges as $value) {
+        //
+        //   $category = $value->charge_code;
+        //   $amount = $value->amount;
+        //   $disc_name = $discount_name;
+        //   $disc_percent = $discount_percent;
+        //   $disc_amount = $amount * ( $disc_percent / 100 );
+        //
+        //   if ($category == 'DRUMN') {
+        //     SuppliesCharge::where('docointkey', '=', $value->order_number)->update([
+        //       'disc_name' => $disc_name,
+        //       'disc_percent' => $disc_percent,
+        //       'disc_amount' => $disc_amount,
+        //       'is_pay' => '1',
+        //       'is_discount' => '1',
+        //       'updated_at' => $current_time->toDateTimeString()]);
+        //
+        //   } elseif ($category == 'DRUME' || $category == 'DRUMP') {
+        //     MedicineCharge::where('docointkey', '=', $value->order_number)->update([
+        //       'disc_name' => $disc_name,
+        //       'disc_percent' => $disc_percent,
+        //       'disc_amount' => $disc_amount,
+        //       'is_pay' => '1',
+        //       'is_discount' => '1',
+        //       'updated_at' => $current_time->toDateTimeString()]);
+        //
+        //   } else {
+        //     DoctorsOrder::where('docointkey', '=', $value->order_number)->update([
+        //      'disc_name' => $disc_name,
+        //      'disc_percent' => $disc_percent,
+        //      'disc_amount' => $disc_amount,
+        //      'is_pay' => '1',
+        //      'is_discount' => '1',
+        //      'updated_at' => $current_time->toDateTimeString()]);
+        //   }
+        //
+        // }
+
+
+        // if ($prefix_charge_slip == 'P' || $prefix_charge_slip == 'p') {
+        //   $data = ViewOutpatientCharge::where('charge_slip_number', $charge_slip_number)->get();
+        //
+        // } elseif ($prefix_charge_slip == 'C' || $prefix_charge_slip == 'c') {
+        //   $data = ViewOutpatientChargeSupply::where('charge_slip_number', $charge_slip_number)->get();
+        //
+        // } else {
+        //   $data = ViewOutpatientChargeExam::where('charge_slip_number', $charge_slip_number)->get();
+        // }
+
+        $discount = Discount::select('discount_percent')->where('id', $discount_id)->first();
+
+        $response = array(
+          // 'data' => $data,
+          // 'charge_slip' => $charge_slip_number,
+          // 'discount_name' => $discount_name,
+          'discount_id' => $discount->discount_percent,
+        );
+        return response()->json($response);
     }
 
     /**
@@ -97,7 +325,7 @@ class CollectionsOutpatientController extends Controller
         $payment_counter = 0;
         $charge_code = '';
         $charge_table = '';
-        $or_number = '';
+        $or_number = $request->or_number;
 
         if ($prefix_charge_slip == 'P' || $prefix_charge_slip == 'p') {
           $outpatient_charges = ViewOutpatientCharge::where('charge_slip_number', $charge_slip_number)->get();
@@ -114,9 +342,14 @@ class CollectionsOutpatientController extends Controller
           $category = $charge->charge_code;
           $charge_code = $charge->charge_code;
           $charge_table = $charge->charge_table;
+          $sub_total = $charge->computed_sub_total;
+          $amount = $charge->amount;
+          $is_pay = $charge->is_pay;
+          $is_discount = $charge->is_discount;
+          $final_amount = 0;
+          $discount_percent = $charge->disc_percent;
 
           if ($charge_code == '' || $charge_code == null || $charge_code == 0) {
-
             if ($prefix_charge_slip == 'L' || $prefix_charge_slip == 'l') {
               $charge_code = 'LABOR';
               $charge_table = 'LABOR';
@@ -134,20 +367,35 @@ class CollectionsOutpatientController extends Controller
               $charge_table = 'DENTA';
 
             } else {
-              // code...
-            }
 
+            }
           } else {
-            // code...
+
+          }
+
+          if ($is_pay == null) {
+            $final_amount = $amount;
+
+          } elseif ($is_pay == '1') {
+            $final_amount = $sub_total;
+
+          } elseif ($is_pay == '0' && $is_discount == null) {
+            $final_amount = 0;
+
+          } elseif ($is_pay == '0' && ($discount_percent == '100' || $discount_percent == '100.00')) {
+            $final_amount = 0;
+          } else {
+            $final_amount = $sub_total;
+
           }
 
             $data = array(
-                'enccode'               => $request->enccode,
-                'hpercode'              => $request->hpercode,
-                'acctno'                => $request->acctno,
+                '/enccode'               => $request->enccode,
+                '/hpercode'              => $request->hpercode,
+                '/acctno'                => $request->acctno,
                 'orno'                  => substr($request->or_number, 2),
                 'ordate'                => date('Y-m-d H:i:s', strtotime(str_replace('-', '/', $request->ordate))),
-                'amt'                   => $charge->amount,
+                'amt'                   => $final_amount,
                 'curcode'               => $request->currency,
                 'paytype'               => $request->payment_type,
                 'paycode'               => $request->payment_mode,
@@ -161,7 +409,7 @@ class CollectionsOutpatientController extends Controller
                 'itemcode'              => $charge->product_code,
                 'id'                    => $request->user_id,
                 'discount_name'         => $charge->disc_name,
-                'discount_percent'      => $charge->disc_percent,
+                'discount_percent'      => $discount_percent,
                 'discount_computation'  => $request->discount_computation,
                 'discount_value'        => $charge->computed_discount,
                 'payment_status'        => $request->status,
@@ -169,18 +417,20 @@ class CollectionsOutpatientController extends Controller
                 'amount_tendered'       => $request->amount_tendered,
                 'amount_change'         => $request->change,
                 'created_at'            => $current_time->toDateTimeString(),
-                'is_pay'                => $charge->is_pay,
-                'is_discount'           => $charge->is_discount
+                'is_pay'                => $is_pay,
+                'is_discount'           => $is_discount
             );
             Payment::insert($data);
 
             $payment_counter += 1;
+
+
         }
 
 
-        $outpatient_payment = ViewPayment::select('or_no_prefix')->where('charge_slip_no', $charge_slip_number)->first();
+        // $outpatient_payment = ViewPayment::select('or_no_prefix')->where('charge_slip_no', $charge_slip_number)->first();
 
-        $or_number = $outpatient_payment->or_no_prefix;
+        // $or_number = $outpatient_payment->or_no_prefix;
         // return redirect('/collections/outpatient/print/pdf', ['' => $charge_slip]);
         // $this->showPDF($charge_slip);
         // return redirect('/collections/outpatient');
@@ -272,10 +522,10 @@ class CollectionsOutpatientController extends Controller
           <br>
           <br>
           <br>
-          <p align="center" style="font-family: Times New Roman; font-size: 15px; margin-right: -70px; margin-top: -26px;">'.$value->or_no_prefix.'</p>
-          <p align="right" style="font-family: Times New Roman; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">'.$value->or_date.'<br></p>
-          <p style="font-family: Times New Roman; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">Veterans Regional Hospital</p>
-          <p style="font-family: Times New Roman; font-size: 15px; margin-left: 43px;  margin-bottom: 10px">'.$value->patient_name.'</p><br><br>';
+          <p align="center" style="font-family: Helvetica; font-size: 15px; margin-right: -70px; margin-top: -26px;">'.$value->or_no_prefix.'</p>
+          <p align="right" style="font-family: Helvetica; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">'.$value->or_date.'<br></p>
+          <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">Veterans Regional Hospital</p>
+          <p style="font-family: Courier; font-size: 20px; margin-left: 43px;  margin-bottom: 10px">'.$value->patient_name.'</p><br><br>';
           break;
 
         }
@@ -284,29 +534,31 @@ class CollectionsOutpatientController extends Controller
         if($payment_count <= 8) {
 
             foreach ($payment_data as $payment) {
-              $sub_total = $payment->computed_sub_total;
-              $is_pay = $payment->is_pay;
+              $sub_total = $payment->amount;
+              $description = $payment->product_description;
+              // $is_pay = $payment->is_pay;
+              $total += $sub_total;
 
-              if ($is_pay == '0') {
-                $sub_total = 0;
-                $total += 0;
-
-              } else {
-
-                if ($sub_total == '' || $sub_total == null || $sub_total == 0.00){
-                    $sub_total = $payment->amount;
-                    $total += $payment->amount;
-
-                } else {
-                  $total += $payment->computed_sub_total;
-                }
-
-              }
+              // if ($is_pay == '0') {
+              //   $sub_total = 0;
+              //   $total += 0;
+              //
+              // } else {
+              //
+              //   if ($sub_total == '' || $sub_total == null || $sub_total == 0.00){
+              //       $sub_total = $payment->amount;
+              //       $total += $payment->amount;
+              //
+              //   } else {
+              //     $total += $payment->computed_sub_total;
+              //   }
+              //
+              // }
 
           $output .= '
             <tr style="line-height: 17px;">
-              <td style="font-family: Times New Roman; font-size: 11px; width:255px;">' .$payment->product_description. '</td>
-              <td style="font-family: Times New Roman; font-size: 12px; margin-right:20px" align="right">' .number_format($sub_total, 2). '</td>
+              <td style="font-family: Courier; font-size: 11px; width:255px;">' . $description . '</td>
+              <td style="font-family: Courier; font-size: 12px; margin-right:20px" align="right">' . number_format($sub_total, 2) . '</td>
             </tr>';
 
             }
@@ -323,13 +575,10 @@ class CollectionsOutpatientController extends Controller
                 }
             }
         }
-
-
-
-
         else {
             foreach ($payment_data as $payment) {
               $amount_paid = $payment->amount_paid;
+              $category = $payment->category;
                 // $is_pay = $payment->is_pay;
                 //
                 // if ($is_pay == '0') {
@@ -350,12 +599,10 @@ class CollectionsOutpatientController extends Controller
 
                 $total = $amount_paid;
 
-
                 $output .='
                   <tr style="line-height: 17px;">
-                    <td style="font-family: Times New Roman; font-size: 11px; width:195px;>' .$payment->category. '</td>
-
-                    <td style="font-family: Times New Roman; font-size: 12px; margin-right: 20px;" align="right">' .number_format($amount_paid, 2). '</td>
+                    <td style="font-family: Helvetica; font-size: 11px; width:195px;">' . $category . '</td>
+                    <td style="font-family: Courier; font-size: 15px; margin-right: 20px;" align="right">' . number_format($amount_paid, 2) . '</td>
                   </tr>';
 
 
@@ -390,23 +637,25 @@ class CollectionsOutpatientController extends Controller
             // <p align="left" style="font-family: Times New Roman; font-size: 12px; margin-top: -10px">'.$decimal_value.'</p>
 
         $output .= '</table>
-            <p align="right" style="font-family: Times New Roman; font-size: 13px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
-            <p style="font-family: Times New Roman; font-size: 12px; margin-top: -6px; margin-left: 100px">'.ucfirst($numberTransformer->toWords($total)) . $decimal_value .'</p>
+            <p align="right" style="font-family: Courier; font-size: 20px; font-weight: bold; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
+            <p style="font-family: Courier; font-size: 13px; margin-top: -6px; margin-left: 100px">'.ucwords($numberTransformer->toWords($total)) . $decimal_value .'</p>
             <br>
             <br>
             <br>
             <br>
             <br>
-            <p align="right" style="font-family: Times New Roman ; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">TERESITA T. TAGUINOD</p>
-            <p align="right" style="font-family: Times New Roman; font-size: 10px; margin-right: 20px">Supervising Administrative Officer</p>';
+            <p align="right" style="font-family: Helvetica; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">TERESITA T. TAGUINOD</p>
+            <p align="right" style="font-family: Helvetica; font-size: 10px; margin-right: 20px">Supervising Administrative Officer</p>';
 
         foreach ($payment_data as $key) {
-            $output .='<p align="left" style="font-family: Times New Roman; font-size: 14px; margin-top: -6px; margin-left:15px;">'.$key->employee_name.'</p>';
+            $output .='<p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -6px; margin-left:15px;">'.$key->employee_name.'</p>';
             break;
         }
         return $output;
 
    }
+
+
 
     /**
      * Display the specified resource.
@@ -518,15 +767,58 @@ class CollectionsOutpatientController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function cancelPayment(Request $request){
-        $or_no = $request->id;
+    // public function cancelPayment(Request $request){
+    //     $or_no = $request->id;
+    //     $user_id = $request->user_id;
+    //     $current_time = Carbon::now('Asia/Manila');
+    //
+    //     Payment::where('preorno', $or_no)
+    //     ->update([
+    //         'payment_status' => 'Cancelled',
+    //         'id' => $user_id,
+    //         'updated_at' => $current_time->toDateTimeString()
+    //     ]);
+    //     return redirect('/collections/outpatient');
+    // }
+
+
+    /**
+     * Cancel selected out-patient payment.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function cancelPayment(Request $request, $id){
+      $or_number = $id;
+        // $or_no = $request->id;
         $user_id = $request->user_id;
         $current_time = Carbon::now('Asia/Manila');
 
-        Payment::where('preorno', $or_no)
+        Payment::where('preorno', $or_number)
         ->update([
             'payment_status' => 'Cancelled',
-            'id' => $user_id,
+            // 'id' => $user_id,
+            'updated_at' => $current_time->toDateTimeString()
+        ]);
+        return redirect('/collections/outpatient');
+    }
+
+    /**
+     * Selected payment will be set to draft .
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function draftPayment(Request $request, $id){
+      $or_number = $id;
+        // $or_no = $request->id;
+        $user_id = $request->user_id;
+        $current_time = Carbon::now('Asia/Manila');
+
+        Payment::where('preorno', $or_number)
+        ->update([
+            'payment_status' => 'Draft',
+            // 'id' => $user_id,
             'updated_at' => $current_time->toDateTimeString()
         ]);
         return redirect('/collections/outpatient');
@@ -534,193 +826,31 @@ class CollectionsOutpatientController extends Controller
 
 
     /**
-     * Display all patient charges from database.
+     * Mark as paid payment.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function postData(Request $request) {
-        $current_time = Carbon::now('Asia/Manila');
-        $charge_slip = $request->charge_slip;
+    public function markPaid(Request $request, $id){
+      $or_number = $id;
+        // $or_no = $request->id;
         $user_id = $request->user_id;
-        $account_number = '';
-        $encounter_code = '';
-        $patient_id = '';
-        $new_account_number = '';
-        $prefix_charge_slip = substr($charge_slip, 0, 1);
-
-        if ($prefix_charge_slip == 'P' || $prefix_charge_slip == 'p') {
-          $get_outpatient_charges = ViewOutpatientCharge::where('charge_slip_number', $charge_slip)->get();
-          $outpatient_charges_account = ViewOutpatientCharge::select('account_number', 'encounter_code', 'patient_id')->where('charge_slip_number', $charge_slip)->first();
-
-        } elseif ($prefix_charge_slip == 'C' || $prefix_charge_slip == 'c') {
-          $get_outpatient_charges = ViewOutpatientChargeSupply::where('charge_slip_number', $charge_slip)->get();
-          $outpatient_charges_account = ViewOutpatientChargeSupply::select('account_number', 'encounter_code', 'patient_id')->where('charge_slip_number', $charge_slip)->first();
-
-        }
-
-        else {
-          $get_outpatient_charges = ViewOutpatientChargeExam::where('charge_slip_number', $charge_slip)->get();
-          $outpatient_charges_account = ViewOutpatientChargeExam::select('account_number', 'encounter_code', 'patient_id')->where('charge_slip_number', $charge_slip)->first();
-
-        }
-
-
-        // $account_no = '2018-000006774';
-        $account_number = $outpatient_charges_account->account_number;
-        $encounter_code = $outpatient_charges_account->encounter_code;
-        $patient_id = $outpatient_charges_account->patient_id;
-
-
-        if ($account_number == '' or $account_number == null) {
-          $patient_account = ViewPatientAccount::select('next_account_no_year', 'next_account_no_increment')->first();
-          $new_account_number = $patient_account->next_account_no_year . '-' . $patient_account->next_account_no_increment;
-
-            $data = array(
-                'paacctno'   => $new_account_number,
-                'enccode'   =>  $encounter_code,
-                'hpercode'  =>  $patient_id,
-                'upicode'   =>  null,
-                'padteas'   =>  $current_time->toDateTimeString(),
-                'patmeas'   =>  $current_time->toDateTimeString(),
-                'patotchrg' =>  '0',
-                'patotprof' =>  '0',
-                'patotamt'  =>  '0',
-                'patotdisc' =>  '0',
-                'patmsstot' =>  '0',
-                'panetamt'  =>  '0',
-                'papay'     =>  '0',
-                'pabal'     =>  '0',
-                'pastat'    =>  'A',
-                'palock'    =>  'N',
-                'datemod'   =>  null,
-                'updsw'     =>  'N',
-                'confdl'    =>  'N',
-                'ptdisc'    =>  '0',
-                'paphic'    =>  '0',
-                'id'        =>  $user_id,
-                'created_at'=>  $current_time->toDateTimeString(),
-                'updated_at'=>  $current_time->toDateTimeString()
-            );
-            PatientAccount::insert($data);
-        } else {
-            $new_account_number = $account_number;
-        }
-
-
-        // Check whether the charge slip was already paid
-        $is_paid = ViewPayment::select('charge_slip_no')->where('charge_slip_no', $charge_slip)->count();
-        if ($is_paid > 0) {
-            $is_paid = '1';
-
-        } else {
-            $is_paid = '0';
-
-        }
-
-        $response = array(
-            'charge_slip' => $charge_slip,
-            'data'  =>  $get_outpatient_charges,
-            'account_number' => $account_number,
-            'new_account_number' => $new_account_number,
-            'user_id' => $user_id,
-            'current_time' => $current_time,
-            'is_paid' => $is_paid,
-
-        );
-        return response()->json($response);
-    }
-
-
-    /**
-     * Apply discount to all patient charges from database.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function applyDiscountAll(Request $request) {
         $current_time = Carbon::now('Asia/Manila');
-        $charge_slip_number = $request->charge_slip;
-        $discount_name = $request->discount;
-        $discount_percent = $request->discount;
-        $prefix_charge_slip = substr($charge_slip_number, 0, 1);
 
-        if ($prefix_charge_slip == 'P' || $prefix_charge_slip == 'p') {
-          $outpatient_charges = ViewOutpatientCharge::where('charge_slip_number', $charge_slip_number)->get();
-
-        } elseif ($prefix_charge_slip == 'C' || $prefix_charge_slip == 'c') {
-          $outpatient_charges = ViewOutpatientChargeSupply::where('charge_slip_number', $charge_slip_number)->get();
-
-        } else {
-          $outpatient_charges = ViewOutpatientChargeExam::where('charge_slip_number', $charge_slip_number)->get();
-        }
-
-
-        if ($discount_name == 'SENIOR' || $discount_name == 'PWD') {
-            $discount_percent = 20;
-        } else {
-          // code...
-        }
-
-        $discount_percent = $discount_percent / 100;
-
-        foreach ($outpatient_charges as $value) {
-          $category = $value->charge_code;
-          $amount = $value->amount;
-          $disc_percent = $discount_percent;
-          $disc_amount = $amount * $disc_percent;
-          $disc_percent = $disc_percent * 100;
-          $disc_name = $discount_name;
-
-          if ($category == 'DRUMN') {
-            SuppliesCharge::where('docointkey', '=', $value->order_number)->update([
-              'disc_name' => $disc_name,
-              'disc_percent' => $disc_percent,
-              'disc_amount' => $disc_amount,
-              'is_pay' => '1',
-              'is_discount' => '1',
-              'updated_at' => $current_time->toDateTimeString()]);
-
-          } elseif ($category == 'DRUME' || $category == 'DRUMP') {
-            MedicineCharge::where('docointkey', '=', $value->order_number)->update([
-              'disc_name' => $disc_name,
-              'disc_percent' => $disc_percent,
-              'disc_amount' => $disc_amount,
-              'is_pay' => '1',
-              'is_discount' => '1',
-              'updated_at' => $current_time->toDateTimeString()]);
-
-          } else {
-            DoctorsOrder::where('docointkey', '=', $value->order_number)->update([
-             'disc_name' => $disc_name,
-             'disc_percent' => $disc_percent,
-             'disc_amount' => $disc_amount,
-             'is_pay' => '1',
-             'is_discount' => '1',
-             'updated_at' => $current_time->toDateTimeString()]);
-          }
-
-        }
-
-
-        if ($prefix_charge_slip == 'P' || $prefix_charge_slip == 'p') {
-          $data = ViewOutpatientCharge::where('charge_slip_number', $charge_slip_number)->get();
-
-        } elseif ($prefix_charge_slip == 'C' || $prefix_charge_slip == 'c') {
-          $data = ViewOutpatientChargeSupply::where('charge_slip_number', $charge_slip_number)->get();
-
-        } else {
-          $data = ViewOutpatientChargeExam::where('charge_slip_number', $charge_slip_number)->get();
-        }
-
-        $response = array(
-            'charge_slip' => $charge_slip_number,
-            'data' => $data,
-            'discount_name' => $discount_name
-
-        );
-        return response()->json($response);
+        Payment::where('preorno', $or_number)
+        ->update([
+            'payment_status' => 'Paid',
+            // 'id' => $user_id,
+            'updated_at' => $current_time->toDateTimeString()
+        ]);
+        return redirect('/collections/outpatient');
     }
+
+
+
+
+
+
 
 
     /**
@@ -787,15 +917,14 @@ class CollectionsOutpatientController extends Controller
           // code...
         }
 
-        $discount_percent = $discount_percent / 100;
+        // $discount_percent = $discount_percent / 100;
 
         foreach ($selected_patient_charges as $value) {
           $category = $value->charge_code;
           $amount = $value->amount;
-          $disc_percent = $discount_percent;
-          $disc_amount = $amount * $disc_percent;
-          $disc_percent = $disc_percent * 100;
           $disc_name = $discount_name;
+          $disc_percent = $discount_percent;
+          $disc_amount = $amount * ( $disc_percent / 100 );
 
           if ($category == 'DRUME' || $category == 'DRUMP') {
             MedicineCharge::where('docointkey', $value->order_number)->update([
@@ -804,6 +933,7 @@ class CollectionsOutpatientController extends Controller
               'is_pay' => '1',
               'is_discount' => '1',
               'updated_at' => $current_time->toDateTimeString()]);
+
           } elseif ($category == 'DRUMN') {
             SuppliesCharge::where('docointkey', '=', $value->order_number)->update([
               'disc_percent' => $disc_percent,
@@ -811,6 +941,7 @@ class CollectionsOutpatientController extends Controller
               'is_pay' => '1',
               'is_discount' => '1',
               'updated_at' => $current_time->toDateTimeString()]);
+
           } else {
             DoctorsOrder::where('docointkey', $value->order_number)->update([
               'disc_percent' => $disc_percent,
@@ -818,6 +949,7 @@ class CollectionsOutpatientController extends Controller
               'is_pay' => '1',
               'is_discount' => '1',
               'updated_at' => $current_time->toDateTimeString()]);
+
           }
         }
 
@@ -837,20 +969,20 @@ class CollectionsOutpatientController extends Controller
           $disc_name = $discount_name;
 
           if ($category == 'DRUME' || $category == 'DRUMP') {
-            // code...
             MedicineCharge::where('docointkey', $value->order_number)->update([
               'disc_name' => $disc_name,
               'updated_at' => $current_time->toDateTimeString()]);
+
           } elseif ($category == 'DRUMN') {
-            // code...
             SuppliesCharge::where('docointkey', $value->order_number)->update([
               'disc_name' => $disc_name,
               'updated_at' => $current_time->toDateTimeString()]);
+
           } else {
-            // code...
             DoctorsOrder::where('docointkey', $value->order_number)->update([
               'disc_name' => $disc_name,
               'updated_at' => $current_time->toDateTimeString()]);
+
           }
 
         }
@@ -866,11 +998,11 @@ class CollectionsOutpatientController extends Controller
         }
 
         $response = array(
-            'charge_slip_number' => $charge_slip_number,
-            'ids' => $ids,
-            'discount_percent' => ( $discount_percent * 100),
-            'data' => $data,
-            'discount_name' => $discount_name,
+          'data' => $data,
+          'charge_slip_number' => $charge_slip_number,
+          'ids' => $ids,
+          'discount_percent' => $discount_percent,
+          'discount_name' => $discount_name,
         );
         return response()->json($response);
     }
@@ -957,6 +1089,7 @@ class CollectionsOutpatientController extends Controller
    public function getOutpatientPaymentData() {
      $payments = ViewPayment::select('or_date', 'or_no_prefix', 'patient_name', 'discount', 'amount_paid', 'employee_name', 'status')
      ->distinct()
+     ->whereNull('advance_payment')
      ->orderByRaw('created_at DESC')
      ->get();
 
@@ -1024,9 +1157,125 @@ class CollectionsOutpatientController extends Controller
 
    }
 
-   public function getOutpatientCharges($charge_slip) {
-     $c = $charge_slip;
+   // public function getOutpatientCharges($charge_slip) {
+   //   $c = $charge_slip;
+   //
+   // }
 
+   // public function checkORDuplicate(Request $request) {
+   //   $_token = $request->_token;
+   //   $or_number = $request->or_number;
+   //
+   //   $getPaymentData = ViewPayment::where('or_no_prefix', $or_number)->count();
+   //
+   //   $data = $getPaymentData;
+   //
+   //   $response = array(
+   //     'data' => $data,
+   //     'or_number' => $or_number
+   //   );
+   //
+   //   return response()->json($response);
+   //
+   //
+   //
+   // }
+
+   public function getDiscountPercent(Request $request) {
+     $_token = $request->_token;
+     $discount_id = $request->discount_id;
+
+     $get_discount_percent = Discount::select('discount_percent')->where('id', $discount_id)->first();
+
+     $data = $get_discount_percent->discount_percent;
+
+     $response = array('data' => $data);
+
+     return response()->json($response);
+   }
+
+
+   public function checkORDuplicate(Request $request) {
+     $_token = $request->_token;
+     $or_number = $request->or_number;
+     $arrData = $request->arrData;
+     $row_count = $request->row_count;
+
+     $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
+     // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
+     $data = $getPaymentData;
+
+     $response = array(
+       'data' => $data,
+       'or_number' => $or_number,
+       '_token' => $_token,
+       'arrData' => $arrData,
+       'row_count' => $row_count,
+     );
+
+     return response()->json($response);
+   }
+
+
+   /**
+    * Store a newly created payment resource in storage.
+    *
+    * @param  \Illuminate\Http\Request  $request
+    * @return \Illuminate\Http\Response
+    */
+   public function storePayment(Request $request) {
+     $_token = $request->_token;
+     $array_data = $request->arrData;
+     $or_number = $request->or_number;
+     $payment_counter = 0;
+     $current_time = Carbon::now('Asia/Manila');
+
+     $or_n = substr($or_number, strpos($or_number, "-") + 1);
+
+     foreach($array_data as $item) {
+       $data = array(
+         'enccode' => $item['encounter_code'],
+         'hpercode' => $item['patient_id'],
+         'acctno' => $item['account_number'],
+         'orno' => $or_n,
+         'ordate' => date('Y-m-d H:i:s', strtotime(str_replace('-', '/', $item['or_date']))),
+         'prefix_or_number' => $item['or_number'],
+         'amt' => $item['sub_total'],
+         'curcode' => $item['currency'],
+         'paytype' => $item['payment_type'],
+         'paycode' => $item['payment_mode'],
+         'paystat' => $item['paystat'],
+         'paylock' => $item['payment_lock'],
+         'updsw' => $item['updsw'],
+         'confdl' => $item['confdl'],
+         'payctr' => $payment_counter,
+         'pcchrgcod' => $item['charge_slip_number'],
+         'chrgcode' => $item['charge_code'],
+         'itemcode' => $item['product_id'],
+         'id' => $item['user_id'],
+         'discount_percent' => $item['discount_percent'],
+         'discount_computation' => $item['discount_computation'],
+         'discount_value' => $item['discount_value'],
+         'payment_status' => $item['payment_status'],
+         'amount_paid' => $item['amount_paid'],
+         'amount_tendered' => $item['amount_tendered'],
+         'amount_change' => $item['amount_change'],
+         'created_at' => $current_time->toDateTimeString(),
+         'is_pay' => $item['is_pay'],
+         'is_discount' => $item['is_discount'],
+         'quantity' => $item['quantity'],
+         'unit_price' => $item['unit_price']
+       );
+
+      Payment::insert($data);
+      $payment_counter += + 1;
+     }
+
+     $response = array(
+       'data' => $array_data
+
+     );
+     return response()->json($response);
    }
 
 

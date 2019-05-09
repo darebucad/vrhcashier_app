@@ -14,11 +14,14 @@
 
 		<div class="btn-toolbar mb-2 mb-md-0">
 		  <div class="btn-group mr-2">
-		    <button class="btn btn-sm btn-outline-secondary" id ="btn_print">
+		    <button class="btn btn-sm btn-outline-secondary" id ="btn_print" style="display: none;">
 					<span data-feather="printer"></span>
 					Print Receipt
 				</button>
-		    <button class="btn btn-sm btn-outline-secondary">Export</button>
+
+				<select class="form-control form-control-sm" id="products" style="width:100%"><option> </option></select>
+
+		    <!-- <button class="btn btn-sm btn-outline-secondary">Export</button> -->
 		  </div>
 
 
@@ -35,11 +38,32 @@
       Payment was successfully saved.
   </div>
 
+	<style media="screen" type="text/css">
+	  .spinner{
+	    display:none;
+	    position: fixed; /* Stay in place */
+	    z-index: 1; /* Sit on top */
+	    left: 50%;
+	    top: 50%;
+	    width: 100%; /* Full width */
+	    height: 100%; /* Full height */
+	    overflow: auto; /* Enable scroll if needed */
+	  }
+	</style>
+	  <div id="spinner" class="spinner">
+	    <img id="img-spinner" src="{{ asset('ajax-loader.gif') }}" alt="Loading..."/>
+	    <h6>Loading...</h6>
+	  </div>
+
   <!-- <form action="/collections/other/create/payment" method="post" > -->
   <form id="collections_other">
     @csrf
 
     <div class="row" style="margin-top:10px;">
+			<!-- new button -->
+			<button class="btn btn-sm btn-danger" id="btn_new" style="display:none; margin-right: 5px;">New</button>
+
+			<!-- save button -->
       <button class="btn btn-sm btn-primary" id="btn_save">Save</button>
         <p id="button-cancel">or <a class="btn-link" href="{{ url('collections/other') }}">Cancel</a></p>
     </div>
@@ -71,7 +95,7 @@
 					<!-- <select class="form-control" name="patient_name" id="patient_name" required>
 						<option value=""> </option>
 					</select> -->
-					<input type="text" name="patient_name" value="" id="patient_name" class="form-control" style="background-color: #99ccff!important;" required>
+					<input type="text" name="patient_name" value="" id="patient_name" class="form-control" style="background-color: #99ccff!important;" autofocus required>
   			</div>
 
 				<!-- <div class="col-md-2">
@@ -89,7 +113,7 @@
 
       <div class="col-md-2">
         <div class="input-group">
-          <input id="or_date" type="text" class="form-control form-control-sm" name="or_date" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required autofocus>
+          <input id="or_date" type="text" class="form-control form-control-sm" name="or_date" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required>
           <!-- <div class="input-group-append">
             <i class="far fa-calendar-alt"></i>
           </div> -->
@@ -102,13 +126,16 @@
 
       	@if (count($payments) > 0)
           @foreach ($payments as $payment)
-            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '-' . $payment->next_or_number }}" style="background-color:#99ccff!important;" required autofocus>
+            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . $payment->next_or_number }}" style="background-color:#99ccff!important;" required autofocus>
             <input type="hidden" name="or_number_only" value="{{ $payment->next_or_number }}">
         	@endforeach
 
     		@else
-    			<input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ '0000001' }}" style="background-color:#99ccff!important;" required autofocus>
-          <input type="hidden" name="or_number_only" value="{{ '0000001' }}">
+				@foreach ($payments as $payment)
+					<input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '0000001' }}" style="background-color:#99ccff!important;" required autofocus>
+					<input type="hidden" name="or_number_only" value="{{ '0000001' }}">
+				@endforeach
+
 
     		@endif
 
@@ -202,7 +229,6 @@
         @endif
       </div>
 
-
 			<label for="amount_tendered" class="col-md-2 col-form-label text-md-right">{{ __('Amount Tendered') }}</label>
 
 			<div class="col-md-2">
@@ -213,7 +239,6 @@
 								<strong>{{ $errors->first('amount_tendered') }}</strong>
 						</span>
 				@endif
-
 			</div>
 
     </div>
@@ -313,7 +338,13 @@
 	});
 </script> -->
 
+
+
+
 <script type="text/javascript">
+
+
+
 	$(document).ready(function() {
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
     var table = $('#invoice_table');
@@ -322,6 +353,7 @@
     var rowNum = 0;
 		var products = {};
 
+
 		// Add row event
     $('#add_row').click(function(event) {
       event.preventDefault();
@@ -329,7 +361,7 @@
       	'<tr id=' + rowNum + ' class="payment_values">' +
         '<td style="width:5%"><input type="checkbox" name="pay_checkbox" class="pay_checkbox" checked></td>' +
         '<td style="width:5%"><input type="checkbox" name="discount_checkbox" class="discount_checkbox" value=' + rowNum + '></td>' +
-        '<td style="width:35%"><select class="products form-control form-control-sm" style="width:100%"><option> </option></select></td>' +
+				'<td style="width:35%"><select class="products form-control form-control-sm" style="width:100%"><option> </option></select></td>' +
         '<td style="width:10%" align="right"><input type="text" name="quantity[]" class="quantity form-control form-control-sm" style="width:100%; text-align: right" value="1.00"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="unit_cost[]" class="unit_cost form-control form-control-sm"style="width:100%; text-align: right"></td>' +
         '<td style="width:10%" align="right"><input type="text" name="discount_percent[]" class="discount_percent form-control form-control-sm" style="width:100%; text-align: right"></td>' +
@@ -340,48 +372,49 @@
 				table.prepend(newRow);
 				rowNum = rowNum + 1;
 
-				// Fetch data to select2 class products
-				$('.products').select2({
-					placeholder: 'Select a product/service',
-					// minimumInputLength: 1, // at least 1  characters to display records
-					allowClear: true,
-					ajax: {
-						url: '/collections/other/show_products',
-						dataType: 'JSON',
-						delay: 250,
-						data: function (params) {
-						 	return {
-								term: params.term,
-								page: params.page,
-								type: 'public',
-								success: function(resource){
-									console.log(resource);
-								}
-							};
-						},
-						processResults: function (data, params) {
-							params.page = params.page || 1;
-							return {
-								results:data.items,
-								pagination: {
-									more: (params.page * 30) < data.total_count
-								}
-							};
-						},
-						cache: true
-						// transport: function(params, success, failure) {
-						// 	var $request = $.ajax(params);
-						//
-						// 	$request.then(success);
-						// 	$request.fail(failure);
-						//
-						// 	return $request;
-						// }
+			// Fetch data to select2 class products
+			$('.products').select2({
+				placeholder: 'Select a product / service',
+				minimumInputLength: 2,
+				allowClear: true,
+				ajax: {
+					url: '/collections/other/show_products',
+					dataType: 'JSON',
+					delay: 250,
+					cache: true,
+					data: function (params) {
+						return {
+							term: params.term,
+							page: params.page,
+							type: 'public',
+							success: function(resource){
+								// console.log(resource);
+							}
+						};
 					},
-					// escapeMarkup: function (markup) { return markup; }
+					processResults: function (data, params) {
+						params.page = params.page || 1;
+						return {
+							results:data.items,
+							pagination: {
+								more: (params.page * 10) < data.total_count
+							}
+						};
+					},
+					transport: function(params, success, failure) {
+						var $request = $.ajax(params);
 
-				});
+						$request.then(success);
+						$request.fail(failure);
+
+						return $request;
+					}
+				},
+			escapeMarkup: function (markup) { return markup; }
+
+			});
     });
+
 
 		$('tbody').delegate('.products', 'select2:select', function(){
 			var id = $(this).val();
@@ -397,7 +430,7 @@
 				data: { _token: CSRF_TOKEN, id: id, row_id: row_id, description: description },
 				dataType: "JSON",
 				success: function(data) {
-					console.log(data);
+					// console.log(data);
 
 					row_id = data.row_id;
 
@@ -443,6 +476,8 @@
 					}) // each data.data function
 				}
 			});
+
+
 		});
 
 		// Click event delete row
@@ -483,7 +518,7 @@
 				})
 				$('#amount_paid').val(Number(sub_total_value).toFixed(2));
 				$('#invoice_table').find('#total_value').text(Number(sub_total_value).toFixed(2));
-				console.log(sub_total);
+				// console.log(sub_total);
 			}
 		});
 
@@ -518,7 +553,7 @@
 				$('#amount_paid').val(Number(sub_total_value).toFixed(2));
 				$('#invoice_table').find('#total_value').text(Number(sub_total_value).toFixed(2));
 
-				console.log(sub_total);
+				// console.log(sub_total);
 			}
 		});
 
@@ -624,7 +659,7 @@
 			$('#invoice_table').find('#total_value').text(sub_total_value.toFixed(2));
 			$('#amount_paid').val(sub_total_value.toFixed(2));
 			// $('#amount_paid').val(Number(sub_total_value).toFixed(2));
-			console.log(sub_total);
+			// console.log(sub_total);
 
 		});
 
@@ -638,7 +673,6 @@
 			var hour = date.getHours();
 			var minute = date.getMinutes();
 			var second = date.getSeconds();
-
       var patient_name_value = $('#patient_name').val();
       var or_date_value = $('#or_date').val();
       var user_id_value = $('#user_id').val();
@@ -658,7 +692,7 @@
 			var arrData=[];
 			var created_at_value = date.getFullYear() + '-' + (('' + month).length < 2 ? '0' : '') +
 					month + '-' + (('' + day).length < 2 ? '0' : '') + day + ' ' + hour + ':' + minute + ':' + second;
-
+			var _token = CSRF_TOKEN;
 
 			if (discount_name_value == "SENIOR" || discount_name_value == "PWD") {
 				discount_percent_value = Number(20).toFixed(2);
@@ -666,93 +700,106 @@
 				discount_percent_value = Number(discount_name_value).toFixed(2);
 			}
 
+			if (patient_name_value == '' || patient_name_value == null) {
+				alert('Please input patient name .');
 
-			if (patient_name_value == ' ' || patient_name_value == null) {
-				alert('Please fill up Field: Patient Name');
 			} else {
-
 				var row_count = $('#invoice_table tbody tr').length;
-				if (row_count <= 2) {
-					alert('Please add at least one product/service to proceed');
+				// loop over each charge table row (tr)
+				$('.payment_values').each(function() {
+					var current_row = $(this);
+					var product_id_value = current_row.find('.pay_checkbox').val();
+					var quantity_value = current_row.find('.quantity').val();
+					var unit_cost_value = current_row.find('.unit_cost').val();
+					var discount_percent_table_value = current_row.find('.discount_percent').val();
+					var discount_value_value = current_row.find('.discount_value').val();
+					var sub_total_value = current_row.find('.sub_total').val();
+					var is_pay_value = 0;
+					var is_discount_value = 0;
+					var obj = {};
 
-				} else {
-					// loop over each  table row (tr)
-		      $('.payment_values').each(function(){
-		        var current_row = $(this);
-		        var product_id_value = current_row.find('.pay_checkbox').val();
-		        var quantity_value = current_row.find('.quantity').val();
-		        var unit_cost_value = current_row.find('.unit_cost').val();
-		        var discount_percent_table_value = current_row.find('.discount_percent').val();
-		        var discount_value_value = current_row.find('.discount_value').val();
-		        var sub_total_value = current_row.find('.sub_total').val();
-						var is_pay_value = 0;
-						var is_discount_value = 0
+					if (current_row.find('.pay_checkbox').is(':checked')) { is_pay_value = 1; }
+					if (current_row.find('.discount_checkbox').is(':checked')) { is_discount_value = 1; }
 
-						if (current_row.find('.pay_checkbox').is(':checked')) {
-							is_pay_value = 1;
+					obj.prefix_or_number = prefix_or_number_value;
+					obj.or_date = or_date_value;
+					obj.patient_name = patient_name_value;
+					obj.unit_cost = unit_cost_value;
+					obj.quantity = quantity_value;
+					obj.sub_total = sub_total_value;
+					obj.currency_code = currency_value;
+					obj.payment_type = payment_type_value;
+					obj.payment_mode = payment_mode_value;
+					obj.item_code = product_id_value;
+					obj.user_id = user_id_value;
+					obj.discount_name = discount_name_value;
+					obj.discount_percent = discount_percent_table_value;
+					obj.discount_computation = discount_computation_value;
+					obj.discount_value = discount_value_value;
+					obj.amount_paid = amount_paid_value;
+					obj.amount_tendered = amount_tendered_value;
+					obj.amount_change = amount_change_value;
+					obj.created_at = created_at_value;
+					obj.charge_code = charge_code_value;
+					obj.charge_table = charge_table_value;
+					obj.is_pay = is_pay_value;
+					obj.is_discount = is_discount_value;
 
+					arrData.push(obj);
+				});
+
+				var q = confirm('Are you sure you want to save this payment ?');
+
+				if (q == true) {
+					$.ajax({
+						type: "POST",
+						url: "/collections/other/create/check-or-duplicate",
+						data: { _token: _token, or_number: prefix_or_number_value, arrData: arrData, row_count: row_count },
+						dataType: "JSON",
+						success: function(data){
+							var or_count = data.data;
+							var or_number = data.or_number;
+							var _token = data._token;
+							var arrData = data.arrData;
+							var row_count = data.row_count;
+
+							// console.log(or_count);
+							// console.log(or_number);
+							// console.log(_token);
+							// console.log(arrData);
+							// console.log(row_count);
+
+							if (or_count > 0) {
+								// console.log('duplicate OR');
+								alert('Please use another OR Number (Duplicate Entry) .');
+
+							} else {
+								// console.log('new OR');
+
+								if (row_count < 5) {
+									alert('Please add at least one product/service to proceed .');
+
+								} else {
+									$.ajax({
+										type: "POST",
+										url: "/collections/other/store_payment",
+										data: { _token: CSRF_TOKEN, data: arrData, or_number: prefix_or_number_value },
+										dataType: "JSON",
+										success: function(data){
+											// console.log(data);
+											 $('.alert').show();
+											 $('#btn_new').show();
+											 $('#btn_print').show();
+											 $('#btn_print').click();
+											 $('#btn_save').hide();
+										}
+									}); // End of  ajax url:"/collections/other/store_payment",
+								} // End of if (row_count < 2) {
+							}
 						}
+					});
+				}
 
-						if (current_row.find('.discount_checkbox').is(':checked')) {
-							is_discount_value = 1;
-
-						}
-
-
-
-						  // $('#show').html(this.checked ? this.value : '');
-						var obj = {};
-
-						obj.prefix_or_number = prefix_or_number_value;
-						obj.or_date = or_date_value;
-						obj.patient_name = patient_name_value;
-						obj.unit_cost = unit_cost_value;
-						obj.quantity = quantity_value;
-						obj.sub_total = sub_total_value;
-						obj.currency_code = currency_value;
-						obj.payment_type = payment_type_value;
-						obj.payment_mode = payment_mode_value;
-						obj.item_code = product_id_value;
-						obj.user_id = user_id_value;
-						obj.discount_name = discount_name_value;
-						obj.discount_percent = discount_percent_table_value;
-						obj.discount_computation = discount_computation_value;
-						obj.discount_value = discount_value_value;
-						obj.amount_paid = amount_paid_value;
-						obj.amount_tendered = amount_tendered_value;
-						obj.amount_change = amount_change_value;
-						obj.created_at = created_at_value;
-						obj.charge_code = charge_code_value;
-						obj.charge_table = charge_table_value;
-						obj.is_pay = is_pay_value;
-						obj.is_discount = is_discount_value;
-
-						arrData.push(obj);
-		      });
-
-		      // alert(arrData);
-		      // console.log(arrData);
-		      // console.log(created_at_value);
-
-		      $.ajax({
-		        type: "POST",
-		        url: "/collections/other/store_payment",
-		        data: { _token: CSRF_TOKEN, data: arrData, or_number: prefix_or_number_value },
-		        dataType: "JSON",
-		        success: function(data){
-		          console.log(data);
-
-							 $('.alert').show();
-
-							 $('#btn_print').click();
-		        }
-		      }); // End of  url: "/collections/other/store_payment",
-
-
-					// similar behavior as an HTTP redirect
-					// window.location.replace("/collections/other");
-
-				} // End of if (row_count < 2) {
 			} // End of if (patient_name_value == ' ' || patient_name_value == null) {
     });
 
@@ -773,7 +820,7 @@
                   'discount value: ' + discount_value + '\n' +
                   'sub total: ' + sub_total + '\n';
       // alert(data);
-      console.log(data);
+      // console.log(data);
     });
 
 		//
@@ -870,7 +917,6 @@
 				});
 
 				$('.payment_values').each(function(){
-
 					var current_row = $(this);
 	        var product_id_value = Number(current_row.find('.products').val());
 	        var quantity_value = Number(current_row.find('.quantity').val());
@@ -907,7 +953,6 @@
 
 			/* declare an checkbox array */
 			var id = [];
-
 			var discount_percent = $.trim($('#discount_percent').val()); // discount percent  25
 			var total_value = 0;
 
@@ -1012,88 +1057,91 @@
 			/* declare an checkbox array */
 			var id = [];
 			var row_id = 0;
+			var q = confirm('Are you sure you want to update the total charges ?');
 
-			$('input[name="pay_checkbox"]:not(:checked)').each(function(){
-				row_id = $(this).closest('tr').attr('id');
+			if (q == true) {
+				$('input[name="pay_checkbox"]:not(:checked)').each(function(){
+					row_id = $(this).closest('tr').attr('id');
 
-				id.push(row_id);
-				// alert(row_id);
-			});
-
-			if (id.length > 0) {
-				var current_row = $(this);
-				var null_value = Number(0.00).toFixed(2);
-				var total = Number(0);
-				var discount_percent = $('#discount_percent').val();
-				var row_id = 0;
-				var discount_id = [];
-				var sub_total = 0;
-				var discount_value = 0;
-
-				$.each(id, function(i, value){
-					row_id = value;
-					$('#invoice_table').find('tr#' + row_id).find('.discount_percent').val(null_value);
-					$('#invoice_table').find('tr#' + row_id).find('.discount_value').val(null_value);
-					$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(null_value);
+					id.push(row_id);
 					// alert(row_id);
-					});
+				});
 
-					if (discount_percent == '' || discount_percent == null || discount_percent == 0) {
-						// code...
-					}
-					else {
-						$('input[name="discount_checkbox"]:checked').each(function(){
-							discount_id.push($(this).val());
+				if (id.length > 0) {
+					var current_row = $(this);
+					var null_value = Number(0.00).toFixed(2);
+					var total = Number(0);
+					var discount_percent = $('#discount_percent').val();
+					var row_id = 0;
+					var discount_id = [];
+					var sub_total = 0;
+					var discount_value = 0;
 
+					$.each(id, function(i, value){
+						row_id = value;
+						$('#invoice_table').find('tr#' + row_id).find('.discount_percent').val(null_value);
+						$('#invoice_table').find('tr#' + row_id).find('.discount_value').val(null_value);
+						$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(null_value);
+						// alert(row_id);
 						});
 
-						if (discount_id.length > 0) {
-							// var current_row = $(this);
-							// alert(current_row);
-
-							$.each(discount_id, function(i, value){
-								row_id = value;
-								sub_total = $('#invoice_table').find('tr#' + row_id).find('.sub_total').val();
-
-								if (discount_percent == 'SENIOR' || discount_percent == 'PWD') {
-									discount_percent = 20;
-								}
-
-								discount_value = (sub_total * (discount_percent/100));
-
-								sub_total = sub_total - discount_value;
-
-								$('#invoice_table').find('tr#' + row_id).find('.discount_percent').val(Number(discount_percent).toFixed(2));
-								$('#invoice_table').find('tr#' + row_id).find('.discount_value').val(Number(discount_value).toFixed(2));
-								$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
-
-								// alert(row_id);
-							});
+						if (discount_percent == '' || discount_percent == null || discount_percent == 0) {
+							// code...
 						}
-					}
+						else {
+							$('input[name="discount_checkbox"]:checked').each(function(){
+								discount_id.push($(this).val());
 
-					$('.payment_values').each(function(){
-						var current_row = $(this);
-						var sub_total = Number(current_row.find('.sub_total').val());
-						total = total + sub_total;
+							});
+
+							if (discount_id.length > 0) {
+								// var current_row = $(this);
+								// alert(current_row);
+
+								$.each(discount_id, function(i, value){
+									row_id = value;
+									sub_total = $('#invoice_table').find('tr#' + row_id).find('.sub_total').val();
+
+									if (discount_percent == 'SENIOR' || discount_percent == 'PWD') {
+										discount_percent = 20;
+									}
+
+									discount_value = (sub_total * (discount_percent/100));
+
+									sub_total = sub_total - discount_value;
+
+									$('#invoice_table').find('tr#' + row_id).find('.discount_percent').val(Number(discount_percent).toFixed(2));
+									$('#invoice_table').find('tr#' + row_id).find('.discount_value').val(Number(discount_value).toFixed(2));
+									$('#invoice_table').find('tr#' + row_id).find('.sub_total').val(Number(sub_total).toFixed(2));
+
+									// alert(row_id);
+								});
+							}
+						}
+
+						$('.payment_values').each(function(){
+							var current_row = $(this);
+							var sub_total = Number(current_row.find('.sub_total').val());
+							total = total + sub_total;
+							// alert(total);
+
+						});
 						// alert(total);
-
-					});
-					// alert(total);
-					total = Number(total).toFixed(2);
-					$('#total_value').text(total);
-					$('#amount_paid').val(total);
-
-
-
+						total = Number(total).toFixed(2);
+						$('#total_value').text(total);
+						$('#amount_paid').val(total);
+				}
 			}
-		})
+		});  // update totals
+
+
 
 	}); // end of document function
 </script>
 
 <script type="text/javascript">
 	$(document).ready(function() {
+
 		$('#btn_print').click(function(event) {
 			event.preventDefault();
 			var prefix_or_number = $('#or_number').val();
@@ -1107,6 +1155,18 @@
 			// $('#btn_save').click();
 			window.location.replace("/collections/other/print/pdf/" + prefix_or_number);
 		});
+
+
+		$('#btn_new').click(function(e){
+			e.preventDefault();
+
+			var user_id = $('#user_id').val();
+
+			window.location.replace("/collections/other/create/" + user_id);
+		});
+
+
+
 	});
 </script>
 
@@ -1120,7 +1180,7 @@
 
 	$('#patient_name').autocomplete({
 		source: "{{ url('/collections/other/autocomplete-search') }}",
-		// minLength: 2,
+		minLength: 2,
 		select: function(key, value){
 			// console.log(value);
 			// alert('id: '+ value.item.id + '; ' + 'value:' + value.item.value);
@@ -1175,6 +1235,20 @@
       return false;
     }
   });
+</script>
+
+
+<script type="text/javascript">
+// Binds to the global ajax scope
+$( document ).ajaxStart(function() {
+  $( "#spinner" ).show();
+
+});
+
+$( document ).ajaxComplete(function() {
+   $( "#spinner" ).hide();
+
+});
 </script>
 
 

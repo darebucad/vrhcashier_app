@@ -1,37 +1,67 @@
 @extends ('layouts.master')
 
-
 @section ('content')
-
 <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h4">Create Collections Inpatient</h1>
+    <!-- <h1 class="h4">Create Collections Inpatient</h1> -->
+    <h1 class="h5"><a href="{{ url('collections/inpatient') }}">In-Patient Payment</a> / Create</h1>
     @if (session('status'))
-                <div class="alert alert-success" role="alert">
-                    {{ session('status') }}
-                </div>
-            @endif
+      <div class="alert alert-success" role="alert">
+        {{ session('status') }}
+      </div>
+    @endif
     <div class="btn-toolbar mb-2 mb-md-0">
       <div class="btn-group mr-2">
-        <button class="btn btn-sm btn-outline-secondary">Share</button>
-        <button class="btn btn-sm btn-outline-secondary">Export</button>
-      </div>
-      <button class="btn btn-sm btn-outline-secondary dropdown-toggle">
-        <span data-feather="calendar"></span>
-        This week
-      </button>
+		    <button class="btn btn-sm btn-outline-secondary" id ="btn_print" style="display: none;">
+					<span data-feather="printer"></span>
+					Print Receipt
+				</button>
+		  </div>
     </div>
   </div>
 
-  <div class="row" style="margin-top:10px;">
-    <button type="submit" class="btn btn-sm btn-primary" id="button_save">Save</button>
-    <p id="button-cancel">or <a class="btn-link" href="{{ url('collections/inpatient') }}">Cancel</a></p>
+  <div class="alert alert-success alert-dismissable" style="display: none">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    <span id="alert_value">Payment was successfully saved.</span>
   </div>
+
+
+  <style media="screen" type="text/css">
+    .spinner{
+      display:none;
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      left: 50%;
+      top: 50%;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+    }
+  </style>
+
+  <div id="spinner" class="spinner">
+    <img id="img-spinner" src="{{ asset('ajax-loader.gif') }}" alt="Loading..."/>
+    <h6>Please wait ...</h6>
+  </div>
+
 
   <form id="collections_inpatient">
     @csrf
 
+    <div class="row" style="margin-top: -5px;">
+      <!-- New Button -->
+      <button class="btn btn-sm btn-danger" id="btn_new" style="display: none; margin-right: 5px;">New</button>
+
+      <!-- Save button -->
+      <button type="submit" class="btn btn-sm btn-primary" id="btn_save">Save</button>
+
+      <!-- Cancel button -->
+      <p id="button-cancel">or <a class="btn-link" href="{{ url('collections/inpatient') }}">Cancel</a></p>
+    </div>
+
     <br />
+
+    <!-- Inpatient Collection values -->
     <input type="hidden" name="paystat" id="paystat" value="">
     <input type="hidden" name="paylock" id="paylock" value="">
     <input type="hidden" name="updsw" id="updsw" value="">
@@ -39,43 +69,59 @@
     <input type="hidden" name="payctr" id="payctr" value="">
     <input type="hidden" name="status" id="status" value="">
     <input type="hidden" name="user_id" id="user_id" value="{{ Auth::user()->id }}">
-    <input type="hidden" name="enccode" id="enccode" value="">
-    <input type="hidden" name="hpercode" id="hpercode" value="">
-    <input type="hidden" name="acctno" id="acctno" value="">
-    <input type="hidden" name="pcchrgcod" id="pcchrgcod" value="">
+    <input type="hidden" name="encounter_code" id="encounter_code" value="">
+    <input type="hidden" name="patient_id" id="patient_id" value="">
+    <input type="hidden" name="account_number" id="account_number" value="">
+    <input type="hidden" name="billing_id" value="" id="billing_id">
 
-    <!-- Patient Name Input-->
-    <div id="patient_name_field" class="form-group row">
-      <div class="input-group">
-        <label for="patient_name" class="col-md-1 offset-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
 
-        <div class="col-md-8">
-          <input type="text" name="patient_name" id="patient_name" value="" class="form-control" style="background-color:#99ccff!important;" required>
+    <!-- SOA Details Row -->
+    <div class="form-group row">
+      <label for="soa_number" class="col-md-1 offset-md-1 col-form-label">SOA Details: </label>
+
+      <div class="col-md-3">
+        <!-- SOA Number input -->
+        <div class="input-group mb-3">
+          <input type="text" name="soa_number" id="soa_number" class="form-control form-control-sm" placeholder="SOA Number / Barcode" aria-label="SOA Number / Barcode" aria-describedby="post_data" style="background-color:#99ccff!important;" required autofocus>
+          <div class="input-group-append">
+            <button class="btn btn-success btn-sm" id="search_soa">Search</button>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- Patient Name Input-->
+    <div id="patient_name_field"class="form-group row" style="margin-top: -20px;">
+      <div class="input-group">
+        <label for="patient_name" class="col-md-1 offset-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
+        <div class="col-md-8">
+          <input type="text" name="patient_name" id="patient_name" class="form-control" style="background-color:#99ccff!important;" placeholder="[Last name], [First name] [Middle Initial]" required>
+        </div>
+      </div>
+    </div>
+
+
     <!-- OR Date / OR Number Input -->
     <div class="form-group row" style="margin-top: -5px;">
-      <label for="ordate" class="col-md-1 offset-md-1 col-form-label text-md-left">{{ __('O.R. Date') }}</label>
+      <label for="or_date" class="col-md-1 offset-md-1 col-form-label text-md-left">{{ __('O.R. Date') }}</label>
 
       <div class="col-md-1">
         <div class="input-group mb-3">
-          <input id="ordate" type="text" class="form-control form-control-sm" name="ordate" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required autofocus>
+          <input id="or_date" type="text" class="form-control form-control-sm" name="or_date" value="{{ $now = date('m/d/Y') }}" style="background-color:#99ccff!important;" required>
             <!-- <span data-feather="calender"></span> -->
         </div>
       </div>
 
       <label for="prefix_or_number" class="col-md-1 col-form-label text-md-right">{{ __('O.R. Number') }}</label>
 
-      <div class="col-md-2">
+      <div class="col-md-1">
         @if (count($payments) > 0)
           @foreach ($payments as $payment)
-            <input type="text" name="prefix_or_number" value="{{ $payment->or_prefix . '-' . $payment->next_or_number }}" class="form-control form-control-sm" required>
+            <input type="text" name="prefix_or_number" value="{{ $payment->or_prefix . $payment->next_or_number }}" id="prefix_or_number" class="form-control form-control-sm" required>
             <input type="hidden" name="or_number" value="{{ $payment->next_or_number }}">
           @endforeach
         @else
-          <input type="text" name="prefix_or_number" value="{{ '0000001' }}" class="form-control form-control-sm" required>
+          <input type="text" name="prefix_or_number" value="{{ '0000001' }}" id="prefix_or_number" class="form-control form-control-sm" required>
           <input type="text" name="or_number" value="{{ '0000001' }}">
         @endif
 
@@ -87,19 +133,28 @@
       </div>
 
       <label class="col-md-1 col-form-label text-md-right"> User: </label>
-      <label class="col-md-2 col-form-label text-md-left"><u>{{ Auth::user()->name }}</u></label>
+      <label class="col-md-2 col-form-label text-md-left">{{ Auth::user()->name }}</label>
+      <!-- <label class="col-md-1 col-form-label text-md-left">Mark Julius G. Bucad</label> -->
 
       <div class="col-md-1">
-        <button type="button" name="update_total" id="update_total" class="btn btn-outline-dark btn-sm">
+        <button type="button" name="update_totals" id="update_totals" class="btn btn-success btn-sm">
           Update Totals
         </button>
       </div>
+
+      <div class="col-md-1">
+        <button type="button" name="clear_computation" id="clear_computation" class="btn btn-dark btn-sm">
+          Clear Computation
+        </button>
+      </div>
+
+
 
     </div>
 
 
     <!-- Mode/Type of payment Control -->
-    <div class="form-group row" style="margin-top: -20px;">
+    <div class="form-group row" style="margin-top: -10px;">
       <label for="payment_mode" class="col-md-2 offset-md-1 col-form-label text-md-left">{{ __('Mode of Payment') }}</label>
 
       <div class="col-md-3">
@@ -110,34 +165,19 @@
         </select>
       </div>
 
-      <!-- <label for="discount_percent" class="col-md-1 col-form-label text-md-left">{{ __('Discount (%)') }}</label>
-      <div class="col-md-3">
-        <select  id="discount_percent" class="form-control form-control-sm" name="discount_percent">
-          <option value=" " selected> </option>
-          <option value="PWD">PWD</option>
-          <option value="SENIOR">Senior Citizen</option>
-          <option value="10">10% Discount</option>
-          <option value="20">20% Discount</option>
-          <option value="25">25% Discount</option>
-          <option value="50">50% Discount</option>
-          <option value="75">75% Discount</option>
-          <option value="100">100% Discount</option>
-        </select>
-      </div> -->
-
-      <label for="amount_paid" class="col-md-2 col-form-label text-md-right">{{ __('Total Amount') }}</label>
+      <label for="total_amount" class="col-md-2 col-form-label text-md-right">{{ __('Total Amount:') }}</label>
 
       <div class="col-md-2">
-        <input id="amount_paid" type="text" class="form-control" name="amount_paid" style="background-color:#99ccff!important; font-weight: bold; font-size: 25px;" value="0.00" autofocus>
-        @if ($errors->has('amount_paid'))
+        <input id="total_amount" type="text" class="form-control" name="total_amount" style="background-color:#99ccff!important; font-weight: bold; font-size: 25px;" value="0.00">
+        @if ($errors->has('total_amount'))
             <span class="invalid-feedback" role="alert">
-                <strong>{{ $errors->first('amount_paid') }}</strong>
+                <strong>{{ $errors->first('total_amount') }}</strong>
             </span>
         @endif
       </div>
-
     </div>
 
+    <!-- Type of payment row -->
     <div class="form-group row" style="margin-top: -10px">
       <label for="payment_type" class="col-md-2 offset-md-1 col-form-label text-md-left">{{ __('Type of Payment') }}</label>
 
@@ -152,21 +192,7 @@
         </select>
       </div>
 
-      <!-- <label for="discount_computation" class="col-md-2 col-form-label text-md-left">{{ __('Discount Computation') }}</label>
-      <div class="col-md-2">
-        <select name="discount_computation" id="discount_computation" class="form-control form-control-sm">
-          <option value=" "> </option>
-          <option value="normal" selected>Normal</option>
-          <option value="lessvat">Less VAT</option>
-        </select>
-        @if ($errors->has('discount_computation'))
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $errors->first('discount_computation') }}</strong>
-            </span>
-        @endif
-      </div> -->
-
-      <label for="amount_tendered" class="col-md-2 col-form-label text-md-right">Amount tendered</label>
+      <label for="amount_tendered" class="col-md-2 col-form-label text-md-right">Amount tendered:</label>
 
       <div class="col-md-2">
         <input id="amount_tendered" type="text" onBlur="computeChange()" class="form-control" name="amount_tendered"  style="background-color:#99ccff!important; font-weight: bold; font-size: 25px;" value="0.00" autofocus>
@@ -193,166 +219,809 @@
           <option value="YEN">Yen</option>
         </select>
       </div>
-      <!-- <div class="col-md-1 offset-md-1">
-        <button type="button" id="apply_discount_all" class="btn btn-success btn-sm">
-          Apply to all
-        </button>
-      </div>
 
-      <div class="col-md-1">
-        <button type="button" id="apply_discount_selected" class="btn btn-success btn-sm">
-          Apply to Selected
-        </button>
-      </div>
-
-      <div class="col-md-1">
-        <button type="button" name="clear_discount" id="clear_discount" class="btn btn-outline-secondary btn-sm">
-          Clear Discount
-        </button>
-      </div> -->
-
-      <label for="change" class="col-md-2 col-form-label text-md-right" style="font-size: 13px">{{ __('Change') }}</label>
+      <label for="amount_change" class="col-md-2 col-form-label text-md-right" style="font-size: 13px">{{ __('Change:') }}</label>
 
       <div class="col-md-2">
-        <input id="change" type="text" class="form-control" name="change" style="font-weight: bold; font-size: 25px;" value="0.00" autofocus>
-        @if ($errors->has('change'))
+        <input id="amount_change" type="text" class="form-control" name="amount_change" style="font-weight: bold; font-size: 25px;" value="0.00" readonly>
+        @if ($errors->has('amount_change'))
             <span class="invalid-feedback" role="alert">
-                <strong>{{ $errors->first('change') }}</strong>
+                <strong>{{ $errors->first('amount_change') }}</strong>
             </span>
         @endif
       </div>
     </div>
 
-    <!-- <div class="form-group row">
-      <label for="professional_fees" class="col-md-1 offset-md-1 col-form-label">Professional Fees:</label>
-
-      <div class="col-md-3">
-        <input type="text" name="professional_fees" value="" id="professional_fees" class="form-control">
+    <div class="form-group row" style="margin-top: -10px;">
+      <label for="ending_balance" class="col-md-1 offset-md-7 col-form-label text-md-right">Ending Balance:</label>
+      <div class="col-md-2">
+        <input type="text" name="ending_balance" value="0.00" id="ending_balance" class="form-control text-danger" style="font-weight: bold; font-size: 25px;" readonly>
+        @if ($errors->has('ending_balance'))
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $errors->first('ending_balance') }}</strong>
+            </span>
+        @endif
       </div>
-
     </div>
 
-    <div class="form-group row">
-      <label for="drugs" class="col-md-1 offset-md-1 col-form-label">Drugs and Medicines:</label>
-      <div class="col-md-2">
-        <input type="text" name="drugs" value="" id="drugs" class="form-control">
-      </div>
-    </div> -->
 </form>
 
-<div class="form-group row">
+<div class="form-group row" style="margin-top: -10px;">
   <div class="col-md-2 offset-md-1">
     <h1 class="h5 text-danger">Breakdown of Charges: </h1>
-
   </div>
+
 </div>
 
-<div class="row" style="margin-top:-10px;">
-  <div class="col-md-9 offset-md-1">
+<div class="row" style="margin-top: -20px;">
+  <div class="col-md-7 offset-md-1">
+    <!-- Table -->
     <div class="table-responsive">
-      <table id="charge_table" class="table table-sm" style="width: 100%">
+      <table id="charge_table" class="table table-sm table-striped" style="width: 100%">
         <thead>
           <tr>
             <th>Charge Description</th>
             <th>Amount</th>
-            <th>Action</th>
           </tr>
         </thead>
         <tbody id="charge-info">
+
           <tr>
-            <td>Professional Fees</td>
-            <td>3,000.00</td>
-            <td></td>
+            <td class="text-danger">Professional Fees</td>
+            <td><input type="text" name="profees_total" value="0.00" id="profees_total" class="form-control form-control-sm text-danger" style="text-align:right; width: 50%;"></td>
           </tr>
-          <tr>
-            <td>Drugs and Medicines</td>
-            <td>12,500.00</td>
-            <td></td>
+
+          <tr id="DRUME" class="charge_items">
+            <td class="category">Drugs and Medicines</td>
+            <td><input type="text" name="drugs_total" value="0.00" id="drugs_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
-          <tr>
-            <td>Radiology</td>
-            <td>10,500.00</td>
-            <td></td>
+
+          <tr id="LABOR" class="charge_items">
+            <td  class="category">Laboratory</td>
+            <td><input type="text" name="lab_total" value="0.00" id="lab_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
-          <tr>
-            <td>OR/DR Fee</td>
-            <td>3,500.00</td>
-            <td></td>
+
+          <tr id="RADIO" class="charge_items">
+            <td class="category">Radiology</td>
+            <td><input type="text" name="rad_total" value="0.00" id="rad_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
-          <tr>
-            <td>Room and Board</td>
-            <td>1,500.00</td>
-            <td></td>
+
+          <tr id="DRUMN" class="charge_items">
+            <td class="category">Medical Supplies</td>
+            <td><input type="text" name="supplies_total" value="0.00" id="supplies_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
-          <tr>
-            <td>Oxygen</td>
-            <td>20,500.00</td>
-            <td></td>
+
+          <tr id="ACCOM" class="charge_items">
+            <td class="category">Room and Board</td>
+            <td><input type="text" name="room_total" value="0.00" id="room_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
-          <tr>
-            <td>Laboratory</td>
-            <td>22,500.00</td>
-            <td></td>
+
+          <tr id="OPERA" class="charge_items">
+            <td  class="category">OR/DR Fee</td>
+            <td><input type="text" name="ordr_total" value="0.00" id="ordr_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
+
+          <tr id="MISC" class="charge_items">
+            <td  class="category">Miscellaneous</td>
+            <td><input type="text" name="misc_total" value="0.00" id="misc_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
+          </tr>
+
+          <tr id="OXY" class="charge_items">
+            <td class="category">Oxygen</td>
+            <td><input type="text" name="oxygen_total" value="0.00" id="oxygen_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
+          </tr>
+
           <tr>
             <td>Others</td>
-            <td>1,500.00</td>
-            <td></td>
-          </tr>
-          <tr>
-            <td>Supplies</td>
-            <td>3,500.00</td>
-            <td></td>
-          </tr>
-          <tr>
-            <td>Miscellaneous</td>
-            <td align="right">500.00</td>
-            <td></td>
-          </tr>
-          <tr>
-            <td align="right">Total:</td>
-            <td align="right">30,500.00</td>
-            <td></td>
+            <td><input type="text" name="others_total" value="0.00" id="others_total" class="form-control form-control-sm" style="text-align:right; width: 50%;"></td>
           </tr>
 
         </tbody>
       </table>
     </div>
   </div>
-</div>
 
-<br>
+  <div class="col-md-2">
+    <div class="row">
+        <label for="advance_payment" class="col-form-label">
+          <input type="checkbox" name="advance_payment" id="advance_payment" class="form-check-input" checked> <strong>Advance Payment</strong>
+        </label>
+    </div>
 
-<div class="form-group row" style="margin-top:-20px;">
-  <label for="remarks" class="col-md-1 offset-md-1 col-form-label">Remarks:</label>
+    <div class="row">
+      <label for="total_charges" class="form-control-label">Total Charges:</label>
+      <input type="text" name="total_charges" value="0.00" id="total_charges" class="form-control" style="font-weight: bold; font-size: 25px;" readonly>
+    </div>
 
-</div>
+    <div class="row">
+      <label for="less_payments" class="form-control-label">Less (Advance Payments):</label>
+      <input type="text" name="less_payments" value="0.00" id="less_payments" class="form-control" style="font-weight: bold; font-size: 25px;" readonly>
+    </div>
 
-<div class="form-group row" style="margin-top:-20px;">
-  <div class="col-md-9 offset-md-1">
-    <textarea name="remarks" rows="3" cols="80" class="form-control form-control-sm" id="remarks"></textarea>
+    <div class="row">
+      <label for="amount_due" class="col-form-label">Amount Due:</label>
+      <input type="text" name="amount_due" value="0.00" id="amount_due" class="form-control text-danger" style="font-weight: bold; font-size: 25px;" readonly>
+    </div>
+
+    <div class="row">
+      <!-- <div class="form-group row" style="margin-top:-20px;"> -->
+        <label for="remarks" class="col-form-label">Remarks:</label>
+      <!-- </div> -->
+
+      <!-- <div class="form-group row" style="margin-top:-20px;">
+        <div class="col-md-9 offset-md-1"> -->
+          <textarea name="remarks" rows="7" cols="80" class="form-control form-control-sm" id="remarks"></textarea>
+        <!-- </div> -->
+      </div>
+    </div>
   </div>
-</div>
-
 </main>
 
+
 <script type="text/javascript">
+
+  // Binds to the global ajax scope
+  $( document ).ajaxStart(function() {
+    $( "#spinner" ).show();
+  });
+
+  $( document ).ajaxComplete(function() {
+    $( "#spinner" ).hide();
+  });
+
+
   $(document).ready(function(){
+    var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
+    var charge_array = '';
 
-    $('#patient_name').autocomplete({
-      source: "{{ url('/collections/inpatient/create/autocomplete-search') }}",
-      select: function(key, value){
-        var billing_id = value.item.id;
+    $('#search_soa').on('click', function(event){
+      event.preventDefault();
+
+      var _token = CSRF_TOKEN;
+      var soa_number = $('#soa_number').val();
+
+      // console.log(soa_number);
+
+      if (soa_number == '' || soa_number == 0) {
+        alert('Please input SOA Number / Barcode .');
+        // console.log('please enter soa number .');
+      } else {
+
+        searchPatientCharges(_token, soa_number);
+        // $('#total_amount').focus();
+      }
+
+    });
+
+    function searchPatientCharges(_t, soa) {
+
+      $.ajax({
+        type: "POST",
+        url:"/collections/inpatient/create/get-patient-charges",
+        data: { _token: _t, soa_number: soa },
+        dataType: "JSON",
+        success: function(data) {
+          // console.log(data);
+          // console.log(data.charge_sequence);
+          charge_array = data.charge_sequence;
+
+          var billing_id = data.billing_id;
+          var encounter_code = data.encounter_code;
+          var soa_number = data.soa_number;
+          var patient_id = data.patient_id;
+          var patient_name = data.patient_name;
+          var account_number = data.account_number;
+
+          $('#billing_id').val(billing_id);
+          $('#encounter_code').val(encounter_code);
+          $('#soa_number').val(soa_number);
+          $('#patient_id').val(patient_id);
+          $('#patient_name').val(patient_name);
+          $('#account_number').val(account_number);
+          $('#paystat').val('A');
+          $('#paylock').val('N');
+          $('#updsw').val('N');
+          $('#confdl').val('N');
+          $('#payctr').val('0');
+          $('#status').val('Paid');
+
+          // console.log(charge_array);
+          var drugs_total = 0;
+          var lab_total = 0;
+          var misc_total = 0;
+          var ordr_total = 0;
+          var others_total = 0;
+          var oxygen_total = 0;
+          var profees_total = 0;
+          var rad_total = 0;
+          var room_total = 0;
+          var supplies_total = 0;
+          var total_charges = 0;
+          var charge = 0;
+          var default_value = 0;
+          var advance_payment = 0;
+          var amount_due = 0;
+
+          $.each(data.data, function(i, value) {
+            default_value = Number(0).toFixed(2);
+            drugs_total = value.drugs_total;
+            lab_total = value.lab_total;
+            misc_total = value.misc_total;
+            ordr_total = value.ordr_total;
+            others_total = value.others_total;
+            oxygen_total = value.oxygen_total;
+            profees_total = value.profees_total;
+            rad_total = value.rad_total;
+            room_total = value.room_total;
+            supplies_total = value.supplies_total;
+            advance_payment = value.advance_payment;
+
+            if (drugs_total == null || drugs_total == 0) {
+              drugs_total = default_value;
+            }
+            if (lab_total == null || lab_total == 0) {
+              lab_total = default_value;
+            }
+            if (misc_total == null || misc_total == 0) {
+              misc_total = default_value;
+            }
+            if (ordr_total == null || ordr_total == 0) {
+              ordr_total = default_value;
+            }
+            if (others_total == null || others_total == 0) {
+              others_total = default_value;
+            }
+            if (oxygen_total == null || oxygen_total == 0) {
+              oxygen_total = default_value;
+            }
+            if (profees_total == null || profees_total == 0) {
+              profees_total = default_value;
+            }
+            if (rad_total == null || rad_total == 0) {
+              rad_total = default_value;
+            }
+            if (room_total == null || room_total == 0 ) {
+              room_total = default_value;
+            }
+            if (supplies_total == null || supplies_total == 0) {
+              supplies_total = default_value;
+            }
+            if (advance_payment == null || advance_payment == 0) {
+              advance_payment = default_value;
+            }
+
+            $('#drugs_total').val(formatNumber(drugs_total));
+            $('#lab_total').val(formatNumber(lab_total));
+            $('#misc_total').val(formatNumber(misc_total));
+            $('#ordr_total').val(formatNumber(ordr_total));
+            $('#others_total').val(formatNumber(others_total));
+            $('#oxygen_total').val(formatNumber(oxygen_total));
+            $('#profees_total').val(formatNumber(profees_total));
+            $('#rad_total').val(formatNumber(rad_total));
+            $('#room_total').val(formatNumber(room_total));
+            $('#supplies_total').val(formatNumber(supplies_total));
+          });
+
+          $('#charge-info > tr').each(function(){
+            var nc_value = 0;
+            var num_value = 0;
+
+            nc_value = removeComma($(this).find('input').val());
+            num_value = Number(nc_value);
+            total_charges += num_value;
+          });
+
+          // alert(advance_payment);
+          amount_due =  total_charges - advance_payment;
+          // console.log(total);
+          $('#total_amount').val(formatNumber(amount_due.toFixed(2)));
+          $('#ending_balance').val(formatNumber(amount_due.toFixed(2)))
+          $('#total_charges').val(formatNumber(total_charges.toFixed(2)));
+          $('#less_payments').val(formatNumber(Number(advance_payment).toFixed(2)));
+          $('#amount_due').val(formatNumber(amount_due.toFixed(2)));
+        }
+      });
 
 
-        console.log('billing id: ' + billing_id);
-        // console.log('billing id: ' + value.item.id + ' patient_name:'+ value.item.value);
+    }
+
+
+    // $.ajax({
+    //   type: "POST",
+    //   url: "/collections/inpatient/create/search-patient-charges",
+    //   data: { _token: _t, soa_number: soa },
+    //   dataType: "JSON",
+    //   success: function(data) {
+    //     console.log(data);
+    //     var _token = data._token;
+    //     var billing_id = data.billing_id;
+    //     var encounter_code = data.encounter_code;
+    //     var soa_number = data.soa_number;
+    //     var patient_id = data.patient_id;
+    //     var account_number = data.account_number;
+    //
+    //     $('#billing_id').val(billing_id);
+    //     $('#encounter_code').val(encounter_code);
+    //     $('#soa_number').val(soa_number);
+    //     $('#patient_id').val(patient_id);
+    //     $('#account_number').val(account_number);
+    //     $('#paystat').val('A');
+    //     $('#paylock').val('N');
+    //     $('#updsw').val('N');
+    //     $('#confdl').val('N');
+    //     $('#payctr').val('0');
+    //     $('#status').val('Paid');
+    //
+    //   }
+    // });
+
+    function getPatientCharges(_t, b_id, ecode, snumber, pid, an) {
+      var billing_id = b_id;
+      var encounter_code = ecode;
+      var soa_number = snumber;
+      var patient_id = pid;
+      var account_number = an;
+
+      $('#billing_id').val(billing_id);
+      $('#encounter_code').val(encounter_code);
+      $('#soa_number').val(soa_number);
+      $('#patient_id').val(patient_id);
+      $('#account_number').val(account_number);
+      $('#paystat').val('A');
+      $('#paylock').val('N');
+      $('#updsw').val('N');
+      $('#confdl').val('N');
+      $('#payctr').val('0');
+      $('#status').val('Paid');
+
+      $.ajax({
+        type: "GET",
+        url:"/collections/inpatient/create/get-patient-charges",
+        data: { _token: _t, billing_id: b_id },
+        dataType: "JSON",
+        success: function(data) {
+          // console.log(data.data);
+          // console.log(data.charge_sequence);
+
+          charge_array = data.charge_sequence;
+
+          console.log(charge_array);
+          var drugs_total = 0;
+          var lab_total = 0;
+          var misc_total = 0;
+          var ordr_total = 0;
+          var others_total = 0;
+          var oxygen_total = 0;
+          var profees_total = 0;
+          var rad_total = 0;
+          var room_total = 0;
+          var supplies_total = 0;
+          var total_charges = 0;
+          var charge = 0;
+          var default_value = 0;
+          var advance_payment = 0;
+          var amount_due = 0;
+
+          $.each(data.data, function(i, value) {
+            default_value = Number(0).toFixed(2);
+            drugs_total = value.drugs_total;
+            lab_total = value.lab_total;
+            misc_total = value.misc_total;
+            ordr_total = value.ordr_total;
+            others_total = value.others_total;
+            oxygen_total = value.oxygen_total;
+            profees_total = value.profees_total;
+            rad_total = value.rad_total;
+            room_total = value.room_total;
+            supplies_total = value.supplies_total;
+            advance_payment = value.advance_payment;
+
+            if (drugs_total == null || drugs_total == 0) {
+              drugs_total = default_value;
+            }
+            if (lab_total == null || lab_total == 0) {
+              lab_total = default_value;
+            }
+            if (misc_total == null || misc_total == 0) {
+              misc_total = default_value;
+            }
+            if (ordr_total == null || ordr_total == 0) {
+              ordr_total = default_value;
+            }
+            if (others_total == null || others_total == 0) {
+              others_total = default_value;
+            }
+            if (oxygen_total == null || oxygen_total == 0) {
+              oxygen_total = default_value;
+            }
+            if (profees_total == null || profees_total == 0) {
+              profees_total = default_value;
+            }
+            if (rad_total == null || rad_total == 0) {
+              rad_total = default_value;
+            }
+            if (room_total == null || room_total == 0 ) {
+              room_total = default_value;
+            }
+            if (supplies_total == null || supplies_total == 0) {
+              supplies_total = default_value;
+            }
+            if (advance_payment == null || advance_payment == 0) {
+              advance_payment = default_value;
+            }
+
+            $('#drugs_total').val(formatNumber(drugs_total));
+            $('#lab_total').val(formatNumber(lab_total));
+            $('#misc_total').val(formatNumber(misc_total));
+            $('#ordr_total').val(formatNumber(ordr_total));
+            $('#others_total').val(formatNumber(others_total));
+            $('#oxygen_total').val(formatNumber(oxygen_total));
+            $('#profees_total').val(formatNumber(profees_total));
+            $('#rad_total').val(formatNumber(rad_total));
+            $('#room_total').val(formatNumber(room_total));
+            $('#supplies_total').val(formatNumber(supplies_total));
+          });
+
+          $('#charge-info > tr').each(function(){
+            var nc_value = 0;
+            var num_value = 0;
+
+            nc_value = removeComma($(this).find('input').val());
+            num_value = Number(nc_value);
+            total_charges += num_value;
+          });
+
+          // alert(advance_payment);
+          amount_due =  total_charges - advance_payment;
+          // console.log(total);
+          $('#total_amount').val(formatNumber(amount_due.toFixed(2)));
+          $('#ending_balance').val(formatNumber(amount_due.toFixed(2)))
+          $('#total_charges').val(formatNumber(total_charges.toFixed(2)));
+          $('#less_payments').val(formatNumber(Number(advance_payment).toFixed(2)));
+          $('#amount_due').val(formatNumber(amount_due.toFixed(2)));
+        }
+      });
+    }
+
+
+    function formatNumber(num) {
+      var n = Number(num).toFixed(2);
+      var for_num = n.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+
+      return for_num;
+    }
+
+    function removeComma(num) {
+      var rem_comma = num.replace(/,/g, '');
+
+      return rem_comma;
+    }
+
+
+    function numDecimals(num) {
+      var num_dec = Number(num).toFixed(2);
+
+      return num_dec;
+    }
+
+
+    $('#update_totals').on('click', function(event){
+      event.preventDefault();
+      var total_amount = removeComma($('#total_amount').val());
+      var amount_due = removeComma($('#amount_due').val());
+      var dec_amount = Number(total_amount);
+      var q = confirm('Are you sure you want to update the totals ?');
+
+      if (q == true) {
+        $('#total_amount').val(formatNumber(total_amount));
+
+        // console.log(total_amount);
+        // console.log(amount_due);
+
+        if (Number(total_amount) > Number(amount_due)) {
+          alert('The total amount is greater than total patient charges .');
+          $('#total_amount').val(formatNumber(0));
+          $('#total_amount').focus();
+
+        } else {
+
+          updateTotals(total_amount, amount_due, dec_amount);
+        }
+        // $('.charge').each(function(){
+        //   nc_value = removeComma($(this).val());
+        //   num_value = Number(nc_value);
+        //   total_charges += num_value;
+        // });
+        // console.log(total_charges);
+        // console.log(less_payments);
+        // $('#drugs_total').val(formatNumber(numDecimals(drugs_total)));
+        // $('#lab_total').val(formatNumber(numDecimals(lab_total)));
+        // $('#misc_total').val(formatNumber(numDecimals(misc_total)));
+        // $('#ordr_total').val(formatNumber(numDecimals(ordr_total)));
+        // $('#others_total').val(formatNumber(numDecimals(others_total)));
+        // $('#oxygen_total').val(formatNumber(numDecimals(oxygen_total)));
+        // $('#profees_total').val(formatNumber(numDecimals(profees_total)));
+        // $('#rad_total').val(formatNumber(numDecimals(rad_total)));
+        // $('#room_total').val(formatNumber(numDecimals(room_total)));
+        // $('#supplies_total').val(formatNumber(numDecimals(supplies_total)));
+        // alert(advance_payment);
+        // amount_due =  total_charges - less_payments;
+        // console.log(total);
+        // $('#total_charges').val(formatNumber(total_charges));
+        // $('#less_payments').val(formatNumber(less_payments));
+        // $('#amount_due').val(formatNumber(amount_due));
+        // $('#total_amount').val(formatNumber(amount_due));
+      } else {
 
       }
     });
 
+    function updateTotals(t_amount, amount_d, de_amount) {
+      var nc_value = 0;
+      var num_value = 0;
+      var total_charges = 0;
+      var drugs_total = removeComma($('#drugs_total').val());
+      var lab_total = removeComma($('#lab_total').val());
+      var misc_total = removeComma($('#misc_total').val());
+      var ordr_total = removeComma($('#ordr_total').val());
+      var others_total = removeComma($('#others_total').val());
+      var oxygen_total = removeComma($('#oxygen_total').val());
+      var profees_total = removeComma($('#profees_total').val());
+      var rad_total = removeComma($('#rad_total').val());
+      var room_total = removeComma($('#room_total').val());
+      var supplies_total = removeComma($('#supplies_total').val());
+      var total_amount = t_amount;
+      var ending_balance = removeComma($('#ending_balance').val());
+      var less_payments = removeComma($('#less_payments').val());
+      var amount_due = amount_d;
+      var dec_amount = de_amount;
+      var new_balance = 0;
+
+      // Loop charge array
+      $.each(charge_array, function(i, value){
+        var sequence_number = value.sequenceNo;
+        var charge_code = value.chrgcode;
+
+          // Table of hospital charges
+          $('.charge_items').each(function(){
+            var row = $(this);
+            var row_id = row.closest('tr').attr('id');
+            var charge_value = removeComma(row.closest('tr').find('.charge').val());
+
+            // console.log(row_id);
+            if (row_id == charge_code) {
+              if (dec_amount > 0) {
+                if (charge_value > 0) {
+                  if (dec_amount > charge_value) {
+                    row.closest('tr').find('.charge').val(formatNumber(charge_value));
+                    dec_amount = dec_amount - charge_value;
+
+                  } else {
+                      row.closest('tr').find('.charge').val(formatNumber(dec_amount));
+                      dec_amount = 0;
+                  }
+                }
+                else {
+                  row.closest('tr').find('.charge').val(numDecimals(0));
+                }
+
+              } else {
+                row.closest('tr').find('.charge').val(numDecimals(0));
+              }
+            }
+          });
+      });
+
+      $('.charge_items').each(function(){
+        var row = $(this);
+        var total = Number(removeComma(row.closest('tr').find('.charge').val()));
+        if (total == 0) {
+          row.closest('tr').find('.charge').val(numDecimals(0));
+        } else {
+          // row.closest('tr').find('.charge').val(Number(total.toFixed(2))
+        }
+        // console.log(row);
+      });
 
 
+      new_balance = ending_balance - total_amount;
+      $('#ending_balance').val(formatNumber(new_balance));
+
+    }
+
+    $('#clear_computation').on('click', function(e){
+      // console.log('clear computation');
+
+      var q = confirm('Are you sure you want to clear the computation ?');
+
+      if (q == true) {
+
+        return $('#search_soa').click();
+
+      }
+
+
+    });
+
+    $('#btn_save').on('click', function(event){
+      event.preventDefault();
+
+      var _token = CSRF_TOKEN;
+      var patient_name = $('#patient_name').val();
+      var or_number = $('#prefix_or_number').val();
+      var or_count = 0;
+
+      if (patient_name == '' || patient_name == null) {
+        alert('Please input patient details .');
+
+      } else {
+
+        savePayment(_token, or_number );
+      }
+      // alert('clicked save button ');
+    });
+
+    function savePayment(_t, or ) {
+      var _token = _t;
+      var or_number_value = or;
+      var arrData = [];
+
+      var date = new Date();
+      var month = date.getMonth() + 1;
+      var day = date.getDate();
+      var hour = date.getHours();
+      var minute = date.getMinutes();
+      var second = date.getSeconds();
+
+      var encounter_code_value = $('#encounter_code').val();
+      var patient_id_value = $('#patient_id').val();
+      var account_number_value = $('#account_number').val();
+      var soa_number_value = $('#soa_number').val();
+      var paystat_value = $('#paystat').val();
+      var payment_lock_value = $('#paylock').val();
+      var updsw_value = $('#updsw').val();
+      var confdl_value = $('#confdl').val();
+      var payment_status_value = $('#status').val();
+      var or_date_value = $('#or_date').val();
+      var user_id_value = $('#user_id').val();
+      var payment_mode_value = $('#payment_mode').val();
+      var currency_value = $('#currency').val();
+      var payment_type_value = $('#payment_type').val();
+      var amount_paid_value = removeComma($('#total_amount').val());
+      var amount_tendered_value = removeComma($('#amount_tendered').val());
+      var amount_change_value =  removeComma($('#amount_change').val());
+      var ending_balance_value = removeComma($('#ending_balance').val());
+      var created_at_value = date.getFullYear() + '-' + (('' + month).length < 2 ? '0' : '') + month + '-' + (('' + day).length < 2 ? '0' : '') + day + ' ' + hour + ':' + minute + ':' + second;
+      var advance_payment_value = 0;
+      var remarks_value = $('#remarks').val();
+
+      if ($('#advance_payment').is(':checked')) { advance_payment_value = 1; }
+
+      // loop over each charge table row (tr)
+      $('.charge_items').each(function() {
+        var row = $(this);
+        var charge_code_value = row.closest('tr').attr('id');
+        var category_value = row.closest('tr').find('.category').text();
+        var total_value = removeComma(row.closest('tr').find('.charge').val());
+
+        var obj = {};
+
+        if (total_value > 0) {
+          // console.log(row_id);
+          // console.log(category);
+          // console.log(total_value);
+          obj.or_number = or_number_value;
+          obj.encounter_code = encounter_code_value;
+          obj.patient_id = patient_id_value;
+          obj.account_number = account_number_value;
+          obj.soa_number = soa_number_value;
+          obj.paystat = paystat_value;
+          obj.payment_lock = payment_lock_value;
+          obj.updsw = updsw_value;
+          obj.confdl = confdl_value;
+          obj.payment_status = payment_status_value;
+          obj.or_date = or_date_value;
+          obj.user_id = user_id_value;
+          obj.payment_mode = payment_mode_value;
+          obj.currency = currency_value;
+          obj.payment_type = payment_type_value;
+          obj.amount_paid = amount_paid_value;
+          obj.amount_tendered = amount_tendered_value;
+          obj.amount_change = amount_change_value;
+          obj.ending_balance = ending_balance_value;
+          obj.created_at = created_at_value;
+          obj.advance_payment = advance_payment_value;
+          obj.remarks = remarks_value
+
+          obj.product_id = charge_code_value;
+          obj.category = category_value;
+          obj.total = total_value;
+
+          arrData.push(obj);
+        }
+      });
+      // console.log(arrData);
+
+      console.log('passed');
+
+      var q = confirm('Are you sure you want to save this payment ?');
+      if (q == true) {
+        $.ajax({
+          type: "POST",
+          url: "/collections/inpatient/create/check-or-duplicate",
+          data: { _token: _token, or_number: or_number_value, arrData: arrData },
+          dataType: "JSON",
+          success: function(data){
+            var or_count = data.data;
+            var or_number = data.or_number;
+            var _token = data._token;
+            var arrData = data.arrData;
+
+            if (or_count > 0) {
+              // console.log('duplicate OR');
+              alert('Please use another OR Number (Duplicate Entry) .');
+            } else {
+
+              $.ajax({
+                type: "POST",
+                url: "/collections/inpatient/create/save-payment",
+                data: { _token: _token, arrData: arrData, or_number: or_number },
+                dataType: "JSON",
+                success: function(data){
+                  console.log('saved');
+                  console.log(data);
+
+                   $('.alert').show();
+                   $('#btn_new').show();
+                   $('#btn_print').show();
+                   // $('#btn_print').click();
+                   $('#btn_save').hide();
+                }
+              }); // End of  ajax url:"/collections/other/store_payment",
+
+            }
+          }
+        });
+      }
+
+    } //savePayment
+
+    $('#collections_inpatient').on('keypress', function(e) {
+      var keyCode = e.keyCode || e.which;
+      if (keyCode === 13) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    $('#total_amount').on('keypress', function(e){
+      var keyCode = e.keyCode || e.which;
+      if (keyCode === 13) {
+
+        return $('#update_totals').click();
+      }
+    });
+
+    $('#soa_number').on('keydown', function(e){
+      var keyCode = e.keyCode || e.which;
+      if (keyCode === 13) {
+
+        return $('#search_soa').click();
+
+      }
+    });
+
+    $('#btn_print').click(function(event) {
+      event.preventDefault();
+      var prefix_or_number = $('#prefix_or_number').val();
+      window.location.replace("/collections/inpatient/print/pdf/" + prefix_or_number);
+    });
+
+    $('#btn_new').click(function(e){
+      e.preventDefault();
+      var user_id = $('#user_id').val();
+      window.location.replace("/collections/inpatient/create/" + user_id);
+    });
 
   });
 

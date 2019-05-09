@@ -24,6 +24,7 @@ use Carbon\Carbon;
 
 use App\ViewPaymentMainOR;
 use App\ViewPaymentOR;
+use App\ViewCollection;
 
 class CollectionsOtherController extends Controller
 {
@@ -112,10 +113,21 @@ class CollectionsOtherController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function showProducts(Request $request) {
+
         $search = $request->term;
+
+        // if (($search == 'patient' || $search == 'id') || ($search == 'PATIENT' || $search == 'ID')) {
+        //   $search = 'patient id';
+        // }
+
+        if ((STRPOS($search, 'patient') !== false || $search == 'id') || (STRPOS($search, 'PATIENT') !== false || $search == 'ID')) {
+
+          $search = 'patient id';
+        }
 
         $products = ViewProducts::select('item_code AS id', 'description AS text')
         ->where('lower_description', 'LIKE', '%' .  $search . '%')
+        ->orWhere('upper_description', 'LIKE', '%' . $search . '%')
         ->orderBy('description', 'ASC')
         ->get();
 
@@ -180,12 +192,15 @@ class CollectionsOtherController extends Controller
         $or_number = $request->or_number;
         $counter = 0;
 
+        $or_n = substr($or_number, strpos($or_number, "-") + 1);
+
         foreach($json_data as $item) {
             $data = array(
                 'prefix_or_number' => $item['prefix_or_number'],
-                'or_number' => substr($item['prefix_or_number'], 2),
+                'or_number' => $or_n,
                 'or_date' => date('Y-m-d H:i:s', strtotime(str_replace('-', '/', $item['or_date']))),
-                'patient_name' => substr(trim($item['patient_name']), 17),
+                // 'patient_name' => substr(trim($item['patient_name']), 17),
+                'patient_name' => ($item['patient_name']),
                 'unit_cost' => $item['unit_cost'],
                 'quantity' => $item['quantity'],
                 'sub_total' => $item['sub_total'],
@@ -294,10 +309,10 @@ class CollectionsOtherController extends Controller
         <style>@page { margin-left: 17px; margin-right:27px; }</style>
         </head>
         <body><br><br><br><br><br>
-        <p align="center" style="font-family: Times New Roman; font-size: 15px; margin-right: -70px; margin-top: -26px;">' . $value->prefix_or_number . '</p>
-        <p align="right" style="font-family: Times New Roman; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">' . $value->receipt_date . '</p>
-        <p style="font-family: Times New Roman; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">Veterans Regional Hospital</p>
-        <p style="font-family: Times New Roman; font-size: 15px; margin-left: 43px;  margin-bottom: 10px">' . $value->patient_name . '</p><br><br>';
+        <p align="center" style="font-family: Helvetica; font-size: 15px; margin-right: -70px; margin-top: -26px;">' . $value->prefix_or_number . '</p>
+        <p align="right" style="font-family: Helvetica; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">' . $value->receipt_date . '</p>
+        <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">Veterans Regional Hospital</p>
+        <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px;  margin-bottom: 10px">' . $value->patient_name . '</p><br><br>';
         break;
       }
 
@@ -313,8 +328,8 @@ class CollectionsOtherController extends Controller
 
           $output .= '
            <tr style="line-height: 17px">
-              <td style="font-family: Times New Roman; font-size: 10px; width:60%;"> ' . $payment->description . '</td>
-              <td style="font-family: Times New Roman; font-size: 12px; margin-right=20px" align="right">'  . number_format($sub_total, 2) . '</td>
+              <td style="font-family: Helvetica; font-size: 13px; width:60%;"> ' . $payment->description . '</td>
+              <td style="font-family: Helvetica; font-size: 12px; margin-right=20px" align="right">'  . number_format($sub_total, 2) . '</td>
           </tr>';
 
         } // foreach ($payment_data as $payment) {
@@ -346,18 +361,18 @@ class CollectionsOtherController extends Controller
       }
 
     $output .= '</table>
-            <p align="right" style="font-family: Times New Roman; font-size: 13px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
-            <p align="left" style="font-family: Times New Roman; font-size: 12px; margin-top: -10px; margin-left: 90px">'. ucfirst($numberTransformer->toWords($total)) . $decimal_value .'</p>
+            <p align="right" style="font-family: Helvetica; font-size: 13px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
+            <p align="left" style="font-family: Helvetica; font-size: 13px; margin-top: -10px; margin-left: 90px">'. ucfirst($numberTransformer->toWords($total)) . $decimal_value .'</p>
             <br>
             <br>
             <br>
             <br>
             <br>
-            <p align="right" style="font-family: Times New Roman ; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">TERESITA T. TAGUINOD</p>
-            <p align="right" style="font-family: Times New Roman; font-size: 10px; margin-right: 20px">Supervising Administrative Officer</p>';
+            <p align="right" style="font-family: Helvetica; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">TERESITA T. TAGUINOD</p>
+            <p align="right" style="font-family: Helvetica; font-size: 10px; margin-right: 20px">Supervising Administrative Officer</p>';
 
           foreach ($payment_data as $key) {
-            $output .='<p align="left" style="font-family: Times New Roman; font-size: 14px; margin-top: -8px; margin-left:15px">'.$key->name.'</p>';
+            $output .='<p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -8px; margin-left:15px">'.$key->name.'</p>';
             break;
         }
 
@@ -373,16 +388,21 @@ class CollectionsOtherController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function search(Request $request) {
-
       $search = $request->term;
-      $patients = Patient::where('patient_name', 'LIKE', '%'.$search.'%')
-        ->limit(20)
-        ->get();
+
+
+      // $patients = DB::select('CALL sp_patient_by_name("'.$search.'")');
+
+
+      $patients = Patient::where('patient_name', 'LIKE', '%'.$search.'%')->get();
+
+
+
 
       $data = [];
 
       foreach ($patients as $key => $value) {
-        $data[] = ['id'=>$value->hpercode, 'value'=>$value->patient_name ];
+        $data[] = ['id'=>$value->patient_id, 'value'=>$value->patient_name ];
 
       }
       return response($data);
@@ -404,6 +424,99 @@ class CollectionsOtherController extends Controller
        $response = array('data' => $payments);
        return response()->json($response);
      }
+
+
+     public function checkORDuplicate(Request $request) {
+       $_token = $request->_token;
+       $or_number = $request->or_number;
+       $arrData = $request->arrData;
+       $row_count = $request->row_count;
+
+       $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
+       // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
+
+       $data = $getPaymentData;
+
+       $response = array(
+         'data' => $data,
+         'or_number' => $or_number,
+         '_token' => $_token,
+         'arrData' => $arrData,
+         'row_count' => $row_count,
+       );
+
+       return response()->json($response);
+     }
+
+
+
+
+
+
+     /**
+      * Cancel selected other payment.
+      *
+      * @param \Illuminate\Http\Request $request
+      * @return \Illuminate\Http\Response
+      */
+     public function cancelPayment(Request $request, $id){
+       $or_number = $id;
+         // $or_no = $request->id;
+         $user_id = $request->user_id;
+         $current_time = Carbon::now('Asia/Manila');
+
+         PaymentOther::where('prefix_or_number', $or_number)
+         ->update([
+             'payment_status' => 'Cancelled',
+             // 'id' => $user_id,
+             'updated_at' => $current_time->toDateTimeString()
+         ]);
+         return redirect('/collections/other');
+     }
+
+     /**
+      * Selected payment will be set to draft .
+      *
+      * @param \Illuminate\Http\Request $request
+      * @return \Illuminate\Http\Response
+      */
+     public function draftPayment(Request $request, $id){
+       $or_number = $id;
+         // $or_no = $request->id;
+         $user_id = $request->user_id;
+         $current_time = Carbon::now('Asia/Manila');
+
+         PaymentOther::where('prefix_or_number', $or_number)
+         ->update([
+             'payment_status' => 'Draft',
+             // 'id' => $user_id,
+             'updated_at' => $current_time->toDateTimeString()
+         ]);
+         return redirect('/collections/other');
+     }
+
+
+     /**
+      * Mark as paid payment.
+      *
+      * @param \Illuminate\Http\Request $request
+      * @return \Illuminate\Http\Response
+      */
+     public function markPaid(Request $request, $id){
+       $or_number = $id;
+         // $or_no = $request->id;
+         $user_id = $request->user_id;
+         $current_time = Carbon::now('Asia/Manila');
+
+         PaymentOther::where('prefix_or_number', $or_number)
+         ->update([
+             'payment_status' => 'Paid',
+             // 'id' => $user_id,
+             'updated_at' => $current_time->toDateTimeString()
+         ]);
+         return redirect('/collections/other');
+     }
+
 
 
 

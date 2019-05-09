@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ViewOutpatientCharge extends Model
 {
 
-    protected $table = 'vw_outpatient_charges_drugs';
+  protected $table = 'vw_outpatient_charges';
+    // protected $table = 'vw_outpatient_charges_drugs';
 
 }

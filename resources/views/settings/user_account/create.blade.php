@@ -4,7 +4,7 @@
 
 <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h5"><a href="{{ url('/settings/user_account') }}">Settings-User Accounts </a>/ Create</h1>
+    <h1 class="h5"><a href="{{ url('/settings/user_account') }}">Settings - User Accounts </a>/ Create</h1>
       @if (session('status'))
         <div class="alert alert-success" role="alert">
           {{ session('status') }}
@@ -115,7 +115,7 @@
                   <select class="form-control form-control-sm" name="is_admin" id="is_admin">
                     <option value="0"> </option>
                     <option value="1">Yes</option>
-                    <option value="0">No</option>
+                    <option value="0" selected>No</option>
                   </select>
                 </div>
               </div>

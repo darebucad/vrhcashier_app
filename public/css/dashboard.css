@@ -100,10 +100,16 @@ body {
 }
 
 #button-cancel {
-  position: relative; 
-  left: 5px; 
+  position: relative;
+  left: 5px;
   top:10px;
   }
+
+
+
+
+
+
 
 /*.form-control .form-control-sm {
   height: 25px;
