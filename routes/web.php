@@ -96,6 +96,12 @@ Route::get('settings/cashier-management', 'SettingsCashierController@index');
 Route::post('settings/cashier-management/save-cashier', 'SettingsCashierController@saveCashier');
 
 
+// Reports
+Route::get('reports/collection-summary', 'ReportsController@index');
+Route::get('reports/collection-summary/get-data', 'ReportsController@getCollectionSummaryData');
+
+
+
 
 
 //Success

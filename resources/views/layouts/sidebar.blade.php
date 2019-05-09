@@ -62,7 +62,7 @@
         </h6>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#" style="text-indent: 2em">
+        <a class="nav-link" href="{{ url('reports/collection-summary') }}" style="text-indent: 2em">
           Summary of Collections
         </a>
       </li>
