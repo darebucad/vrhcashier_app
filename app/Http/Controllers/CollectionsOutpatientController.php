@@ -25,6 +25,7 @@ use App\ViewOutpatientChargeDrugs;
 use App\ViewOutpatientChargeMisc;
 use App\Discount;
 use App\ViewCollection;
+use App\ViewMasterCollection;
 
 use DataTables;
 use DB;
@@ -74,42 +75,22 @@ class CollectionsOutpatientController extends Controller
     public function create(Request $request, $id)
     {
         $user_id = $id;
+        $get_or_prefix = Setup::select('or_prefix')->first();
+        $or_prefix = $get_or_prefix->or_prefix;
+        $payments_count = ViewPaymentOR::select('orno')->where('id', $user_id)->count();
 
-        $payments = ViewPaymentOR::select('next_or_number', 'or_prefix')->where('id', $user_id)
-                    ->limit(1)
-                    ->count();
+        if ($payments_count > 0) {
+          $payments = ViewPaymentOR::select('next_or_number')->where('id', $user_id)->orderBy('created_at', 'desc')->first();
+          $or_number = $payments->next_or_number;
 
-        if ($payments > 0) {
-          $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
-          ->where('id', $user_id)
-          ->limit(1)
-          ->orderBy('created_at', 'desc')
-          ->get();
-          // code...
         } else {
-          $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
-          ->limit(1)
-          ->orderBy('created_at', 'desc')
-          ->get();
-
+          $or_number = '0000001';
         }
-        // $or_number = Payment::select('orno')->where('id', $user_id)->orderByRaw('created_at DESC')->count();
-        //
-        // if ( $or_number == 0 ) {
-        //     // $or_number = Payment::select('orno')->orderByRaw('created_at DESC')->get();
-        //     $or_number = ViewPaymentMainOR::select('orno','or_prefix')->get();
-        // }
-        // else {
-        //     $or_number = ViewPaymentMainOR::select('orno','or_prefix')
-        //     ->where('id', $user_id)
-        //     ->get();
-        // }
 
         $discounts = Discount::all();
 
-        return view('collections.outpatient.create', compact('payments', 'discounts'));
+        return view('collections.outpatient.create', compact('or_number', 'discounts', 'or_prefix'));
 
-        // return view('collections.outpatient.create')->with('payments', $payments);
     }
 
     /**
@@ -452,6 +433,7 @@ class CollectionsOutpatientController extends Controller
 
     public function getPaymentData($id) {
         $payment_data = ViewPayment::where('or_no_prefix', $id)
+        ->groupBy('itemcode')
         ->orderByRaw('payment_counter ASC')
         ->get();
         return $payment_data;
@@ -466,21 +448,21 @@ class CollectionsOutpatientController extends Controller
     public function showPDF($id) {
         $or_number = $id;
 
-        $outpatient_payments = ViewPayment::select('enccode', 'charge_slip_no', 'status')
-        ->where('or_no_prefix', $or_number)
-        ->first();
+        // $outpatient_payments = ViewPayment::select('enccode', 'charge_slip_no', 'status')
+        // ->where('or_no_prefix', $or_number)
+        // ->first();
 
-        $payment_status = $outpatient_payments->status;
+        // $payment_status = $outpatient_payments->status;
 
         // $get_outpatient_payment_data = ViewPayment::select('enccode', 'or_no_prefix', 'charge_slip_no')
         //   ->where('charge_slip_no', $charge_slip)
         //   ->first();
-        if ($payment_status == 'For Payment') {
-
-          Payment::where('preorno', $or_number)
-          ->update(['payment_status' => 'Paid']);
-
-        }
+        // if ($payment_status == 'For Payment') {
+        //
+        //   Payment::where('preorno', $or_number)
+        //   ->update(['payment_status' => 'Paid']);
+        //
+        // }
         // MedicineCharge::where('pcchrgcod', $outpatient_payments->charge_slip_no)
         // ->update(['invoice_status' => 'Paid']);
 
@@ -1201,9 +1183,13 @@ class CollectionsOutpatientController extends Controller
      $arrData = $request->arrData;
      $row_count = $request->row_count;
 
-     $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
+     $get_payment_data = ViewPaymentOR::where('preorno', $or_number)->count();
+
+     // $get_payment_data = ViewMasterCollection::where('prefix_or_number', $or_number)->where('payment_status', 'Paid')->count();
+
+     // $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
      // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
-     $data = $getPaymentData;
+     $data = $get_payment_data;
 
      $response = array(
        'data' => $data,
@@ -1277,6 +1263,191 @@ class CollectionsOutpatientController extends Controller
      );
      return response()->json($response);
    }
+
+
+   /**
+    * Print pdf official receipt
+    *
+    * @param  \Illuminate\Http\Request  $request
+    * @return \Illuminate\Http\Response
+    */
+   public function createPrintPdf($id) {
+       $or_number = $id;
+
+       // custom paper = array (0,0,width,length)
+       $customPaper = array(0,0,273.6,792);
+       $pdf = App::make('dompdf.wrapper');
+       $pdf->loadHTML($this->dataToHtml($or_number))->setPaper($customPaper);
+
+       return $pdf->download('outpatient.collection.receipt.pdf');
+
+   }
+
+
+   public function dataToHtml() {
+
+       $numberToWords = new NumberToWords();
+       $numberTransformer = $numberToWords->getNumberTransformer('en');
+
+
+       $payment_count = ViewPayment::where('or_no_prefix', $id)->count();
+
+
+       $sub_total = 0;
+       $total = 0;
+       $decimal_value = 0;
+       $output = '';
+
+       foreach ($payment_data as $value) {
+         $output .= '<html>
+         <style>@page {margin-left: 17px; margin-right:27px;}</style></head>
+         <body>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <p align="center" style="font-family: Helvetica; font-size: 15px; margin-right: -70px; margin-top: -26px;">'.$value->or_no_prefix.'</p>
+         <p align="right" style="font-family: Helvetica; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">'.$value->or_date.'<br></p>
+         <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">Veterans Regional Hospital</p>
+         <p style="font-family: Courier; font-size: 20px; margin-left: 43px;  margin-bottom: 10px">'.$value->patient_name.'</p><br><br>';
+         break;
+
+       }
+       $output .= '<table width="100%">';
+
+       if($payment_count <= 8) {
+
+           foreach ($payment_data as $payment) {
+             $sub_total = $payment->amount;
+             $description = $payment->product_description;
+             // $is_pay = $payment->is_pay;
+             $total += $sub_total;
+
+             // if ($is_pay == '0') {
+             //   $sub_total = 0;
+             //   $total += 0;
+             //
+             // } else {
+             //
+             //   if ($sub_total == '' || $sub_total == null || $sub_total == 0.00){
+             //       $sub_total = $payment->amount;
+             //       $total += $payment->amount;
+             //
+             //   } else {
+             //     $total += $payment->computed_sub_total;
+             //   }
+             //
+             // }
+
+         $output .= '
+           <tr style="line-height: 17px;">
+             <td style="font-family: Courier; font-size: 11px; width:255px;">' . $description . '</td>
+             <td style="font-family: Courier; font-size: 12px; margin-right:20px" align="right">' . number_format($sub_total, 2) . '</td>
+           </tr>';
+
+           }
+
+           $supplemental_row = (8 - $payment_count);
+           $counter = $supplemental_row;
+           if($supplemental_row != 0){
+               for($counter; $counter > 0; $counter--) {
+                   $output .='
+                       <tr style="line-height: 17px; color:white;">
+                           <td>.</td>
+                       </tr>
+                   ';
+               }
+           }
+       }
+       else {
+           foreach ($payment_data as $payment) {
+             $amount_paid = $payment->amount_paid;
+             $category = $payment->category;
+               // $is_pay = $payment->is_pay;
+               //
+               // if ($is_pay == '0') {
+               //   $sub_total = 0;
+               //   $total += 0;
+               //
+               // } else {
+               //   if ($sub_total == '' || $sub_total == null || $sub_total == 0.00) {
+               //     $sub_total = $payment->amount;
+               //     $total += $payment->amount_paid;
+               //
+               //   } else {
+               //     $sub_total = $payment->computed_sub_total;
+               //     $total += $payment->amount_paid;
+               //
+               //   }
+               // }
+
+               $total = $amount_paid;
+
+               $output .='
+                 <tr style="line-height: 17px;">
+                   <td style="font-family: Helvetica; font-size: 11px; width:195px;">' . $category . '</td>
+                   <td style="font-family: Courier; font-size: 15px; margin-right: 20px;" align="right">' . number_format($amount_paid, 2) . '</td>
+                 </tr>';
+
+
+               $supplemental_row = 7;
+               $counter = $supplemental_row;
+               if($supplemental_row != 0){
+                   for($counter; $counter > 0; $counter--) {
+                       $output .='
+                           <tr style="line-height: 17px; color:white;">
+                               <td>.</td>
+                           </tr>
+                       ';
+                   }
+               }
+               break;
+           }
+       }
+       $decimal_value = Str::substr(($total * 100), -2);
+       if($decimal_value == 00){
+           // $decimal_value = ' and zero centavo only';
+           $decimal_value = ' and 00/100 only';
+       }
+       else if($decimal_value < 02){
+           // $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' centavo only';
+           $decimal_value = ' and ' . $decimal_value . '/100 only';
+       }
+       else if($decimal_value > 01){
+           // $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' centavos only';
+           $decimal_value = ' and ' . $decimal_value . '/100 only';
+       }
+
+           // <p align="left" style="font-family: Times New Roman; font-size: 12px; margin-top: -10px">'.$decimal_value.'</p>
+
+       $output .= '</table>
+           <p align="right" style="font-family: Courier; font-size: 20px; font-weight: bold; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
+           <p style="font-family: Courier; font-size: 13px; margin-top: -6px; margin-left: 100px">'.ucwords($numberTransformer->toWords($total)) . $decimal_value .'</p>
+           <br>
+           <br>
+           <br>
+           <br>
+           <br>
+           <p align="right" style="font-family: Helvetica; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">TERESITA T. TAGUINOD</p>
+           <p align="right" style="font-family: Helvetica; font-size: 10px; margin-right: 20px">Supervising Administrative Officer</p>';
+
+       foreach ($payment_data as $key) {
+           $output .='<p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -6px; margin-left:15px;">'.$key->employee_name.'</p>';
+           break;
+       }
+       return $output;
+
+  }
+
+
+
+
+
+
+
+
+
 
 
 

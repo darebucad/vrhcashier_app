@@ -16,8 +16,6 @@ Route::post('collections/outpatient/create/apply_discount_selected', 'Collection
 Route::post('collections/outpatient/create/clear_discount', 'CollectionsOutpatientController@clearDiscount');
 Route::get('/collections/outpatient/print', 'CollectionsOutpatientController@pdfIndex');
 Route::get('/collections/outpatient/print/pdf/{id}', 'CollectionsOutpatientController@showPDF')->name('collections.outpatient.print.pdf'); // print OR pdf
-// Route::get('/collections/outpatient/cancel/payment', 'CollectionsOutpatientController@cancelPayment');
-
 Route::get('/collections/outpatient/payment/edit', 'CollectionsOutpatientController@edit');
 Route::post('collections/outpatient/create', 'CollectionsOutpatientController@show')->name('collections.outpatient.create.show');
 Route::get('collections/outpatient/getdata', 'CollectionsOutpatientController@getdata')->name('collections.outpatient.getdata');
@@ -29,6 +27,7 @@ Route::post('collections/outpatient/create/store-payment', 'CollectionsOutpatien
 Route::get('/collections/outpatient/cancel-payment/{id}', 'CollectionsOutpatientController@cancelPayment');
 Route::get('/collections/outpatient/draft-payment/{id}', 'CollectionsOutpatientController@draftPayment');
 Route::get('/collections/outpatient/mark-paid/{id}', 'CollectionsOutpatientController@markPaid');
+Route::get('collections/outpatient/create/print-pdf/{id}', 'CollectionsOutpatientController@createPrintPdf');
 
 
 // Collections Other

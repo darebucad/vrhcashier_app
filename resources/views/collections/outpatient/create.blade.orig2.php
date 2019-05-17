@@ -127,8 +127,25 @@
 
       <div class="col-md-3">
 
+        <!-- <input type="text" name="" value="{{ $or_prefix }}"> -->
         <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $or_prefix . $or_number }}" style="background-color:#99ccff!important;" required>
-        <input type="hidden" name="or_number_only" value="{{ $or_number }}">
+        <input type="hidden" name="or_number_only" value="{{ $payment->next_or_number }}">
+
+        <!-- @if (count($payments) > 0)
+          @foreach ($payments as $payment)
+            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . $payment->next_or_number }}" style="background-color:#99ccff!important;" required>
+            <input type="hidden" name="or_number_only" value="{{ $payment->next_or_number }}">
+          @endforeach
+
+        @else
+          @foreach ($payments as $payment)
+            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '0000001' }}" style="background-color:#99ccff!important;" required>
+            <input type="hidden" name="or_number_only" value="{{ '0000001' }}">
+          @endforeach
+        @endif -->
+
+
+
 
         @if ($errors->has('or_number'))
           <span class="invalid-feedback" role="alert">
