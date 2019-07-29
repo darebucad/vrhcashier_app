@@ -1,0 +1,76 @@
+{
+  "_from": "comma-number",
+  "_id": "comma-number@2.0.1",
+  "_inBundle": false,
+  "_integrity": "sha512-hrxY6UjA+tSUV5uZS2iOF8+/q7AACiq/zc9R6SO61MmOhrzNC0qXXh7g/jNYTm09fp6T40vQg15zkCmTJVA8Ww==",
+  "_location": "/comma-number",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "comma-number",
+    "name": "comma-number",
+    "escapedName": "comma-number",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/comma-number/-/comma-number-2.0.1.tgz",
+  "_shasum": "d01de3f207f00ccd593dcbcf17ac633bbb942b62",
+  "_spec": "comma-number",
+  "_where": "C:\\laragon\\www\\vrhcashier_app",
+  "author": {
+    "name": "Eli Doran",
+    "email": "eli+npm@elidoran.com",
+    "url": "https://github.com/elidoran"
+  },
+  "bugs": {
+    "url": "https://github.com/elidoran/comma-number/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "Format a number with commas",
+  "devDependencies": {
+    "benchmark": "^2.1.4",
+    "console.table": "^0.10.0",
+    "coveralls": "^3.0.3",
+    "istanbul": "^0.4.5",
+    "nave": "^2.2.4",
+    "pad": "^2.3.0",
+    "tape": "^4.10.1"
+  },
+  "files": [
+    "lib/index.js"
+  ],
+  "homepage": "https://github.com/elidoran/comma-number#readme",
+  "keywords": [
+    "number",
+    "format",
+    "comma"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "name": "comma-number",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elidoran/comma-number.git"
+  },
+  "scripts": {
+    "benchmark": "node benchmark/index.js",
+    "coverage": "istanbul cover -x 'benchmark/**' -x 'test/**' tape -- test/lib/index.js",
+    "coverage-clean": "rm -rf ./coverage",
+    "publish-coverage": "npm run coverage && cat coverage/lcov.info | coveralls",
+    "test": "tape test/lib/index.js",
+    "test10": "nave use 10 npm test",
+    "test12": "nave use 12 npm test",
+    "test4": "nave use 4 npm test",
+    "test6": "nave use 6 npm test",
+    "test8": "nave use 8 npm test",
+    "tests": "npm run test4 && npm run test6 && npm run test8 && npm run test10 && npm run test12"
+  },
+  "version": "2.0.1"
+}

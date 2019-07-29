@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 use App;
 use App\Payment;
@@ -15,6 +16,16 @@ use App\ViewPayment;
 use App\ViewPatientAccount;
 use App\ChargeSequence;
 use App\PatientAccount;
+use App\PatientBill;
+use App\ViewBillProfees;
+use App\ViewBillRoom;
+use App\ViewBillDrugs;
+use App\ViewBillSupplies;
+use App\ViewBillLab;
+use App\ViewBillRad;
+use App\ViewBillOR;
+use App\ViewBillOxygen;
+use App\ViewBillMisc;
 
 use Carbon\Carbon;
 use PDF;
@@ -47,21 +58,82 @@ class CollectionsInpatientController extends Controller
           ->limit(1)
           ->orderBy('created_at', 'desc')
           ->get();
-
       }
 
       return view('collections.inpatient.create', compact('payments'));
     }
 
-    // public function getBill(Request $request) {
-    //   $data = '';
-    //
-    //   $data = ViewPatientBill::all();
-    //
-    //   $response = array('data' => $data);
-    //
-    //   return response()->json($response);
-    // }
+
+    /**
+     * Search SOA .
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function searchSoa(Request $request) {
+      $_token = $request->_token;
+      $soa_number = $request->soa_number;
+      $billing_id = '';
+      $charge_sequence = ChargeSequence::select('sequenceNo', 'chrgcode')->orderBy('sequenceNo', 'ASC')->get();
+
+      $patient_bill = PatientBill::leftjoin('hpatacct AS a', 'a.enccode', '=', 'tbl_billing.enccode')
+      ->leftjoin('hadmlog AS ad', 'ad.enccode', '=', 'tbl_billing.enccode')
+      ->leftjoin('hperson AS p', 'p.hpercode', '=', 'ad.hpercode')
+      ->where('billing_num', $soa_number)
+      ->select('tbl_billing.billing_id', 'tbl_billing.enccode', 'tbl_billing.billing_num', 'a.paacctno', 'p.hpercode', 'p.patlast', 'p.patfirst', 'p.patmiddle', 'p.patsuffix')
+      ->first();
+
+      // $get_patient_bill = ViewPatientBill::select('billing_id', 'encounter_code', 'soa_number', 'account_number', 'patient_id', 'patient_name')
+      // ->where('soa_number', $soa_number)
+      // ->first();
+
+      $billing_id = $patient_bill->billing_id;
+      // $account_number = $get_patient_bill->account_number;
+      // $encounter_code = $get_patient_bill->encounter_code;
+      // $patient_id = $get_patient_bill->patient_id;
+      // $patient_name = $get_patient_bill->patient_name;
+      // $get_account_number = $this::getAccountNumber($account_number, $encounter_code, $patient_id);
+
+      // $data = ViewPatientBillTotal::where('billing_id', $billing_id)->get();
+
+      $bill_profees = ViewBillProfees::where('billing_id', $billing_id)
+        ->select(DB::raw('SUM(total) AS total'))
+        ->groupBy('billing_id')
+        ->first();
+
+      $bill_room = ViewBillRoom::where('billing_id', $billing_id)->first();
+      $bill_drugs = ViewBillDrugs::where('billing_id', $billing_id)->first();
+      $bill_supplies = ViewBillSupplies::where('billing_id', $billing_id)->first();
+      $bill_lab = ViewBillLab::where('billing_id', $billing_id)->first();
+      $bill_rad = ViewBillRad::where('billing_id', $billing_id)->first();
+      $bill_or = ViewBillOR::where('billing_id', $billing_id)->first();
+      $bill_oxygen = ViewBillOxygen::where('billing_id', $billing_id)->first();
+      $bill_misc = ViewBillMisc::where('billing_id', $billing_id)->first();
+
+      $bill_breakdown = array(
+        'profees' => $bill_profees,
+        'room' => $bill_room,
+        'drugs' => $bill_drugs,
+        'supplies' => $bill_supplies,
+        'lab' => $bill_lab,
+        'rad' => $bill_rad,
+        'or' => $bill_or,
+        'oxygen' => $bill_oxygen,
+        'misc' => $bill_misc,
+      );
+
+      $response = array(
+        'bill_total' => 'bill_total',
+        'patient_bill' => $patient_bill,
+        'charge_sequence' => $charge_sequence,
+        'bill_breakdown' => $bill_breakdown,
+
+      );
+
+      return response()->json($response);
+    }
+
+
 
 
     public function searchPatientCharges(Request $request){
@@ -96,10 +168,6 @@ class CollectionsInpatientController extends Controller
 
       return response()->json($response);
     }
-
-
-
-
 
     /**
      * Searching of patient bill records .
@@ -171,50 +239,7 @@ class CollectionsInpatientController extends Controller
       return $new_account_number;
     }
 
-    /**
-     * Get patient bill charges .
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function getPatientCharges(Request $request) {
-      $_token = $request->_token;
-      $soa_number = $request->soa_number;
-      $billing_id = '';
-      $account_number = '';
-      $encounter_code = '';
-      $patient_id = '';
-      $get_account_number = '';
-      $get_patient_bill = ViewPatientBill::select('billing_id', 'encounter_code', 'soa_number', 'account_number', 'patient_id', 'patient_name')->where('soa_number', $soa_number)->first();
 
-
-      $billing_id = $get_patient_bill->billing_id;
-      $account_number = $get_patient_bill->account_number;
-      $encounter_code = $get_patient_bill->encounter_code;
-      $patient_id = $get_patient_bill->patient_id;
-      $patient_name = $get_patient_bill->patient_name;
-      $get_account_number = $this::getAccountNumber($account_number, $encounter_code, $patient_id);;
-
-
-      $data = ViewPatientBillTotal::where('billing_id', $billing_id)->get();
-
-      $charge_sequence = ChargeSequence::select('sequenceNo', 'chrgcode')->orderBy('sequenceNo', 'ASC')->get();
-
-
-
-      $response = array(
-        'data' => $data,
-        'billing_id' => $billing_id,
-        'encounter_code' => $encounter_code,
-        'soa_number' => $soa_number,
-        'patient_id' => $patient_id,
-        'patient_name' => $patient_name,
-        'account_number' => $get_account_number,
-        'charge_sequence' => $charge_sequence,
-      );
-
-      return response()->json($response);
-    }
 
 
 
@@ -338,6 +363,8 @@ class CollectionsInpatientController extends Controller
             $decimal_value = 0;
             $output = '';
             $soa_number = '';
+            $officer = 'TERESITA T. TAGUINOD';
+            $position = 'Supervising Administrative Officer';
 
             foreach ($payment_data as $value) {
               $soa_number = $value->charge_slip_no;
@@ -437,11 +464,11 @@ class CollectionsInpatientController extends Controller
                 <br>
                 <br>
                 <br>
-                <p align="right" style="font-family: Helvetica; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">TERESITA T. TAGUINOD</p>
-                <p align="right" style="font-family: Helvetica; font-size: 10px; margin-right: 20px">Supervising Administrative Officer</p>';
+                <p align="right" style="font-family: Arial; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">'. $officer .'</p>
+                <p align="right" style="font-family: Arial; font-size: 10px; margin-right: 20px">'. $position .'</p>';
 
             foreach ($payment_data as $key) {
-                $output .='<p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -6px; margin-left:15px;">'.$key->employee_name.'</p>';
+                $output .='<p align="left" style="font-family: Arial; font-size: 14px; margin-top: -6px; margin-left:15px;">'.$key->employee_name.'</p>';
                 break;
             }
             return $output;
@@ -456,11 +483,42 @@ class CollectionsInpatientController extends Controller
         * @return \Illuminate\Http\Response
         */
        public function getInpatientPaymentData() {
-         $payments = ViewPayment::select('or_date', 'or_no_prefix', 'charge_slip_no','patient_name', 'discount', 'amount_paid', 'employee_name', 'status')
-         ->distinct()
-         ->whereNotNull('advance_payment')
-         ->orderByRaw('created_at DESC')
-         ->get();
+
+//          SELECT p.enccode,
+// p.created_at,
+// p.preorno,
+// p.pcchrgcod,
+// pe.patlast,
+// pe.patfirst,
+// pe.patsuffix,
+// pe.patmiddle,
+// p.amt,
+// c.name,
+// p.payment_status,
+// p.advance_payment
+//
+// FROM hpay AS p
+// LEFT JOIN hperson AS pe
+// ON pe.hpercode = p.hpercode
+// LEFT JOIN cashier_users AS c
+// ON c.id = p.id
+// DB::raw('SUM(total) AS total')
+
+
+         $payments = Payment::leftjoin('hperson AS pe', 'pe.hpercode', '=', 'hpay.hpercode')
+          ->leftjoin('cashier_users AS c', 'c.id', '=', 'hpay.id')
+          ->select('hpay.enccode', 'hpay.created_at', 'hpay.preorno', 'hpay.pcchrgcod', 'pe.patlast', 'pe.patfirst', 'pe.patsuffix', 'pe.patmiddle', DB::raw('SUM(hpay.amt) AS amount'), 'c.name', 'hpay.payment_status', 'hpay.advance_payment')
+          // ->distinct()
+          ->whereNotNull('hpay.advance_payment')
+          ->groupBy('hpay.preorno')
+          ->orderBy('hpay.created_at', 'DESC')
+          ->get();
+
+         // $payments = ViewPayment::select('or_date', 'or_no_prefix', 'charge_slip_no','patient_name', 'discount', 'amount_paid', 'employee_name', 'status')
+         // ->distinct()
+         // ->whereNotNull('advance_payment')
+         // ->orderByRaw('created_at DESC')
+         // ->get();
 
          $response = array('data' => $payments);
          return response()->json($response);

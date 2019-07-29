@@ -25,7 +25,6 @@
     <span id="alert_value">Payment was successfully saved.</span>
   </div>
 
-
   <style media="screen" type="text/css">
     .spinner{
       display:none;
@@ -43,7 +42,6 @@
     <img id="img-spinner" src="{{ asset('ajax-loader.gif') }}" alt="Loading..."/>
     <h6>Please wait ...</h6>
   </div>
-
 
   <form id="collections_inpatient">
     @csrf
@@ -74,7 +72,6 @@
     <input type="hidden" name="account_number" id="account_number" value="">
     <input type="hidden" name="billing_id" value="" id="billing_id">
 
-
     <!-- SOA Details Row -->
     <div class="form-group row">
       <label for="soa_number" class="col-md-1 offset-md-1 col-form-label">SOA Details: </label>
@@ -90,16 +87,16 @@
       </div>
     </div>
 
+
     <!-- Patient Name Input-->
     <div id="patient_name_field"class="form-group row" style="margin-top: -20px;">
       <div class="input-group">
         <label for="patient_name" class="col-md-1 offset-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
         <div class="col-md-8">
-          <input type="text" name="patient_name" id="patient_name" class="form-control" style="background-color:#99ccff!important;" placeholder="[Last name], [First name] [Middle Initial]" required>
+          <input type="text" name="patient_name" id="patient_name" class="form-control" style="background-color:#99ccff!important;" placeholder="Patient Name" required>
         </div>
       </div>
     </div>
-
 
     <!-- OR Date / OR Number Input -->
     <div class="form-group row" style="margin-top: -5px;">
@@ -147,9 +144,6 @@
           Clear Computation
         </button>
       </div>
-
-
-
     </div>
 
 
@@ -233,7 +227,20 @@
     </div>
 
     <div class="form-group row" style="margin-top: -10px;">
-      <label for="ending_balance" class="col-md-1 offset-md-7 col-form-label text-md-right">Ending Balance:</label>
+
+      <div class="col-md-2 offset-md-1">
+          <label for="advance_payment" class="col-form-label">
+              Advance Payment
+          </label>
+      </div>
+
+      <div class="col-md-2">
+          <input type="checkbox" name="advance_payment" id="advance_payment" class="form-check-input" checked>
+      </div>
+
+
+
+      <label for="ending_balance" class="col-md-1 offset-md-2 col-form-label text-md-right">Ending Balance:</label>
       <div class="col-md-2">
         <input type="text" name="ending_balance" value="0.00" id="ending_balance" class="form-control text-danger" style="font-weight: bold; font-size: 25px;" readonly>
         @if ($errors->has('ending_balance'))
@@ -243,6 +250,17 @@
         @endif
       </div>
     </div>
+
+    <!-- <div class="form-group row" style="margin-top: -20px;">
+        <div class="col-md-2 offset-md-1">
+            <label for="pay_patient" class="col-form-label">
+                Pay Patient
+            </label>
+        </div>
+        <div class="col-md-2">
+            <input type="checkbox" name="pay_patient" id="pay_patient" class="form-check-input">
+        </div>
+    </div> -->
 
 </form>
 
@@ -271,9 +289,19 @@
             <td><input type="text" name="profees_total" value="0.00" id="profees_total" class="form-control form-control-sm text-danger" style="text-align:right; width: 50%;"></td>
           </tr>
 
+          <tr id="ACCOM" class="charge_items">
+            <td class="category">Room and Board</td>
+            <td><input type="text" name="room_total" value="0.00" id="room_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
+          </tr>
+
           <tr id="DRUME" class="charge_items">
             <td class="category">Drugs and Medicines</td>
             <td><input type="text" name="drugs_total" value="0.00" id="drugs_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
+          </tr>
+
+          <tr id="DRUMN" class="charge_items">
+            <td class="category">Medical Supplies</td>
+            <td><input type="text" name="supplies_total" value="0.00" id="supplies_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
 
           <tr id="LABOR" class="charge_items">
@@ -286,24 +314,9 @@
             <td><input type="text" name="rad_total" value="0.00" id="rad_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
 
-          <tr id="DRUMN" class="charge_items">
-            <td class="category">Medical Supplies</td>
-            <td><input type="text" name="supplies_total" value="0.00" id="supplies_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
-          </tr>
-
-          <tr id="ACCOM" class="charge_items">
-            <td class="category">Room and Board</td>
-            <td><input type="text" name="room_total" value="0.00" id="room_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
-          </tr>
-
           <tr id="OPERA" class="charge_items">
             <td  class="category">OR/DR Fee</td>
             <td><input type="text" name="ordr_total" value="0.00" id="ordr_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
-          </tr>
-
-          <tr id="MISC" class="charge_items">
-            <td  class="category">Miscellaneous</td>
-            <td><input type="text" name="misc_total" value="0.00" id="misc_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
 
           <tr id="OXY" class="charge_items">
@@ -311,9 +324,9 @@
             <td><input type="text" name="oxygen_total" value="0.00" id="oxygen_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
 
-          <tr>
-            <td>Others</td>
-            <td><input type="text" name="others_total" value="0.00" id="others_total" class="form-control form-control-sm" style="text-align:right; width: 50%;"></td>
+          <tr id="OTHER" class="charge_items">
+            <td class="category">Others</td>
+            <td><input type="text" name="others_total" value="0.00" id="others_total" class="form-control form-control-sm charge" style="text-align:right; width: 50%;"></td>
           </tr>
 
         </tbody>
@@ -322,11 +335,11 @@
   </div>
 
   <div class="col-md-2">
-    <div class="row">
-        <label for="advance_payment" class="col-form-label">
+    <!-- <div class="row">
+        <label for="advance_payment" class="col-form-label col-md-12">
           <input type="checkbox" name="advance_payment" id="advance_payment" class="form-check-input" checked> <strong>Advance Payment</strong>
         </label>
-    </div>
+    </div> -->
 
     <div class="row">
       <label for="total_charges" class="form-control-label">Total Charges:</label>
@@ -357,22 +370,19 @@
   </div>
 </main>
 
-
-<script type="text/javascript">
-
+<script>
   // Binds to the global ajax scope
-  $( document ).ajaxStart(function() {
+  $(document).ajaxStart(function() {
     $( "#spinner" ).show();
   });
-
-  $( document ).ajaxComplete(function() {
+  $(document).ajaxComplete(function() {
     $( "#spinner" ).hide();
   });
-
 
   $(document).ready(function(){
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
     var charge_array = '';
+
 
     $('#search_soa').on('click', function(event){
       event.preventDefault();
@@ -380,37 +390,78 @@
       var _token = CSRF_TOKEN;
       var soa_number = $('#soa_number').val();
 
-      // console.log(soa_number);
-
       if (soa_number == '' || soa_number == 0) {
         alert('Please input SOA Number / Barcode .');
-        // console.log('please enter soa number .');
+
       } else {
+        searchSoa(_token, soa_number);
 
-        searchPatientCharges(_token, soa_number);
-        // $('#total_amount').focus();
       }
-
     });
 
-    function searchPatientCharges(_t, soa) {
-
+    function searchSoa(_t, soa) {
       $.ajax({
         type: "POST",
-        url:"/collections/inpatient/create/get-patient-charges",
+        url:"/collections/inpatient/create/search-soa",
         data: { _token: _t, soa_number: soa },
         dataType: "JSON",
         success: function(data) {
-          // console.log(data);
-          // console.log(data.charge_sequence);
-          charge_array = data.charge_sequence;
+          var bill_total = data.bill_total;
+          var patient_bill = data.patient_bill;
+          var charge_sequence = data.charge_sequence;
+          var profees = data.bill_breakdown['profees'];
+          var room = data.bill_breakdown['room'];
+          var drugs = data.bill_breakdown['drugs'];
+          var supplies = data.bill_breakdown['supplies'];
+          var lab = data.bill_breakdown['lab'];
+          var rad = data.bill_breakdown['rad'];
+          var or = data.bill_breakdown['or'];
+          var oxygen = data.bill_breakdown['oxygen'];
+          var misc = data.bill_breakdown['misc'];
 
-          var billing_id = data.billing_id;
-          var encounter_code = data.encounter_code;
-          var soa_number = data.soa_number;
-          var patient_id = data.patient_id;
-          var patient_name = data.patient_name;
-          var account_number = data.account_number;
+          var billing_id = patient_bill['billing_id'];
+          var encounter_code = patient_bill['enccode'];
+          var soa_number = patient_bill['billing_num'];
+          var patient_id = patient_bill['hpercode'];
+          var last_name = patient_bill['patlast'];
+          var first_name = patient_bill['patfirst'];
+          var middle_name = patient_bill['patmiddle'];
+          var suffix_name = patient_bill['patsuffix'];
+          var account_number = patient_bill['paacctno'];
+          var patient_name = '';
+
+          var profees_total = 0;
+          var room_total = 0;
+          var drugs_total = 0;
+          var supplies_total = 0;
+          var lab_total = 0;
+          var rad_total = 0;
+          var or_total = 0;
+          var oxygen_total = 0;
+          var others_total = 0;
+
+          var drugs_adv_pay = 0;
+          var supplies_adv_pay = 0;
+          var lab_adv_pay = 0;
+          var rad_adv_pay = 0;
+          var or_adv_pay = 0;
+          var oxygen_adv_pay = 0;
+          var others_adv_pay = 0;
+
+          var total_charges = 0;
+          var charge = 0;
+          var default_value = 0;
+          var advance_payment = 0;
+          var amount_due = 0;
+
+          if (suffix_name == null) {
+            suffix_name = ''
+          } else {
+            // suffix_name = suffix_name;
+          }
+
+          patient_name = last_name + ', ' + first_name + ' ' + suffix_name  + ' ' + middle_name;
+          charge_array = charge_sequence;
 
           $('#billing_id').val(billing_id);
           $('#encounter_code').val(encounter_code);
@@ -425,135 +476,112 @@
           $('#payctr').val('0');
           $('#status').val('Paid');
 
-          // console.log(charge_array);
-          var drugs_total = 0;
-          var lab_total = 0;
-          var misc_total = 0;
-          var ordr_total = 0;
-          var others_total = 0;
-          var oxygen_total = 0;
-          var profees_total = 0;
-          var rad_total = 0;
-          var room_total = 0;
-          var supplies_total = 0;
-          var total_charges = 0;
-          var charge = 0;
-          var default_value = 0;
-          var advance_payment = 0;
-          var amount_due = 0;
+          if (profees == null || profees == 0) {
+            profees_total = default_value;
+          } else {
+            profees_total = profees['total'];
+          }
 
-          $.each(data.data, function(i, value) {
-            default_value = Number(0).toFixed(2);
-            drugs_total = value.drugs_total;
-            lab_total = value.lab_total;
-            misc_total = value.misc_total;
-            ordr_total = value.ordr_total;
-            others_total = value.others_total;
-            oxygen_total = value.oxygen_total;
-            profees_total = value.profees_total;
-            rad_total = value.rad_total;
-            room_total = value.room_total;
-            supplies_total = value.supplies_total;
-            advance_payment = value.advance_payment;
+          if (room == null || room == 0) {
+            room_total = default_value
+          } else {
+            room_total = room['total'];
+          }
 
-            if (drugs_total == null || drugs_total == 0) {
-              drugs_total = default_value;
-            }
-            if (lab_total == null || lab_total == 0) {
-              lab_total = default_value;
-            }
-            if (misc_total == null || misc_total == 0) {
-              misc_total = default_value;
-            }
-            if (ordr_total == null || ordr_total == 0) {
-              ordr_total = default_value;
-            }
-            if (others_total == null || others_total == 0) {
-              others_total = default_value;
-            }
-            if (oxygen_total == null || oxygen_total == 0) {
-              oxygen_total = default_value;
-            }
-            if (profees_total == null || profees_total == 0) {
-              profees_total = default_value;
-            }
-            if (rad_total == null || rad_total == 0) {
-              rad_total = default_value;
-            }
-            if (room_total == null || room_total == 0 ) {
-              room_total = default_value;
-            }
-            if (supplies_total == null || supplies_total == 0) {
-              supplies_total = default_value;
-            }
-            if (advance_payment == null || advance_payment == 0) {
-              advance_payment = default_value;
-            }
+          if (drugs == null || drugs == 0) {
+            drugs_total = default_value;
+          } else {
+            drugs_total = drugs['total'];
+            drugs_adv_pay = drugs['adv_pay'];
+          }
 
-            $('#drugs_total').val(formatNumber(drugs_total));
-            $('#lab_total').val(formatNumber(lab_total));
-            $('#misc_total').val(formatNumber(misc_total));
-            $('#ordr_total').val(formatNumber(ordr_total));
-            $('#others_total').val(formatNumber(others_total));
-            $('#oxygen_total').val(formatNumber(oxygen_total));
-            $('#profees_total').val(formatNumber(profees_total));
-            $('#rad_total').val(formatNumber(rad_total));
-            $('#room_total').val(formatNumber(room_total));
-            $('#supplies_total').val(formatNumber(supplies_total));
-          });
+          if (supplies == null || supplies == 0) {
+            supplies_total = default_value;
+          } else {
+            supplies_total = supplies['total'];
+            supplies_adv_pay = supplies['adv_pay'];
+          }
 
-          $('#charge-info > tr').each(function(){
-            var nc_value = 0;
-            var num_value = 0;
+          if (lab == null || lab == 0) {
+            lab_total = default_value;
+          } else {
+            lab_total = lab['total'];
+            lab_adv_pay = lab['adv_pay'];
+          }
 
-            nc_value = removeComma($(this).find('input').val());
-            num_value = Number(nc_value);
-            total_charges += num_value;
-          });
+          if (rad == null || rad == 0) {
+            rad_total = default_value;
+          } else {
+            rad_total = rad['total'];
+            rad_adv_pay = rad['adv_pay'];
+          }
 
-          // alert(advance_payment);
-          amount_due =  total_charges - advance_payment;
-          // console.log(total);
-          $('#total_amount').val(formatNumber(amount_due.toFixed(2)));
-          $('#ending_balance').val(formatNumber(amount_due.toFixed(2)))
-          $('#total_charges').val(formatNumber(total_charges.toFixed(2)));
-          $('#less_payments').val(formatNumber(Number(advance_payment).toFixed(2)));
-          $('#amount_due').val(formatNumber(amount_due.toFixed(2)));
+          if (or == null || or == 0) {
+            or_total = default_value;
+          } else {
+            or_total = or['total'];
+            or_adv_pay = or['adv_pay'];
+          }
+
+          if (oxygen == null || oxygen == 0) {
+            oxygen_total = default_value;
+          } else {
+            oxygen_total = oxygen['total'];
+            oxygen_adv_pay = oxygen['adv_pay'];
+          }
+
+          if (misc == null || misc == 0) {
+            others_total = default_value;
+          } else {
+            others_total = misc['total'];
+            others_adv_pay = misc['adv_pay'];
+          }
+
+          total_charges = Number(room_total)
+            + Number(drugs_total)
+            + Number(supplies_total)
+            + Number(lab_total)
+            + Number(rad_total)
+            + Number(or_total)
+            + Number(oxygen_total)
+            + Number(others_total);
+
+          advance_payment = Number(drugs_adv_pay)
+            + Number(supplies_adv_pay)
+            + Number(lab_adv_pay)
+            + Number(rad_adv_pay)
+            + Number(or_adv_pay)
+            + Number(oxygen_adv_pay)
+            + Number(others_adv_pay);
+
+          $('#profees_total').val(formatNumber(profees_total));
+          $('#room_total').val(formatNumber(room_total));
+          $('#drugs_total').val(formatNumber(drugs_total));
+          $('#supplies_total').val(formatNumber(supplies_total));
+          $('#lab_total').val(formatNumber(lab_total));
+          $('#rad_total').val(formatNumber(rad_total));
+          $('#ordr_total').val(formatNumber(or_total));
+          $('#oxygen_total').val(formatNumber(oxygen_total));
+          $('#others_total').val(formatNumber(others_total));
+
+          amount_due =  Number(total_charges - advance_payment);
+
+          // console.log(total_charges);
+          // console.log(advance_payment);
+          // console.log(amount_due);
+
+          // console.log(total_charges);
+          // console.log(advance_payment);
+          // console.log(amount_due);
+
+          $('#total_amount').val(formatNumber(amount_due));
+          $('#ending_balance').val(formatNumber(amount_due))
+          $('#total_charges').val(formatNumber(total_charges));
+          $('#less_payments').val(formatNumber(advance_payment));
+          $('#amount_due').val(formatNumber(amount_due));
         }
       });
-
-
     }
-
-
-    // $.ajax({
-    //   type: "POST",
-    //   url: "/collections/inpatient/create/search-patient-charges",
-    //   data: { _token: _t, soa_number: soa },
-    //   dataType: "JSON",
-    //   success: function(data) {
-    //     console.log(data);
-    //     var _token = data._token;
-    //     var billing_id = data.billing_id;
-    //     var encounter_code = data.encounter_code;
-    //     var soa_number = data.soa_number;
-    //     var patient_id = data.patient_id;
-    //     var account_number = data.account_number;
-    //
-    //     $('#billing_id').val(billing_id);
-    //     $('#encounter_code').val(encounter_code);
-    //     $('#soa_number').val(soa_number);
-    //     $('#patient_id').val(patient_id);
-    //     $('#account_number').val(account_number);
-    //     $('#paystat').val('A');
-    //     $('#paylock').val('N');
-    //     $('#updsw').val('N');
-    //     $('#confdl').val('N');
-    //     $('#payctr').val('0');
-    //     $('#status').val('Paid');
-    //
-    //   }
-    // });
 
     function getPatientCharges(_t, b_id, ecode, snumber, pid, an) {
       var billing_id = b_id;
@@ -692,9 +720,11 @@
     }
 
     function removeComma(num) {
-      var rem_comma = num.replace(/,/g, '');
+      var val = "";
 
-      return rem_comma;
+      val = num.replace(/,/g, '');
+
+      return val;
     }
 
 
@@ -707,16 +737,41 @@
 
     $('#update_totals').on('click', function(event){
       event.preventDefault();
+
       var total_amount = removeComma($('#total_amount').val());
       var amount_due = removeComma($('#amount_due').val());
       var dec_amount = Number(total_amount);
       var q = confirm('Are you sure you want to update the totals ?');
 
+      // console.log(total_amount);
+      // console.log(amount_due);
+      // console.log(dec_amount);
+
+      // if (total_amount < 1000) {
+      //   //
+      // } else {
+      //   total_amount = removeComma($('#total_amount').val());
+      // }
+      //
+      // if (amount_due < 1000) {
+      //   //
+      // } else {
+      //   amount_due = removeComma($('#amount_due').val());
+      // }
+
+      // var total_amount = removeComma($('#total_amount').val());
+      // var amount_due = removeComma($('#amount_due').val());
+      // var pay_patient = 0;
+
+      // if ($('#pay_patient').is(':checked')) {
+      //   pay_patient = 1;
+      //
+      // }
+
+      // console.log(pay_patient);
+
       if (q == true) {
         $('#total_amount').val(formatNumber(total_amount));
-
-        // console.log(total_amount);
-        // console.log(amount_due);
 
         if (Number(total_amount) > Number(amount_due)) {
           alert('The total amount is greater than total patient charges .');
@@ -724,35 +779,10 @@
           $('#total_amount').focus();
 
         } else {
-
           updateTotals(total_amount, amount_due, dec_amount);
         }
-        // $('.charge').each(function(){
-        //   nc_value = removeComma($(this).val());
-        //   num_value = Number(nc_value);
-        //   total_charges += num_value;
-        // });
-        // console.log(total_charges);
-        // console.log(less_payments);
-        // $('#drugs_total').val(formatNumber(numDecimals(drugs_total)));
-        // $('#lab_total').val(formatNumber(numDecimals(lab_total)));
-        // $('#misc_total').val(formatNumber(numDecimals(misc_total)));
-        // $('#ordr_total').val(formatNumber(numDecimals(ordr_total)));
-        // $('#others_total').val(formatNumber(numDecimals(others_total)));
-        // $('#oxygen_total').val(formatNumber(numDecimals(oxygen_total)));
-        // $('#profees_total').val(formatNumber(numDecimals(profees_total)));
-        // $('#rad_total').val(formatNumber(numDecimals(rad_total)));
-        // $('#room_total').val(formatNumber(numDecimals(room_total)));
-        // $('#supplies_total').val(formatNumber(numDecimals(supplies_total)));
-        // alert(advance_payment);
-        // amount_due =  total_charges - less_payments;
-        // console.log(total);
-        // $('#total_charges').val(formatNumber(total_charges));
-        // $('#less_payments').val(formatNumber(less_payments));
-        // $('#amount_due').val(formatNumber(amount_due));
-        // $('#total_amount').val(formatNumber(amount_due));
       } else {
-
+        //
       }
     });
 
@@ -760,22 +790,35 @@
       var nc_value = 0;
       var num_value = 0;
       var total_charges = 0;
-      var drugs_total = removeComma($('#drugs_total').val());
-      var lab_total = removeComma($('#lab_total').val());
-      var misc_total = removeComma($('#misc_total').val());
-      var ordr_total = removeComma($('#ordr_total').val());
-      var others_total = removeComma($('#others_total').val());
-      var oxygen_total = removeComma($('#oxygen_total').val());
-      var profees_total = removeComma($('#profees_total').val());
-      var rad_total = removeComma($('#rad_total').val());
-      var room_total = removeComma($('#room_total').val());
-      var supplies_total = removeComma($('#supplies_total').val());
       var total_amount = t_amount;
-      var ending_balance = removeComma($('#ending_balance').val());
-      var less_payments = removeComma($('#less_payments').val());
       var amount_due = amount_d;
       var dec_amount = de_amount;
       var new_balance = 0;
+      var arrData = [];
+
+      // var drugs_total = $('#drugs_total').val();
+      // var lab_total = $('#lab_total').val();
+      // var ordr_total = $('#ordr_total').val();
+      // var others_total = $('#others_total').val();
+      // var oxygen_total = $('#oxygen_total').val();
+      // var rad_total = $('#rad_total').val();
+      // var room_total = $('#room_total').val();
+      // var supplies_total = $('#supplies_total').val();
+      //
+      // var ending_balance = $('#ending_balance').val();
+      // var less_payments = $('#less_payments').val();
+
+      var drugs_total = removeComma($('#drugs_total').val());
+      var lab_total = removeComma($('#lab_total').val());
+      var ordr_total = removeComma($('#ordr_total').val());
+      var others_total = removeComma($('#others_total').val());
+      var oxygen_total = removeComma($('#oxygen_total').val());
+      var rad_total = removeComma($('#rad_total').val());
+      var room_total = removeComma($('#room_total').val());
+      var supplies_total = removeComma($('#supplies_total').val());
+
+      var ending_balance = removeComma($('#ending_balance').val());
+      var less_payments = removeComma($('#less_payments').val());
 
       // Loop charge array
       $.each(charge_array, function(i, value){
@@ -825,24 +868,28 @@
 
 
       new_balance = ending_balance - total_amount;
+
+      // console.log(total_amount);
+      // console.log(ending_balance);
+      // console.log(new_balance);
+
       $('#ending_balance').val(formatNumber(new_balance));
 
     }
 
-    $('#clear_computation').on('click', function(e){
-      // console.log('clear computation');
 
+    // Button clear computation
+    $('#clear_computation').on('click', function(e){
       var q = confirm('Are you sure you want to clear the computation ?');
 
       if (q == true) {
 
         return $('#search_soa').click();
-
       }
-
-
     });
 
+
+    // Button save
     $('#btn_save').on('click', function(event){
       event.preventDefault();
 

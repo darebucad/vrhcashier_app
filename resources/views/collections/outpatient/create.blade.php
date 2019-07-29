@@ -520,8 +520,8 @@
       var _token = CSRF_TOKEN;
       // alert(discount_id);
       getDiscountPercent(_token, discount_id);
-
     });
+    // end of get discount percent change
 
 
     function getDiscountPercent(_t, did) {
@@ -537,6 +537,7 @@
         }
       });
     }
+    // end of get discount percent functuion
 
 
     // Click apply discount all
@@ -1322,21 +1323,19 @@
 
 
     $('#btn_print').click(function(event) {
-
       event.preventDefault();
+
+      var id = $('#or_number').val();
       // var prefix_or_number = $('#or_number').val();
-      // window.location.replace("/collections/outpatient/print/pdf/" + prefix_or_number);
 
-      console.log(arrData);
-
-
-
+      window.location.replace("/collections/outpatient/print/pdf/" + id);
     });
 
 
     $('#btn_new').click(function(e){
       e.preventDefault();
       var user_id = $('#user_id').val();
+      
       window.location.replace("/collections/outpatient/create/" + user_id);
     });
 

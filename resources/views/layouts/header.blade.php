@@ -21,6 +21,7 @@
     <!-- jQuery Simple table cell editor file -->
     <script type="text/javascript" src="{{ asset('/js/SimpleTableCellEditor.js') }}"></script>
 
+
     <!-- Bootstrap 4.1.3 core CSS -->
     <link rel="stylesheet" type="text/css" href="{{ asset('/css/bootstrap.min.css') }}">
 

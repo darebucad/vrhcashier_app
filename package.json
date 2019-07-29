@@ -20,6 +20,8 @@
         "vue": "^2.5.7"
     },
     "dependencies": {
+        "chart.js": "^2.8.0",
+        "comma-number": "^2.0.1",
         "select2": "^4.0.6-rc.1"
     }
 }

@@ -23,6 +23,7 @@ use App\ViewWalkinChargeSupply;
 
 use Carbon\Carbon;
 use NumberToWords\NumberToWords;
+use DB;
 
 
 class CollectionsWalkinController extends Controller
@@ -797,11 +798,13 @@ class CollectionsWalkinController extends Controller
         $decimal_value = ' and ' . $decimal_value . '/100 only';
       }
 
-      $output .= '</table>';
 
+      $new_total = number_format($total, 2, '.', '');
+
+      $output .= '</table>';
       $output .= '
         <p align="right" style="font-family: Helvetica; font-size: 13px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
-        <p align="left" style="font-family: Helvetica; font-size: 13px; margin-top: -10px; margin-left: 90px">'. ucfirst($numberTransformer->toWords($total)) . $decimal_value .'</p>
+        <p align="left" style="font-family: Helvetica; font-size: 13px; margin-top: -10px; margin-left: 90px">'. ucwords($numberTransformer->toWords($new_total)) . $decimal_value .'</p>
         <br>
         <br>
         <br>
@@ -817,6 +820,7 @@ class CollectionsWalkinController extends Controller
 
     private function getWalkinPaymentData($or_n) {
       $walkin_payment_data = ViewOtherCollection::where('prefix_or_number', $or_n)
+      ->groupBy('description')
       ->orderByRaw('payment_counter ASC')
       ->get();
 
@@ -824,12 +828,39 @@ class CollectionsWalkinController extends Controller
     }
 
     public function getWalkinPaymentDataIndex() {
-      $walkin_payments = ViewOtherCollection::select('prefix_or_number', 'or_number', 'receipt_date', 'patient_name', 'discount_name', 'amount_paid', 'name', 'payment_status', 'charge_slip_number')
-      ->distinct()
-      ->groupBy('prefix_or_number')
-      ->whereNotNull('charge_slip_number')
-      ->orderByRaw('created_at DESC')
+//       SELECT p.payment_id,
+// p.created_at,
+// p.prefix_or_number,
+// p.patient_name,
+// SUM(p.sub_total) AS total,
+// p.payment_status,
+// u.name,
+// cd.discount_name
+//
+// FROM cashier_payment_other AS p
+// LEFT JOIN cashier_users AS u
+// ON u.id = p.id
+// LEFT JOIN cashier_discount AS cd
+// ON cd.id = p.discount_id
+//
+// GROUP BY p.prefix_or_number
+
+      $walkin_payments = PaymentOther::leftjoin('cashier_users AS u', 'u.id', '=', 'cashier_payment_other.id')
+      ->leftjoin('cashier_discount AS cd', 'cd.id', '=', 'cashier_payment_other.discount_id')
+      ->select('cashier_payment_other.payment_id', 'cashier_payment_other.created_at', 'cashier_payment_other.prefix_or_number', 'cashier_payment_other.patient_name', 'cashier_payment_other.charge_slip_number',
+      DB::raw('SUM(cashier_payment_other.sub_total) AS total'), 'cashier_payment_other.payment_status', 'u.name', 'cd.discount_name')
+      ->whereNotNull('cashier_payment_other.charge_slip_number')
+      ->groupBy('cashier_payment_other.prefix_or_number')
+      ->orderBy('cashier_payment_other.created_at', 'DESC')
+      ->limit(200)
       ->get();
+
+      // $walkin_payments = ViewOtherCollection::select('prefix_or_number', 'or_number', 'receipt_date', 'patient_name', 'discount', 'amount_paid', 'name', 'payment_status', 'charge_slip_number')
+      // ->distinct()
+      // ->groupBy('prefix_or_number')
+      // ->whereNotNull('charge_slip_number')
+      // ->orderByRaw('created_at DESC')
+      // ->get();
 
       $response = array('data' => $walkin_payments);
 

@@ -45,12 +45,14 @@ class CollectionsOtherController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index() {
-        $payments = ViewOtherCollection::select('prefix_or_number', 'or_number', 'receipt_date', 'patient_name', 'discount', 'amount_paid', 'name', 'payment_status')
-        ->distinct()
-        ->limit(20)
-        ->orderByRaw('created_at DESC')
-        ->get();
-    	return view('collections.other.index', compact('payments'));
+        // $payments = ViewOtherCollection::select('prefix_or_number', 'or_number', 'receipt_date', 'patient_name', 'discount', 'amount_paid', 'name', 'payment_status')
+        // ->distinct()
+        // ->limit(20)
+        // ->groupBy('prefix_or_number')
+        // ->orderByRaw('created_at DESC')
+        // ->get();
+        return view('collections.other.index');
+    	// return view('collections.other.index', compact('payments'));
     }
 
 
@@ -265,6 +267,7 @@ class CollectionsOtherController extends Controller
      */
     public function getPaymentData($id) {
       $payment_data = ViewOtherCollection::where('prefix_or_number', $id)
+      ->groupBy('description')
       ->orderByRaw('payment_counter ASC')
       ->get();
       return $payment_data;
@@ -360,9 +363,11 @@ class CollectionsOtherController extends Controller
           $decimal_value = ' and ' . $decimal_value . '/100 only';
       }
 
+      $new_total = number_format($total, 2, '.', '');
+
     $output .= '</table>
             <p align="right" style="font-family: Helvetica; font-size: 13px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
-            <p align="left" style="font-family: Helvetica; font-size: 13px; margin-top: -10px; margin-left: 90px">'. ucfirst($numberTransformer->toWords($total)) . $decimal_value .'</p>
+            <p align="left" style="font-family: Helvetica; font-size: 13px; margin-top: -10px; margin-left: 90px">'. ucwords($numberTransformer->toWords($new_total)) . $decimal_value .'</p>
             <br>
             <br>
             <br>
@@ -415,11 +420,23 @@ class CollectionsOtherController extends Controller
      * @return \Illuminate\Http\Response
      */
      public function getOtherCollectionData() {
-       $payments = ViewOtherCollection::select('prefix_or_number', 'or_number', 'receipt_date', 'patient_name', 'discount', 'amount_paid', 'name', 'payment_status')
-       ->distinct()
-       ->whereNull('charge_slip_number')
-       ->orderByRaw('created_at DESC')
+
+       $payments = PaymentOther::leftjoin('cashier_users AS u', 'u.id', '=', 'cashier_payment_other.id')
+       ->leftjoin('cashier_discount AS cd', 'cd.id', '=', 'cashier_payment_other.discount_id')
+       ->select('cashier_payment_other.payment_id', 'cashier_payment_other.created_at', 'cashier_payment_other.prefix_or_number', 'cashier_payment_other.patient_name', 'cashier_payment_other.charge_slip_number',
+       DB::raw('SUM(cashier_payment_other.sub_total) AS total'), 'cashier_payment_other.payment_status', 'u.name', 'cd.discount_name')
+       ->whereNull('cashier_payment_other.charge_slip_number')
+       ->groupBy('cashier_payment_other.prefix_or_number')
+       ->orderBy('cashier_payment_other.created_at', 'DESC')
+       ->limit(200)
        ->get();
+
+
+       // $payments = ViewOtherCollection::select('prefix_or_number', 'or_number', 'receipt_date', 'patient_name', 'discount', 'amount_paid', 'name', 'payment_status')
+       // ->distinct()
+       // ->whereNull('charge_slip_number')
+       // ->orderByRaw('created_at DESC')
+       // ->get();
 
        $response = array('data' => $payments);
        return response()->json($response);

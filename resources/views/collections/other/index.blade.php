@@ -48,28 +48,14 @@
   		</tr>
   	</thead>
   	<!-- <tbody>
-		@foreach ($payments as $payment)
-			<tr id="{{ $payment->prefix_or_number }}" style="cursor: pointer;" >
-				<td>{{ $payment->receipt_date }}</td>
-				<td>{{ $payment->prefix_or_number }}</td>
-				<td>{{ $payment->patient_name }}</td>
-				<td>{{ $payment->discount }}</td>
-        <td align="right">{{ $payment->amount_paid }}</td>
-				<td>{{ $payment->name }}</td>
-				<td>{{ $payment->payment_status }}</td>
-				<td>
-          <a href="#" class="btn btn-sm btn-outline-danger print"><span data-feather="printer"></span> Print Receipt</a>
-          <a href="#" class="btn btn-sm btn-outline-info cancel" style=@if(Auth::user()->isAdmin === '0') display:none @endif><span data-feather="x"></span> Cancel Payment</a>
-    		</td>
-			</tr>
-		@endforeach
+
   	</tbody> -->
   </table>
 </main>
 
 <script type="text/javascript">
 	$(document).ready(function(){
-		
+
 		var table = $('#other_collection_table').DataTable({
 			"processing": true,
 			"ordering": false,
@@ -86,11 +72,11 @@
 				}
 			],
 			"columns": [
-				{ "data": "receipt_date" },
+				{ "data": "created_at" },
 				{ "data": "prefix_or_number" },
 				{ "data": "patient_name" },
-				{ "data": "discount" },
-				{ "data": "amount_paid",
+				{ "data": "discount_name" },
+				{ "data": "total",
 					// Include thousands separator to the number
 					render: $.fn.dataTable.render.number( ',', '.', 2, '' )
 				},

@@ -30,7 +30,9 @@
   <div class="row">
     <a href="{{ route('collections.inpatient.create', ['' => Auth::user()->id]) }}" class="btn btn-primary btn-sm">Create</a>
   </div>
+
   <br>
+
   <table id="inpatient" class="table table-sm table-striped table-hover" style="width:100%">
     <thead>
       <tr>
@@ -38,8 +40,12 @@
         <th>O.R. Date</th>
         <th>O.R. No.</th>
         <th>SOA No.</th>
-        <th>Patient Name</th>
-        <th>Discount (%)</th>
+        <th>Last Name</th>
+        <th>First Name</th>
+        <th>Suffix Name</th>
+        <th>Middle Name</th>
+        <!-- <th>Patient Name</th> -->
+        <!-- <th>Discount (%)</th> -->
         <th style="text-align:right">Amount Paid</th>
         <th>Cashier On-duty</th>
         <th>Status</th>
@@ -64,38 +70,36 @@
       },
       "columnDefs": [
         {
-          targets: [5],
+          targets: [7],
           className: 'text-right'
         },
       ],
       "columns": [
-        { "data": "or_date" },
-        { "data": "or_no_prefix" },
-        { "data": "charge_slip_no" },
-        { "data": "patient_name" },
-        { "data": "discount" },
-        { "data": "amount_paid" ,
+        { "data": "created_at" },
+        { "data": "preorno" },
+        {"data": "pcchrgcod"},
+        { "data": "patlast" },
+        {"data": "patfirst"},
+        {"data": "patsuffix"},
+        {"data": "patmiddle"},
+        // { "data": "patient_name" },
+        // { "data": "discount" },
+        { "data": "amount" ,
           // Include thousands separator to the number
           render: $.fn.dataTable.render.number( ',', '.', 2, '' )},
-
-        { "data": "employee_name" },
-        { "data": "status" },
-
+        { "data": "name" },
+        { "data": "payment_status" },
         { defaultContent:
           '',
           render: function(data, type, row, meta) {
-            if (row.status === 'Cancelled') {
+            if (row.payment_status === 'Cancelled') {
               ret_val = '<button class="btn btn-sm btn-outline-secondary draft" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Set to Draft</button>';
-
             }
-
-            else if (row.status === 'Draft') {
+            else if (row.payment_status === 'Draft') {
               ret_val = '<button class="btn btn-sm btn-outline-warning paid" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Mark as Paid</button>';
-
             } else {
               ret_val = '<button class="btn btn-sm btn-outline-danger print"><span data-feather="printer"></span> Reprint Receipt</button>' +
               ' <button class="btn btn-sm btn-outline-dark cancel" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span> Cancel</button>';
-
             }
 
             return ret_val;
@@ -125,41 +129,45 @@
 
     $('#inpatient tbody').on('click', '.print', function () {
       var row = $(this).closest('tr');
-      var data = table.row( row ).data().or_no_prefix;
+      var id = table.row(row).data().preorno;
+      // var data = table.row( row ).data().or_no_prefix;
       // console.log(data);
-      window.location.href = '/collections/inpatient/print/pdf/' + data;
+      window.location.href = '/collections/inpatient/print/pdf/' + id;
     });
 
     $('#inpatient tbody').on('click', '.cancel', function(){
       var row = $(this).closest('tr');
-      var or_number = table.row(row).data().or_no_prefix;
+      var id = table.row(row).data().preorno;
+      // var or_number = table.row(row).data().or_no_prefix;
       var user_id = $('#user_id').val();
       var q = confirm('Are you sure you want to cancel this payment ?');
 
       if (q == true) {
         // console.log(or_number);
-        window.location.href = '/collections/inpatient/cancel-payment/' + or_number;
+        window.location.href = '/collections/inpatient/cancel-payment/' + id;
       }
     });
 
     $('#inpatient tbody').on('click', '.draft', function(){
       var row = $(this).closest('tr');
-      var or_number = table.row(row).data().or_no_prefix;
+      var id = table.row(row).data().preorno;
+      // var or_number = table.row(row).data().or_no_prefix;
       var user_id = $('#user_id').val();
 
       // console.log(or_number);
-      window.location.href = '/collections/inpatient/draft-payment/' + or_number;
+      window.location.href = '/collections/inpatient/draft-payment/' + id;
     });
 
     $('#inpatient tbody').on('click', '.paid', function() {
       var row = $(this).closest('tr');
-      var or_number = table.row(row).data().or_no_prefix;
+      var id = table.row(row).data().preorno;
+      // var or_number = table.row(row).data().or_no_prefix;
       var user_id = $('#user_id').val();
       var q = confirm('Are you sure you want to mark this payment as paid ?');
 
       if (q == true) {
         // console.log(or_number);
-        window.location.href = '/collections/inpatient/mark-paid/' + or_number;
+        window.location.href = '/collections/inpatient/mark-paid/' + id;
       }
     });
 

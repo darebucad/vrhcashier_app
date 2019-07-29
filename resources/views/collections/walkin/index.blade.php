@@ -70,11 +70,11 @@
         }
       ],
       "columns": [
-        { "data": "receipt_date" },
+        { "data": "created_at" },
         { "data": "prefix_or_number" },
         { "data": "patient_name" },
         { "data": "discount_name" },
-        { "data": "amount_paid",
+        { "data": "total",
           // Include thousands separator to the number
           render: $.fn.dataTable.render.number( ',', '.', 2, '' )
         },
@@ -106,7 +106,8 @@
       ],
       "order": [
         [ 0, "desc" ]
-      ]
+      ],
+      "deferRender": true,
     });
 
 

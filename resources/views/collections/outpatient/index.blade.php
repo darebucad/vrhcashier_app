@@ -34,18 +34,22 @@
   <br />
   <input type="hidden" name="user_id" id="user_id" value="{{ Auth::user()->id }}">
 
-  <table id="example" class="table table-sm table-striped table-hover" style="width:100%">
+  <table id="example" class="table table-striped table-hover" style="width:100%; cursor: pointer;">
         <thead>
           <tr>
             <!-- Table Header -->
             <th>O.R. Date</th>
             <th>O.R. No.</th>
-            <th>Patient Name</th>
+            <th>Last Name</th>
+            <th>First Name</th>
+            <th>Suffix Name</th>
+            <th>Middle Name</th>
+            <!-- <th>Patient Name</th> -->
             <th>Discount (%)</th>
             <th style="text-align:right">Amount Paid</th>
             <th>Cashier On-duty</th>
             <th>Status</th>
-            <th>Action</th>
+            <!-- <th>Action</th> -->
           </tr>
         </thead>
     </table>
@@ -68,42 +72,46 @@
       },
       "columnDefs": [
         {
-          targets: [4],
+          targets: [7],
           className: 'text-right'
         },
       ],
       "columns": [
-        { "data": "or_date" },
-        { "data": "or_no_prefix" },
-        { "data": "patient_name" },
-        { "data": "discount" },
-        { "data": "amount_paid" ,
+        { "data": "created_at" },
+        { "data": "preorno" },
+        {"data": "patlast"},
+        {"data": "patfirst"},
+        {"data": "patsuffix"},
+        {"data": "patmiddle"},
+        // { "data": "patient_name" },
+        { "data": "discount_name" },
+        { "data": "amount" ,
           // Include thousands separator to the number
           render: $.fn.dataTable.render.number( ',', '.', 2, '' )},
-        { "data": "employee_name" },
-        { "data": "status" },
+        { "data": "name" },
+        { "data": "payment_status" },
 
-        { defaultContent:
-          '',
-          render: function(data, type, row, meta) {
-            if (row.status === 'Cancelled') {
-              ret_val = '<button class="btn btn-sm btn-outline-secondary draft" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Set to Draft</button>';
-
-            }
-
-            else if (row.status === 'Draft') {
-              ret_val = '<button class="btn btn-sm btn-outline-warning paid" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Mark as Paid</button>';
-
-            } else {
-              ret_val = '<button class="btn btn-sm btn-outline-danger print"><span data-feather="printer"></span> Reprint Receipt</button>' +
-              ' <button class="btn btn-sm btn-outline-dark cancel" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span> Cancel</button>';
-
-            }
-
-            return ret_val;
-          },
-
-        },
+        // { defaultContent:
+        //   '',
+        //   render: function(data, type, row, meta) {
+        //     if (row.status === 'Cancelled') {
+        //       ret_val = '<button class="btn btn-sm btn-outline-secondary draft" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Set to Draft</button>';
+        //
+        //     }
+        //
+        //     else if (row.status === 'Draft') {
+        //       ret_val = '<button class="btn btn-sm btn-outline-warning paid" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span>Mark as Paid</button>';
+        //
+        //     } else {
+        //       ret_val = '<button class="btn btn-sm btn-outline-danger print"><span data-feather="printer"></span> Reprint Receipt</button>' +
+        //       ' <button class="btn btn-sm btn-outline-dark cancel" @if(Auth::user()->is_admin<>1) style="display:none;" @endif><span data-feather="x"></span> Cancel</button>';
+        //
+        //     }
+        //
+        //     return ret_val;
+        //   },
+        //
+        // },
 
       ],
     //   "createdRow": function( row, data, dataIndex ) {
@@ -120,7 +128,8 @@
       }
 
     },
-      "order": [[ 0, "desc" ]]
+      "order": [[ 0, "desc" ]],
+      "deferRender": true,
 
     });
 
@@ -164,6 +173,16 @@
         // console.log(or_number);
         window.location.href = '/collections/outpatient/mark-paid/' + or_number;
       }
+    });
+
+
+    $('#example tbody').on('click', 'tr', function () {
+      var row = $(this).closest('tr');
+      var id = table.row(row).data().preorno;
+      // var data = table.row( row ).data().or_no_prefix;
+
+      // alert( 'You clicked on '+ data +'\'s row' );
+      window.location.href = '/collections/outpatient/edit/' + id;
     });
 
 

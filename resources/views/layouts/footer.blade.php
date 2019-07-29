@@ -17,6 +17,15 @@
     <!-- DataTables-1.10.18\js\jquery.dataTables.min.js -->
     <!-- <script type="text/javascript" src="{{ asset('/DataTables-1.10.18/js/jquery.dataTables.min.js') }}"> -->
 
+    <!-- Chart.js -->
+    <script type="text/javascript" src="{{ asset('/js/chart.js/dist/Chart.min.js') }}"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="{{ asset('/js/demo/chart-area-demo.js') }}"></script>
+    <script src="{{ asset('/js/demo/chart-pie-demo.js') }}"></script>
+
+
+
     </script>
 
 

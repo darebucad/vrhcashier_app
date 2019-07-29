@@ -3,6 +3,7 @@ Auth::routes();
 
 Route::get('/', 'DashboardController@index')->name('dashboard');
 
+
 // Collections Outpatient
 Route::get('collections/outpatient', 'CollectionsOutpatientController@index')->name('collections.outpatient');
 Route::get('collections/outpatient/create/{id}', 'CollectionsOutpatientController@create')->name('collections.outpatient.create');
@@ -28,6 +29,7 @@ Route::get('/collections/outpatient/cancel-payment/{id}', 'CollectionsOutpatient
 Route::get('/collections/outpatient/draft-payment/{id}', 'CollectionsOutpatientController@draftPayment');
 Route::get('/collections/outpatient/mark-paid/{id}', 'CollectionsOutpatientController@markPaid');
 Route::get('collections/outpatient/create/print-pdf/{id}', 'CollectionsOutpatientController@createPrintPdf');
+Route::get('/collections/outpatient/edit/{id}', 'CollectionsOutpatientController@edit');
 
 
 // Collections Other
@@ -46,23 +48,24 @@ Route::get('/collections/other/draft-payment/{id}', 'CollectionsOtherController@
 Route::get('/collections/other/mark-paid/{id}', 'CollectionsOtherController@markPaid');
 
 
-
 // Collections Inpatient
 Route::get('collections/inpatient', 'CollectionsInpatientController@index')->name('collections.inpatient');
 Route::get('collections/inpatient/create/{id}', 'CollectionsInpatientController@create')->name('collections.inpatient.create');
 Route::get('collections/inpatient/create/get-patient-bill', 'CollectionsInpatientController@getPatientBill');
-Route::post('collections/inpatient/create/get-patient-charges', 'CollectionsInpatientController@getPatientCharges');
+Route::post('collections/inpatient/create/search-soa', 'CollectionsInpatientController@searchSoa');
 Route::post('collections/inpatient/create/check-or-duplicate', 'CollectionsInpatientController@checkORDuplicate');
 Route::post('collections/inpatient/create/save-payment', 'CollectionsInpatientController@savePayment');
-Route::get('/collections/inpatient/print/pdf/{id}', 'CollectionsInpatientController@printReceipt'); // print OR pdf
-Route::get('/collections/inpatient/get_inpatient_payment_data', 'CollectionsInpatientController@getInpatientPaymentData');
-Route::get('/collections/inpatient/cancel-payment/{id}', 'CollectionsInpatientController@cancelPayment');
-Route::get('/collections/inpatient/draft-payment/{id}', 'CollectionsInpatientController@draftPayment');
-Route::get('/collections/inpatient/mark-paid/{id}', 'CollectionsInpatientController@markPaid');
-// Route::get('collections/inpatient/create/autocomplete-search', 'CollectionsInpatientController@autoCompleteSearch')->name('collections.inpatient.search');
+Route::get('collections/inpatient/print/pdf/{id}', 'CollectionsInpatientController@printReceipt'); // print OR pdf
+Route::get('collections/inpatient/get_inpatient_payment_data', 'CollectionsInpatientController@getInpatientPaymentData');
+Route::get('collections/inpatient/cancel-payment/{id}', 'CollectionsInpatientController@cancelPayment');
+Route::get('collections/inpatient/draft-payment/{id}', 'CollectionsInpatientController@draftPayment');
+Route::get('collections/inpatient/mark-paid/{id}', 'CollectionsInpatientController@markPaid');
 Route::get('collections/inpatient/create/show-bill', 'CollectionsInpatientController@showBill');
 Route::post('collections/inpatient/get-bill', 'CollectionsInpatientController@getBill');
 Route::post('collections/inpatient/create/search-patient-charges', 'CollectionsInpatientController@searchPatientCharges');
+// Route::post('collections/inpatient/create/get-patient-charges', 'CollectionsInpatientController@getPatientCharges');
+// Route::get('collections/inpatient/create/autocomplete-search', 'CollectionsInpatientController@autoCompleteSearch')->name('collections.inpatient.search');
+
 
 
 // Collections Walkin
