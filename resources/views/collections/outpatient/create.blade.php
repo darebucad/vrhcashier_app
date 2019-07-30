@@ -77,6 +77,7 @@
     <input type="hidden" name="discount_percent_value" id="discount_percent_value" value="">
     <input type="hidden" name="charge_code" value="" id="charge_code">
     <input type="hidden" name="total_amount" value="" id="total_amount">
+    <input type="hidden" name="is_duplicate_or_number" value="false" id="is_duplicate_or_number">
     <!-- <input type="hidden" name="charge_table" value="" id="charge_table"> -->
 
     <!-- Charge Details Row -->
@@ -108,7 +109,7 @@
       <div class="input-group">
         <label for="patient_name" class="col-md-1 col-form-label text-md-left">{{ __('Patient Name') }}</label>
         <div class="col-md-9">
-          <input type="text" name="patient_name" id="patient_name" value="" class="form-control form-control-sm" style="background-color:#99ccff!important;" required>
+          <input type="text" name="patient_name" id="patient_name" value="" class="form-control form-control-sm" style="background-color:#99ccff!important;" required readonly>
         </div>
       </div>
     </div>
@@ -125,16 +126,39 @@
 
       <label for="or_number" class="col-md-1 col-form-label text-md-left">{{ __('OR Number') }}</label>
 
-      <div class="col-md-3">
+      <!-- <div class="col-md-6 mb-3">
+  <label for="validationServer03">City</label>
+  <input type="text" class="form-control is-invalid" id="validationServer03" placeholder="City" required>
+  <div class="invalid-feedback">
+    Please provide a valid city.
+  </div>
+</div> -->
 
-        <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $or_prefix . $or_number }}" style="background-color:#99ccff!important;" required>
-        <input type="hidden" name="or_number_only" value="{{ $or_number }}">
+<!-- style="background-color:#99ccff!important;" -->
+
+
+      <div class="col-md-3">
+        <div class="input-group mb-3">
+          <input id="or_number" type="text" class="form-control form-control-sm is-valid" name="or_number" value="{{ $or_prefix . $or_number }}"  required>
+
+        <div class="input-group-append">
+          <button class="btn btn-danger btn-sm" id="btn_check_duplicate">Check Availability</button>
+        </div>
+        <div class="invalid-feedback">
+          Please provide a valid OR Number.
+        </div>
 
         @if ($errors->has('or_number'))
           <span class="invalid-feedback" role="alert">
               <strong>{{ $errors->first('or_number') }}</strong>
           </span>
         @endif
+        </div>
+
+
+        <input type="hidden" name="or_number_only" value="{{ $or_number }}">
+
+
       </div>
 
       <label class="col-md-1 col-form-label text-md-left"> User: </label>
@@ -325,6 +349,7 @@
   $(document).ready(function(){
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
     var editor = new SimpleTableCellEditor("invoice_table");
+    var or_number_state = true;
     editor.SetEditableClass("editMe");
 
     $('#search_barcode').on('click', function(){
@@ -1160,30 +1185,36 @@
       var row_count = $('#invoice_table tbody tr').length;
       var or_number = $('#or_number').val();
       var patient_name = $('#patient_name').val();
-      var q = '';
+      // var is_duplicate_or_number = $('#is_duplicate_or_number').val();
 
       // Check the value of charge slip number/barcode .
       if (charge_slip_number == '') {
         alert('Please input charge slip number / barcode .');
-        // console.log('please input charge slip number / barcode .');
 
       } else {
-        // Check the value of patient name input .
-        if (patient_name == '') {
-          alert('Please input valid charge slip number / barcode .');
-          // console.log('please input valid charge slip number / barcode .');
+
+        // Check duplicate OR Number
+        if (or_number_state === false) {
+          alert('Please use another OR Number (Duplicate entry).');
+          // console.log('duplicate or number');
 
         } else {
-          // Save payment function
-          savePayment(_token, charge_slip_number, row_count, or_number);
+
+          var q = confirm('Are you sure you want to save this payment ?');
+
+          if (q == true) {
+            console.log('saved');
+            savePayment(_token, or_number);
+
+          }
         }
       }
     });
 
-    function savePayment(_t, cslip, rc, or ) {
+    function savePayment(_t, or ) {
       var _token = _t;
       // var charge_slip_number_value = cslip;
-      var row_count = rc;
+      // var row_count = rc;
       var or_number_value = or;
       var arrData=[];
       var date = new Date();
@@ -1265,61 +1296,111 @@
 
         arrData.push(obj);
       });
-      // console.log(arrData);
 
-      var q = confirm('Are you sure you want to save this payment ?');
-      if (q == true) {
-        $.ajax({
-          type: "POST",
-          url: "/collections/outpatient/create/check-or-duplicate",
-          data: { _token: _token, or_number: or_number_value, arrData: arrData, row_count: row_count },
-          dataType: "JSON",
-          success: function(data){
-            var or_count = data.data;
-            var or_number = data.or_number;
-            var _token = data._token;
-            var arrData = data.arrData;
-            var row_count = data.row_count;
+      console.log(arrData);
 
-            // console.log(or_count);
+      $.ajax({
+        type: "POST",
+        url: "/collections/outpatient/create/store-payment",
+        data: { _token: _token, arrData: arrData, or_number: or_number_value },
+        dataType: "JSON",
+        success: function(data){
+          // console.log('saved');
+          console.log(data);
+          console.log(data.or_number);
 
-            if (or_count > 0) {
-              // console.log('duplicate OR');
-              alert('Please use another OR Number (Duplicate Entry) .');
+           $('.alert').show();
+           $('#btn_new').show();
+           $('#btn_print').show();
+           $('#btn_print').click();
+           $('#btn_save').hide();
+        }
+      }); // End of  ajax url:"/collections/other/store_payment",
 
-            } else {
-              // console.log('new OR');
-
-              if (row_count < 1) {
-                // console.log('add products');
-                alert('Please add at least one product/service to proceed .');
-
-              } else {
-
-                  $.ajax({
-                    type: "POST",
-                    url: "/collections/outpatient/create/store-payment",
-                    data: { _token: _token, arrData: arrData, or_number: or_number },
-                    dataType: "JSON",
-                    success: function(data){
-                      // console.log('saved');
-                      console.log(data);
-                      console.log(data.or_number);
-
-                       $('.alert').show();
-                       $('#btn_new').show();
-                       $('#btn_print').show();
-                       // $('#btn_print').click();
-                       $('#btn_save').hide();
-                    }
-                  }); // End of  ajax url:"/collections/other/store_payment",
-              } // End of if (row_count < 2) {
-            }
-          }
-        });
-      }
+      // var q = confirm('Are you sure you want to save this payment ?');
+      // if (q == true) {
+      //
+      //   console.log(arrData);
+        // $.ajax({
+        //   type: "POST",
+        //   url: "/collections/outpatient/create/check-or-duplicate",
+        //   data: { _token: _token, or_number: or_number_value, arrData: arrData, row_count: row_count },
+        //   dataType: "JSON",
+        //   success: function(data){
+        //     var or_count = data.data;
+        //     var or_number = data.or_number;
+        //     var _token = data._token;
+        //     var arrData = data.arrData;
+        //     var row_count = data.row_count;
+        //
+        //     // console.log(or_count);
+        //
+        //     if (or_count > 0) {
+        //       // console.log('duplicate OR');
+        //       alert('Please use another OR Number (Duplicate Entry) .');
+        //
+        //     } else {
+        //       // console.log('new OR');
+        //
+        //       if (row_count < 1) {
+        //         // console.log('add products');
+        //         alert('Please add at least one product/service to proceed .');
+        //
+        //       } else {
+        //
+                  // $.ajax({
+                  //   type: "POST",
+                  //   url: "/collections/outpatient/create/store-payment",
+                  //   data: { _token: _token, arrData: arrData, or_number: or_number },
+                  //   dataType: "JSON",
+                  //   success: function(data){
+                  //     // console.log('saved');
+                  //     console.log(data);
+                  //     console.log(data.or_number);
+                  //
+                  //      $('.alert').show();
+                  //      $('#btn_new').show();
+                  //      $('#btn_print').show();
+                  //      // $('#btn_print').click();
+                  //      $('#btn_save').hide();
+                  //   }
+                  // }); // End of  ajax url:"/collections/other/store_payment",
+        //       } // End of if (row_count < 2) {
+        //     }
+        //   }
+        // });
+      // }
 
     } // function save payment
+
+    function checkOrDuplicate(_t, or_n) {
+      $.ajax({
+        type: "POST",
+        url: "/collections/outpatient/create/check-or-duplicate",
+        data: { _token: _t, or_number: or_n },
+        dataType: "JSON",
+        success: function(data){
+          var or_count = data.total_count;
+
+          if (or_count > 0) {
+            or_number_state = false;
+            $('#or_number').removeClass('is-valid');
+            $('#or_number').addClass("is-invalid");
+            // $('#username').siblings("span").text('Sorry... Username already taken');
+            // $('#is_duplicate_or_number').val(true);
+            // console.log('duplicate OR');
+            // alert('Please use another OR Number (Duplicate Entry) .');
+          } else {
+            or_number_state = true;
+            $('#or_number').removeClass('is-invalid');
+            $('#or_number').addClass('is-valid');
+            // $('#username').siblings("span").text('Username available');
+            // $('#is_duplicate_or_number').val(false);
+            // console.log('new OR');
+          }
+        }
+      });
+    }
 
 
     $('#btn_print').click(function(event) {
@@ -1335,7 +1416,7 @@
     $('#btn_new').click(function(e){
       e.preventDefault();
       var user_id = $('#user_id').val();
-      
+
       window.location.replace("/collections/outpatient/create/" + user_id);
     });
 
@@ -1396,6 +1477,67 @@
 
       return rem_comma;
     }
+
+    $('#or_number').on('blur', function(){
+      var _token = CSRF_TOKEN;
+      var or_number = $('#or_number').val();
+
+      if (or_number == '') {
+        or_number_state = false;
+        return;
+      }
+
+      checkOrDuplicate(_token, or_number);
+    });
+
+
+    $('#btn_check_duplicate').on('click', function(event){
+      event.preventDefault();
+
+      var _token = CSRF_TOKEN;
+      var or_number = $('#or_number').val();
+
+      if (or_number == '') {
+        or_number_state = false;
+        return;
+      }
+
+      checkOrDuplicate(_token, or_number);
+
+
+    });
+
+
+// var username_state = false;
+// var email_state = false;
+// $('#username').on('blur', function(){
+//  var username = $('#username').val();
+//  if (username == '') {
+//    username_state = false;
+//    return;
+//  }
+//  $.ajax({
+//    url: 'register.php',
+//    type: 'post',
+//    data: {
+//      'username_check' : 1,
+//      'username' : username,
+//    },
+//    success: function(response){
+//      if (response == 'taken' ) {
+//        username_state = false;
+//        $('#username').parent().removeClass();
+//        $('#username').parent().addClass("form_error");
+//        $('#username').siblings("span").text('Sorry... Username already taken');
+//      }else if (response == 'not_taken') {
+//        username_state = true;
+//        $('#username').parent().removeClass();
+//        $('#username').parent().addClass("form_success");
+//        $('#username').siblings("span").text('Username available');
+//      }
+//    }
+//  });
+// });
 
 
   });

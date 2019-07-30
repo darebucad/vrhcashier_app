@@ -27,6 +27,7 @@ use App\Discount;
 use App\ViewCollection;
 use App\ViewMasterCollection;
 use App\PaymentDetails;
+use App\PaymentOther;
 
 use DataTables;
 use DB;
@@ -1159,31 +1160,51 @@ class CollectionsOutpatientController extends Controller
      return response()->json($response);
    }
 
-
    public function checkORDuplicate(Request $request) {
      $_token = $request->_token;
      $or_number = $request->or_number;
-     $arrData = $request->arrData;
-     $row_count = $request->row_count;
-
-     $get_payment_data = ViewPaymentOR::where('preorno', $or_number)->count();
+     $get_or_number_count = Payment::where('preorno', $or_number)->count();
+     $get_other_or_count = PaymentOther::where('prefix_or_number', $or_number)->count();
+     $total_count = $get_or_number_count + $get_other_or_count;
+     // $get_payment_data = ViewPaymentOR::where('preorno', $or_number)->count();
 
      // $get_payment_data = ViewMasterCollection::where('prefix_or_number', $or_number)->where('payment_status', 'Paid')->count();
 
      // $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
      // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
-     $data = $get_payment_data;
+     $data = $total_count;
 
      $response = array(
-       'data' => $data,
-       'or_number' => $or_number,
-       '_token' => $_token,
-       'arrData' => $arrData,
-       'row_count' => $row_count,
+       'total_count' => $total_count,
      );
 
      return response()->json($response);
    }
+
+   // public function checkORDuplicate(Request $request) {
+   //   $_token = $request->_token;
+   //   $or_number = $request->or_number;
+   //   $arrData = $request->arrData;
+   //   $row_count = $request->row_count;
+   //
+   //   $get_payment_data = ViewPaymentOR::where('preorno', $or_number)->count();
+   //
+   //   // $get_payment_data = ViewMasterCollection::where('prefix_or_number', $or_number)->where('payment_status', 'Paid')->count();
+   //
+   //   // $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
+   //   // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
+   //   $data = $get_payment_data;
+   //
+   //   $response = array(
+   //     'data' => $data,
+   //     'or_number' => $or_number,
+   //     '_token' => $_token,
+   //     'arrData' => $arrData,
+   //     'row_count' => $row_count,
+   //   );
+   //
+   //   return response()->json($response);
+   // }
 
 
    /**
