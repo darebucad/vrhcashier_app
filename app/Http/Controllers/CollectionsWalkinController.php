@@ -20,6 +20,11 @@ use App\ViewWalkinChargeDrugs;
 use App\ViewWalkinChargeExam;
 use App\ViewWalkinChargeMisc;
 use App\ViewWalkinChargeSupply;
+use App\Setup;
+use App\Payment;
+use App\ViewProducts;
+use App\Category;
+
 
 use Carbon\Carbon;
 use NumberToWords\NumberToWords;
@@ -59,27 +64,37 @@ class CollectionsWalkinController extends Controller
   public function create($id)
   {
       $user_id = $id;
-      $payments = ViewPaymentOR::select('next_or_number', 'or_prefix')->where('id', $user_id)->limit(1)->count();
+      $get_or_prefix = Setup::select('or_prefix')->first();
+      $or_prefix = $get_or_prefix->or_prefix;
+      $payments_count = ViewPaymentOR::select('orno')->where('id', $user_id)->count();
+      // $payments = ViewPaymentOR::select('next_or_number', 'or_prefix')->where('id', $user_id)->limit(1)->count();
 
-      if ( $payments > 0 ) {
-        $payments = ViewPaymentOR::select('next_or_number','or_prefix', 'created_at')
-        ->where('id', $user_id)
-        ->limit(1)
-        ->orderBy('created_at', 'desc')
-        ->get();
 
+      if ($payments_count > 0) {
+        $payments = ViewPaymentOR::select('next_or_number')->where('id', $user_id)->orderBy('created_at', 'desc')->first();
+        $or_number = $payments->next_or_number;
+      } else {
+        $or_number = '0000001';
       }
-      else {
-        $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
-        ->limit(1)
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-      }
+      // if ( $payments > 0 ) {
+      //   $payments = ViewPaymentOR::select('next_or_number','or_prefix', 'created_at')
+      //   ->where('id', $user_id)
+      //   ->limit(1)
+      //   ->orderBy('created_at', 'desc')
+      //   ->get();
+      //
+      // }
+      // else {
+      //   $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
+      //   ->limit(1)
+      //   ->orderBy('created_at', 'desc')
+      //   ->get();
+      //
+      // }
 
       $discounts = Discount::all();
 
-      return view('collections.walkin.create', compact('payments', 'discounts'));
+      return view('collections.walkin.create', compact('or_number', 'discounts', 'or_prefix'));
 
   }
 
@@ -652,6 +667,7 @@ class CollectionsWalkinController extends Controller
       $or_number = $request->or_number;
       $payment_counter = 0;
       $current_time = Carbon::now('Asia/Manila');
+
       $or_n = substr($or_number, strpos($or_number, "-") + 1);
 
       foreach ($array_data as $item) {
@@ -703,24 +719,39 @@ class CollectionsWalkinController extends Controller
     }
 
     private function convertDataToHtml($or_n) {
+      $or_number = $or_n;
       $numberToWords = new NumberToWords();
       $numberTransformer = $numberToWords->getNumberTransformer('en');
       $sub_total = 0;
       $total = 0;
       $decimal_value = 0;
       $supplemental_row = 0;
-      $output = '';
       $sub_total_value = 0;
-      $or_number = $or_n;
+      $output = '';
       $payment_data = $this->getWalkinPaymentData($or_n);
-      $payment_count = $payment_data->count();
+      $payment_count = PaymentOther::where('prefix_or_number', $or_n)->count();
+      $setup_data = Setup::select('cashier_officer', 'cashier_designation')->first();
+      // $payment_count = $payment_data->count();
       // $payment_count = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
-      $receipt_date = $payment_data[0]->receipt_date;
-      $hospital_name = 'Veterans Regional Hospital';
+      // $receipt_date = '';
+      // $patient_name = '';
+      // $employee_name = '';
+
+//       echo date("G:i", strtotime($time));
+// or you can try like this also
+//
+// echo date("H:i", strtotime("04:25 PM"));
+//
+// echo date_format($date, 'Y-m-d H:i:s');
+      $receipt_date = date_format($payment_data[0]->created_at, 'm/d/Y h:i:s A');
+      // $receipt_date = $payment_data[0]->receipt_date;
       $patient_name = $payment_data[0]->patient_name;
       $employee_name = $payment_data[0]->name;
-      $cashier_officer_name = 'TERESITA T. TAGUINOD';
-      $cashier_officer_designation = 'Supervising Administrative Officer';
+      $hospital_name = 'Region II Trauma and Medical Center';
+      $cashier_officer_name = $setup_data->cashier_officer;
+      $cashier_officer_designation = $setup_data->cashier_designation;
+      // $cashier_officer_name = 'TERESITA T. TAGUINOD';
+      // $cashier_officer_designation = 'Supervising Administrative Officer';
 
 
       $output .= '<html>
@@ -742,7 +773,7 @@ class CollectionsWalkinController extends Controller
           $description = $payment->description;
           $output .= '
             <tr style="line-height: 17px">
-              <td style="font-family: Helvetica; font-size: 10px; width:60%;"> ' . $description . '</td>
+              <td style="font-family: Helvetica; font-size: 12px; width:60%;"> ' . $description . '</td>
               <td style="font-family: Helvetica; font-size: 12px; margin-right=20px" align="right">'  . number_format($sub_total, 2) . '</td>
             </tr>';
         }
@@ -762,10 +793,11 @@ class CollectionsWalkinController extends Controller
         foreach ($payment_data as $payment) {
           $sub_total = $payment->amount_paid;
           $total = $sub_total;
-          $charge_description = $payment->charge_description;
+          $charge_description = $payment->chrgdesc;
+          // $charge_description = $payment->charge_description;
           $output .= '
             <tr style="line-height: 17px;">
-              <td style="font-family: Helvetica; font-size: 11px; width:195px;">'. $charge_description .'</td>
+              <td style="font-family: Helvetica; font-size: 12px; width:195px;">'. $charge_description .'</td>
               <td style="font-family: Helvetica; font-size: 12px; margin-right: 20px;" align="right">' .number_format($sub_total, 2). '</td>
             </tr>';
 
@@ -787,15 +819,18 @@ class CollectionsWalkinController extends Controller
       $decimal_value = Str::substr(($total * 100), -2);
 
       if ($decimal_value == 00) {
-        $decimal_value = ' and 00/100 only';
+        $decimal_value = ' and zero cent/100 only';
+        // $decimal_value = ' and 00/100 only';
 
         // code...
       } elseif ($decimal_value < 02) {
-        $decimal_value = ' and ' . $decimal_value . '/100 only';
+        $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' cent/100 only';
+        // $decimal_value = ' and ' . $decimal_value . '/100 only';
 
         // code...
       } else {
-        $decimal_value = ' and ' . $decimal_value . '/100 only';
+        $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' cents/100 only';
+        // $decimal_value = ' and ' . $decimal_value . '/100 only';
       }
 
 
@@ -803,8 +838,8 @@ class CollectionsWalkinController extends Controller
 
       $output .= '</table>';
       $output .= '
-        <p align="right" style="font-family: Helvetica; font-size: 13px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
-        <p align="left" style="font-family: Helvetica; font-size: 13px; margin-top: -10px; margin-left: 90px">'. ucwords($numberTransformer->toWords($new_total)) . $decimal_value .'</p>
+        <p align="right" style="font-family: Helvetica; font-size: 18px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
+        <p align="left" style="font-family: Helvetica; font-size: 15px; margin-top: -10px; margin-left: 90px">'. ucwords($numberTransformer->toWords($new_total)) . $decimal_value .'</p>
         <br>
         <br>
         <br>
@@ -819,10 +854,30 @@ class CollectionsWalkinController extends Controller
     }
 
     private function getWalkinPaymentData($or_n) {
-      $walkin_payment_data = ViewOtherCollection::where('prefix_or_number', $or_n)
-      ->groupBy('description')
-      ->orderByRaw('payment_counter ASC')
+
+      // SELECT cp.*, p.*, c.*
+      // FROM cashier_payment_other cp
+      // LEFT JOIN vw_products p
+      // ON p.item_code = cp.item_code
+      // LEFT JOIN hcharge c
+      // ON c.chrgcode = cp.charge_code
+      // LEFT JOIN cashier_users cu
+      // ON cu.id = cp.id
+      // WHERE cp.prefix_or_number = 'B-0000089'
+
+
+      $walkin_payment_data = PaymentOther::leftjoin('vw_products AS p', 'p.item_code', '=', 'cashier_payment_other.item_code')
+      ->leftjoin('hcharge AS c', 'c.chrgcode', '=', 'cashier_payment_other.charge_code')
+      ->leftjoin('cashier_users AS cu', 'cu.id', '=', 'cashier_payment_other.id')
+      ->select('cashier_payment_other.*', 'p.*', 'c.*', 'cu.name')
+      ->where('cashier_payment_other.prefix_or_number', $or_n)
+      ->orderBy('cashier_payment_other.payment_counter', 'ASC')
       ->get();
+
+      // $walkin_payment_data = ViewOtherCollection::where('prefix_or_number', $or_n)
+      // ->groupBy('description')
+      // ->orderByRaw('payment_counter ASC')
+      // ->get();
 
       return $walkin_payment_data;
     }
@@ -871,19 +926,25 @@ class CollectionsWalkinController extends Controller
     public function checkORDuplicate(Request $request) {
       $_token = $request->_token;
       $or_number = $request->or_number;
-      $arrData = $request->arrData;
+      $get_or_number_count = Payment::where('preorno', $or_number)->count();
+      $get_other_or_count = PaymentOther::where('prefix_or_number', $or_number)->count();
+      $total_count = $get_or_number_count + $get_other_or_count;
+      // $arrData = $request->arrData;
       // $charge_slip_number = $request->charge_slip_number;
 
-      $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
+      // $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
       // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
 
-      $data = $getPaymentData;
+      // $data = $getPaymentData;
+
+      $data = $total_count;
 
       $response = array(
-        'data' => $data,
-        'or_number' => $or_number,
-        '_token' => $_token,
-        'arrData' => $arrData,
+        'total_count' => $total_count,
+        // 'data' => $data,
+        // 'or_number' => $or_number,
+        // '_token' => $_token,
+        // 'arrData' => $arrData,
         // 'charge_slip_number' => $charge_slip_number,
       );
 

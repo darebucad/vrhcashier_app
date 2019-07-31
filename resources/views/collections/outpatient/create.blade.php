@@ -141,18 +141,18 @@
         <div class="input-group mb-3">
           <input id="or_number" type="text" class="form-control form-control-sm is-valid" name="or_number" value="{{ $or_prefix . $or_number }}"  required>
 
-        <div class="input-group-append">
-          <button class="btn btn-danger btn-sm" id="btn_check_duplicate">Check Availability</button>
-        </div>
-        <div class="invalid-feedback">
-          Please provide a valid OR Number.
-        </div>
+          <div class="input-group-append">
+            <button class="btn btn-danger btn-sm" id="btn_check_duplicate">Check Availability</button>
+          </div>
+          <div class="invalid-feedback">
+            Please provide a valid OR Number.
+          </div>
 
-        @if ($errors->has('or_number'))
-          <span class="invalid-feedback" role="alert">
-              <strong>{{ $errors->first('or_number') }}</strong>
-          </span>
-        @endif
+          @if ($errors->has('or_number'))
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $errors->first('or_number') }}</strong>
+            </span>
+          @endif
         </div>
 
 
@@ -1203,7 +1203,7 @@
           var q = confirm('Are you sure you want to save this payment ?');
 
           if (q == true) {
-            console.log('saved');
+            //console.log('saved');
             savePayment(_token, or_number);
 
           }
@@ -1306,8 +1306,8 @@
         dataType: "JSON",
         success: function(data){
           // console.log('saved');
-          console.log(data);
-          console.log(data.or_number);
+          // console.log(data);
+          // console.log(data.or_number);
 
            $('.alert').show();
            $('#btn_new').show();

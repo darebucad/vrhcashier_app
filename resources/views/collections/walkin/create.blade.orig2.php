@@ -14,6 +14,7 @@
         </button>
         <!-- <button class="btn btn-sm btn-outline-secondary" id ="export_button" style="display: none;">Export</button> -->
       </div>
+
     </div>
   </div>
 
@@ -116,7 +117,7 @@
 
       <div class="col-md-3">
         <div class="input-group mb-3">
-          <input id="or_number" type="text" class="form-control form-control-sm is-valid" name="or_number" value="{{ $or_prefix . $or_number }}"  required>
+          <input id="or_number" type="text" class="form-control form-control-sm is-valid" name="or_number" value=""  required>
           <div class="input-group-append">
             <button class="btn btn-danger btn-sm" id="btn_check_duplicate">Check Availability</button>
           </div>
@@ -129,8 +130,30 @@
             </span>
           @endif
         </div>
-        <input type="hidden" name="or_number_only" value="{{ $or_number }}">
+        <input type="hidden" name="or_number_only" value="">
       </div>
+
+      <!-- <div class="col-md-3">
+        @if (count($payments) > 0)
+          @foreach ($payments as $payment)
+            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . $payment->next_or_number }}" style="background-color:#99ccff!important;" required >
+            <input type="hidden" name="or_number_only" value="{{ $payment->next_or_number }}">
+          @endforeach
+
+        @else
+          @foreach ($payments as $payment)
+            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '0000001' }}" style="background-color:#99ccff!important;" required >
+            <input type="hidden" name="or_number_only" value="{{ '0000001' }}">
+          @endforeach
+
+        @endif
+
+        @if ($errors->has('or_number'))
+          <span class="invalid-feedback" role="alert">
+              <strong>{{ $errors->first('or_number') }}</strong>
+          </span>
+        @endif
+      </div> -->
 
       <label class="col-md-1 col-form-label text-md-left"> User: </label>
       <label class="col-md-1 col-form-label text-md-left"> {{ Auth::user()->name }} </label>
@@ -309,7 +332,6 @@
     var editor = new SimpleTableCellEditor("invoice_table");
     editor.SetEditableClass("editMe");
     var d_array = '';
-    var or_number_state = true;
 
     // Select charge slip number content
     $('#charge_slip_number').on('click', function(){
@@ -796,26 +818,20 @@
       var _token = CSRF_TOKEN;
       var or_number = $('#or_number').val();
       var charge_slip_number = $('#charge_slip_number').val();
-      // var row_count = $('#invoice_table tbody tr').length;
+      var row_count = $('#invoice_table tbody tr').length;
 
       // Check the value of charge slip number/barcode .
       if (charge_slip_number == '') {
         alert('Please input charge slip number / barcode .');
 
       } else {
-
-        // check duplicate or number
-        if (or_number_state === false) {
-          alert('Please use another OR Number (Duplicate entry).');
+        // Check the value of patient name input .
+        if (patient_name == '') {
+          alert('Please input valid charge slip number / barcode .');
 
         } else {
-          var q = confirm('Are you sure you want to save this payment ?');
-
-          if (q == true) {
-            // Save payment function
-            saveWalkinCharges(_token, or_number );
-
-          } // end of confirmation
+          // Save payment function
+          saveWalkinCharges(_token, or_number, row_count );
         }
       }
 
@@ -895,10 +911,10 @@
 
     });
 
-    function saveWalkinCharges(_t, or) {
+    function saveWalkinCharges(_t, or, rc) {
       var _token = _t;
       var or_number_value = or;
-      // var row_count = rc;
+      var row_count = rc;
       var arrData=[];
       var date = new Date();
       var month = date.getMonth() + 1;
@@ -971,59 +987,41 @@
         arrData.push(obj);
       });
 
-      // console.log(arrData);
+      var q = confirm('Are you sure you want to save this payment ?');
+      if (q == true) {
+        $.ajax({
+          type: "POST",
+          url: "/collections/walkin/create/check-or-duplicate",
+          data: { _token: _t, arrData: arrData, or_number: or_number_value },
+          dataType: "JSON",
+          success: function(data) {
+            var _token = data._token;
+            var or_count = data.data;
+            var or_number = data.or_number;
+            var arrData = data.arrData;
+            if (or_count > 0) {
+              // console.log('duplicate OR');
+              alert('Please use another OR Number (Duplicate Entry) .');
 
-      $.ajax({
-        type: "POST",
-        url: "/collections/walkin/create/save-walkin-charges",
-        data: { _token: _token, arrData: arrData, or_number: or_number_value },
-        dataType: "JSON",
-        success: function(data){
-          $('#alert_value').val('Payment was successfully saved.');
-          $('.alert').show();
-          $('#btn_new').show();
-          $('#print_button').show();
-          $('#print_button').click();
-          $('#save_button').hide();
-        }
-      }); // End of  ajax url:"/collections/other/store_payment",
-
-      // var q = confirm('Are you sure you want to save this payment ?');
-      // if (q == true) {
-      //   $.ajax({
-      //     type: "POST",
-      //     url: "/collections/walkin/create/check-or-duplicate",
-      //     data: { _token: _t, arrData: arrData, or_number: or_number_value },
-      //     dataType: "JSON",
-      //     success: function(data) {
-      //       var _token = data._token;
-      //       var or_count = data.data;
-      //       var or_number = data.or_number;
-      //       var arrData = data.arrData;
-      //       if (or_count > 0) {
-      //         // console.log('duplicate OR');
-      //         alert('Please use another OR Number (Duplicate Entry) .');
-      //
-      //       } else {
-      //         $.ajax({
-      //           type: "POST",
-      //           url: "/collections/walkin/create/save-walkin-charges",
-      //           data: { _token: _token, arrData: arrData, or_number: or_number_value },
-      //           dataType: "JSON",
-      //           success: function(data){
-      //             $('#alert_value').val('Payment was successfully saved.');
-      //              $('.alert').show();
-      //              $('#btn_new').show();
-      //              $('#print_button').show();
-      //              $('#print_button').click();
-      //              $('#save_button').hide();
-      //           }
-      //         }); // End of  ajax url:"/collections/other/store_payment",
-      //       }
-      //     }
-      //   });
-      // } // end of confirmation
-
+            } else {
+              $.ajax({
+                type: "POST",
+                url: "/collections/walkin/create/save-walkin-charges",
+                data: { _token: _token, arrData: arrData, or_number: or_number_value },
+                dataType: "JSON",
+                success: function(data){
+                  $('#alert_value').val('Payment was successfully saved.');
+                   $('.alert').show();
+                   $('#btn_new').show();
+                   $('#print_button').show();
+                   $('#print_button').click();
+                   $('#save_button').hide();
+                }
+              }); // End of  ajax url:"/collections/other/store_payment",
+            }
+          }
+        });
+      } // end of confirmation
     }
 
     $('#print_button').on('click', function(event){
@@ -1075,57 +1073,6 @@
 
       window.location.replace("/collections/walkin/create/" + user_id);
     });
-
-    function checkOrDuplicate(_t, or_n){
-      $.ajax({
-        type: "POST",
-        url: "/collections/walkin/create/check-or-duplicate",
-        data: { _token: _t, or_number: or_n },
-        dataType: "JSON",
-        success: function(data){
-          var or_count = data.total_count;
-
-          if (or_count > 0) {
-            or_number_state = false;
-            $('#or_number').removeClass('is-valid');
-            $('#or_number').addClass('is-invalid');
-          } else {
-            or_number_state = true;
-            $('#or_number').removeClass('is-invalid');
-            $('#or_number').addClass('is-valid');
-          }
-        }
-      });
-    }
-
-    $('#or_number').on('blur', function(){
-      var _token = CSRF_TOKEN;
-      var or_number = $('#or_number').val();
-
-      if (or_number == '') {
-        or_number_state = false;
-
-        return;
-      }
-
-      checkOrDuplicate(_token, or_number);
-    });
-
-    $('#btn_check_duplicate').on('click', function(event){
-      event.preventDefault();
-
-      var _token = CSRF_TOKEN;
-      var or_number = $('#or_number').val();
-
-      if (or_number == '') {
-        or_number_state = false;
-        return;
-      }
-
-      checkOrDuplicate(_token, or_number);
-    });
-
-
 
 
   });
