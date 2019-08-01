@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+use App;
 use App\PaymentOther;
 use App\Setup;
 use App\ViewPaymentORNumber;
@@ -13,7 +14,10 @@ use App\GenericDescription;
 use App\ViewProducts;
 use App\Patient;
 use App\ViewOtherCollection;
-use App;
+use App\Payment;
+use App\Category;
+use App\Discount;
+
 
 use DataTables;
 use DB;
@@ -65,6 +69,19 @@ class CollectionsOtherController extends Controller
     public function create($id) {
         // dd($id);
         $user_id = $id;
+        $get_or_prefix = Setup::select('or_prefix')->first();
+        $or_prefix = $get_or_prefix->or_prefix;
+        $payments_count = ViewPaymentOR::select('orno')->where('id', $user_id)->count();
+
+        if ($payments_count > 0) {
+          $payments = ViewPaymentOR::select('next_or_number')->where('id', $user_id)->orderBy('created_at', 'desc')->first();
+          $or_number = $payments->next_or_number;
+
+        } else {
+          $or_number = '0000001';
+
+        }
+
         // $payments = ViewPaymentORNumber::select('next_or_number', 'or_prefix')
         //     ->where('id', $user_id)
         //     ->limit(1)
@@ -78,25 +95,25 @@ class CollectionsOtherController extends Controller
         // }
 
 
-        $payments = ViewPaymentOR::select('next_or_number', 'or_prefix')
-        ->where('id', $user_id)
-        ->limit(1)
-        ->count();
+        // $payments = ViewPaymentOR::select('next_or_number', 'or_prefix')
+        // ->where('id', $user_id)
+        // ->limit(1)
+        // ->count();
 
 
-        if ($payments > 0 ) {
-          $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
-          ->where('id', $user_id)
-          ->limit(1)
-          ->orderBy('created_at', 'desc')
-          ->get();
-
-        } else {
-          $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
-          ->limit(1)
-          ->orderBy('created_at', 'desc')
-          ->get();
-        }
+        // if ($payments > 0 ) {
+        //   $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
+        //   ->where('id', $user_id)
+        //   ->limit(1)
+        //   ->orderBy('created_at', 'desc')
+        //   ->get();
+        //
+        // } else {
+        //   $payments = ViewPaymentOR::select('next_or_number', 'or_prefix', 'created_at')
+        //   ->limit(1)
+        //   ->orderBy('created_at', 'desc')
+        //   ->get();
+        // }
 
 
         // $patient_names = Patient::select('hpercode','patient_name')
@@ -105,7 +122,11 @@ class CollectionsOtherController extends Controller
         //     ->get();
 
         // return view('collections.other.create', compact('payments', 'patient_names'));
-        return view('collections.other.create', compact('payments'));
+        // return view('collections.other.create', compact('payments'));
+
+        $discounts = Discount::all();
+
+        return view('collections.other.create', compact('or_number', 'discounts', 'or_prefix'));
     }
 
     /**
@@ -190,7 +211,7 @@ class CollectionsOtherController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function storePayment(Request $request) {
-        $json_data = $request->data;
+        $json_data = $request->arrData;
         $or_number = $request->or_number;
         $counter = 0;
 
@@ -266,10 +287,21 @@ class CollectionsOtherController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function getPaymentData($id) {
-      $payment_data = ViewOtherCollection::where('prefix_or_number', $id)
-      ->groupBy('description')
-      ->orderByRaw('payment_counter ASC')
+      $or_number = $id;
+
+      $payment_data = PaymentOther::leftjoin('vw_products AS p', 'p.item_code', '=', 'cashier_payment_other.item_code')
+      ->leftjoin('hcharge AS c', 'c.chrgcode', '=', 'cashier_payment_other.charge_code')
+      ->leftjoin('cashier_users AS cu', 'cu.id', '=', 'cashier_payment_other.id')
+      ->select('cashier_payment_other.*', 'p.*', 'c.*', 'cu.name')
+      ->where('cashier_payment_other.prefix_or_number', $or_number)
+      ->orderBy('cashier_payment_other.payment_counter', 'ASC')
       ->get();
+
+      // $payment_data = ViewOtherCollection::where('prefix_or_number', $id)
+      // ->groupBy('description')
+      // ->orderByRaw('payment_counter ASC')
+      // ->get();
+
       return $payment_data;
     }
 
@@ -284,8 +316,8 @@ class CollectionsOtherController extends Controller
       $customPaper = array(0, 0, 273.6, 792);
       $pdf = App::make('dompdf.wrapper');
       $pdf->loadHTML($this->convertPaymentDataToHtml($or_number))->setPaper($customPaper);
-      return $pdf->download('other.collection.receipt.pdf');
 
+      return $pdf->download('other.collection.receipt.pdf');
     }
 
     /**
@@ -295,16 +327,25 @@ class CollectionsOtherController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function convertPaymentDataToHtml($id) {
+      $or_number = $id;
       $numberToWords = new NumberToWords();
       $numberTransformer = $numberToWords->getNumberTransformer('en');
-      $payment_data = $this->getPaymentData($id);
-      $payment_count = ViewOtherCollection::where('prefix_or_number', $id)->count();
+      $payment_data = $this->getPaymentData($or_number);
+      $payment_count = PaymentOther::where('prefix_or_number', $or_number)->count();
+      $setup_data = Setup::select('cashier_officer', 'cashier_designation')->first();
+      // $payment_count = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
+      $output = '';
       $sub_total = 0;
       $total = 0;
       $decimal_value = 0;
       $supplemental_row = 0;
-      $output = '';
       $sub_total_value = 0;
+      $hospital_name = 'Region II Trauma and Medical Center';
+      $patient_name = $payment_data[0]->patient_name;
+      $employee_name = $payment_data[0]->name;
+      $receipt_date = date_format($payment_data[0]->created_at, 'm/d/Y h:i:s A');
+      $cashier_officer = $setup_data->cashier_officer;
+      $cashier_designation = $setup_data->cashier_designation;
 
       foreach ($payment_data as $value) {
         $output .= '<html>
@@ -312,10 +353,10 @@ class CollectionsOtherController extends Controller
         <style>@page { margin-left: 17px; margin-right:27px; }</style>
         </head>
         <body><br><br><br><br><br>
-        <p align="center" style="font-family: Helvetica; font-size: 15px; margin-right: -70px; margin-top: -26px;">' . $value->prefix_or_number . '</p>
-        <p align="right" style="font-family: Helvetica; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">' . $value->receipt_date . '</p>
-        <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">Veterans Regional Hospital</p>
-        <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px;  margin-bottom: 10px">' . $value->patient_name . '</p><br><br>';
+        <p align="center" style="font-family: Helvetica; font-size: 15px; margin-right: -70px; margin-top: -26px;">' . $or_number . '</p>
+        <p align="right" style="font-family: Helvetica; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">' . $receipt_date . '</p>
+        <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">' . $hospital_name . '</p>
+        <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px;  margin-bottom: 10px">' . $patient_name . '</p><br><br>';
         break;
       }
 
@@ -331,7 +372,7 @@ class CollectionsOtherController extends Controller
 
           $output .= '
            <tr style="line-height: 17px">
-              <td style="font-family: Helvetica; font-size: 13px; width:60%;"> ' . $payment->description . '</td>
+              <td style="font-family: Helvetica; font-size: 12px; width:60%;"> ' . $payment->description . '</td>
               <td style="font-family: Helvetica; font-size: 12px; margin-right=20px" align="right">'  . number_format($sub_total, 2) . '</td>
           </tr>';
 
@@ -347,41 +388,63 @@ class CollectionsOtherController extends Controller
           }
       } else {
         foreach ($payment_data as $payment) {
-          // $total = $payment->amount_paid;
+          $total = $payment->amount_paid;
+          $charge_description = $payment->chrgdesc;
+
+          $output .= '
+            <tr style="line-height: 17px">
+            <td style="font-family: Helvetica; font-size: 12px; width:60%;"> ' . $charge_description . '</td>
+            <td style="font-family: Helvetica; font-size: 12px; margin-right=20px" align="right">'  . number_format($total, 2) . '</td>
+            </tr>';
+
+          $supplemental_row = 7;
+          $counter = $supplemental_row;
+          if($supplemental_row != 0){
+              for($counter; $counter > 0; $counter--) {
+                  $output .='
+                      <tr style="line-height: 17px; color:white;">
+                          <td>.</td>
+                      </tr>
+                  ';
+              }
+          }
+          break;
+
         }
       }
 
       $decimal_value = Str::substr(($total * 100), -2);
 
       if($decimal_value == 00){
-          $decimal_value = ' and 00/100 only';
+        $decimal_value = ' and zero cent/100 only';
+          // $decimal_value = ' and 00/100 only';
       }
       else if($decimal_value < 02){
-          $decimal_value = ' and ' . $decimal_value . '/100 only';
+        $decimal_value = ' and ' . ucwords($numberTransformer->toWords($decimal_value)) . ' cent/100 only';
+          // $decimal_value = ' and ' . $decimal_value . '/100 only';
       }
       else if($decimal_value > 01){
-          $decimal_value = ' and ' . $decimal_value . '/100 only';
+        $decimal_value = ' and ' . ucwords($numberTransformer->toWords($decimal_value)) . ' cents/100 only';
+          // $decimal_value = ' and ' . $decimal_value . '/100 only';
       }
 
       $new_total = number_format($total, 2, '.', '');
 
     $output .= '</table>
-            <p align="right" style="font-family: Helvetica; font-size: 13px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
-            <p align="left" style="font-family: Helvetica; font-size: 13px; margin-top: -10px; margin-left: 90px">'. ucwords($numberTransformer->toWords($new_total)) . $decimal_value .'</p>
+            <p align="right" style="font-family: Helvetica; font-size: 18px; margin-top: 4px; margin-right: 3px"><b>'.number_format($total, 2) .'</b></p>
+            <p align="left" style="font-family: Helvetica; font-size: 15px; margin-top: -10px; margin-left: 90px">'. ucwords($numberTransformer->toWords($new_total)) . $decimal_value .'</p>
             <br>
             <br>
             <br>
             <br>
             <br>
-            <p align="right" style="font-family: Helvetica; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">TERESITA T. TAGUINOD</p>
-            <p align="right" style="font-family: Helvetica; font-size: 10px; margin-right: 20px">Supervising Administrative Officer</p>';
-
-          foreach ($payment_data as $key) {
-            $output .='<p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -8px; margin-left:15px">'.$key->name.'</p>';
-            break;
-        }
-
-
+            <p align="right" style="font-family: Helvetica; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">'. $cashier_officer .'</p>
+            <p align="right" style="font-family: Helvetica; font-size: 10px; margin-right: 20px">' . $cashier_designation . '</p>
+            <p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -8px; margin-left:15px">' . $employee_name . '</p>';
+        //   foreach ($payment_data as $key) {
+        //     $output .='<p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -8px; margin-left:15px">'.$key->name.'</p>';
+        //     break;
+        // }
       return $output;
     }
 
@@ -446,20 +509,26 @@ class CollectionsOtherController extends Controller
      public function checkORDuplicate(Request $request) {
        $_token = $request->_token;
        $or_number = $request->or_number;
-       $arrData = $request->arrData;
-       $row_count = $request->row_count;
+       $get_or_number_count = Payment::where('preorno', $or_number)->count();
+       $get_other_or_count = PaymentOther::where('prefix_or_number', $or_number)->count();
+       $total_count = $get_or_number_count + $get_other_or_count;
+       // $arrData = $request->arrData;
+       // $row_count = $request->row_count;
 
-       $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
+       // $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
        // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
 
-       $data = $getPaymentData;
+       // $data = $getPaymentData;
+
+       // $data = $total_count;
 
        $response = array(
-         'data' => $data,
-         'or_number' => $or_number,
-         '_token' => $_token,
-         'arrData' => $arrData,
-         'row_count' => $row_count,
+         'total_count' => $total_count,
+         // 'data' => $data,
+         // 'or_number' => $or_number,
+         // '_token' => $_token,
+         // 'arrData' => $arrData,
+         // 'row_count' => $row_count,
        );
 
        return response()->json($response);

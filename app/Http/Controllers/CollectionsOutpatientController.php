@@ -567,16 +567,16 @@ class CollectionsOutpatientController extends Controller
 
         $decimal_value = Str::substr(($total * 100), -2);
         if($decimal_value == 00){
-            // $decimal_value = ' and zero centavo only';
-            $decimal_value = ' and 00/100 only';
+            $decimal_value = ' and zero cent/100 only';
+            // $decimal_value = ' and 00/100 only';
         }
         else if($decimal_value < 02){
-            // $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' centavo only';
-            $decimal_value = ' and ' . $decimal_value . '/100 only';
+            $decimal_value = ' and ' . ucwords($numberTransformer->toWords($decimal_value)) . ' cent/100 only';
+            // $decimal_value = ' and ' . $decimal_value . '/100 only';
         }
         else if($decimal_value > 01){
-            // $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' centavos only';
-            $decimal_value = ' and ' . $decimal_value . '/100 only';
+            $decimal_value = ' and ' . ucwords($numberTransformer->toWords($decimal_value)) . ' cents/100 only';
+            // $decimal_value = ' and ' . $decimal_value . '/100 only';
         }
 
             // <p align="left" style="font-family: Times New Roman; font-size: 12px; margin-top: -10px">'.$decimal_value.'</p>
@@ -1371,16 +1371,16 @@ class CollectionsOutpatientController extends Controller
 
        $decimal_value = Str::substr(($total * 100), -2);
        if($decimal_value == 00){
-           // $decimal_value = ' and zero centavo only';
-           $decimal_value = ' and 00/100 only';
+           $decimal_value = ' and Zero Cent/100 only';
+           // $decimal_value = ' and 00/100 only';
        }
        else if($decimal_value < 02){
-           // $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' centavo only';
-           $decimal_value = ' and ' . $decimal_value . '/100 only';
+           $decimal_value = ' and ' . ucwords($numberTransformer->toWords($decimal_value)) . ' Cent/100 only';
+           // $decimal_value = ' and ' . $decimal_value . '/100 only';
        }
        else if($decimal_value > 01){
-           // $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' centavos only';
-           $decimal_value = ' and ' . $decimal_value . '/100 only';
+           $decimal_value = ' and ' . ucwords($numberTransformer->toWords($decimal_value)) . ' Cents/100 only';
+           // $decimal_value = ' and ' . $decimal_value . '/100 only';
        }
 
            // <p align="left" style="font-family: Times New Roman; font-size: 12px; margin-top: -10px">'.$decimal_value.'</p>

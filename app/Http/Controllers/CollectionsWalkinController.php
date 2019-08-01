@@ -737,12 +737,13 @@ class CollectionsWalkinController extends Controller
       // $patient_name = '';
       // $employee_name = '';
 
-//       echo date("G:i", strtotime($time));
+// echo date("G:i", strtotime($time));
 // or you can try like this also
 //
 // echo date("H:i", strtotime("04:25 PM"));
 //
 // echo date_format($date, 'Y-m-d H:i:s');
+
       $receipt_date = date_format($payment_data[0]->created_at, 'm/d/Y h:i:s A');
       // $receipt_date = $payment_data[0]->receipt_date;
       $patient_name = $payment_data[0]->patient_name;
@@ -824,12 +825,12 @@ class CollectionsWalkinController extends Controller
 
         // code...
       } elseif ($decimal_value < 02) {
-        $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' cent/100 only';
+        $decimal_value = ' and ' . ucwords($numberTransformer->toWords($decimal_value)) . ' cent/100 only';
         // $decimal_value = ' and ' . $decimal_value . '/100 only';
 
         // code...
       } else {
-        $decimal_value = ' and ' . $numberTransformer->toWords($decimal_value) . ' cents/100 only';
+        $decimal_value = ' and ' . ucwords($numberTransformer->toWords($decimal_value)) . ' cents/100 only';
         // $decimal_value = ' and ' . $decimal_value . '/100 only';
       }
 

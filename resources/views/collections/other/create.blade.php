@@ -19,7 +19,7 @@
 					Print Receipt
 				</button>
 
-				<select class="form-control form-control-sm" id="products" style="width:100%"><option> </option></select>
+				<!-- <select class="form-control form-control-sm" id="products" style="width:100%"><option> </option></select> -->
 
 		    <!-- <button class="btn btn-sm btn-outline-secondary">Export</button> -->
 		  </div>
@@ -122,30 +122,23 @@
 
       <label for="or_number" class="col-md-1 col-form-label text-md-left">{{ __('OR Number') }}</label>
 
-      <div class="col-md-3">
-
-      	@if (count($payments) > 0)
-          @foreach ($payments as $payment)
-            <input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . $payment->next_or_number }}" style="background-color:#99ccff!important;" required autofocus>
-            <input type="hidden" name="or_number_only" value="{{ $payment->next_or_number }}">
-        	@endforeach
-
-    		@else
-				@foreach ($payments as $payment)
-					<input id="or_number" type="text" class="form-control form-control-sm" name="or_number" value="{{ $payment->or_prefix . '0000001' }}" style="background-color:#99ccff!important;" required autofocus>
-					<input type="hidden" name="or_number_only" value="{{ '0000001' }}">
-				@endforeach
-
-
-    		@endif
-
-        @if ($errors->has('or_number'))
-          <span class="invalid-feedback" role="alert">
-              <strong>{{ $errors->first('or_number') }}</strong>
-          </span>
-        @endif
-
-      </div>
+			<div class="col-md-3">
+				<div class="input-group mb-3">
+					<input id="or_number" type="text" class="form-control form-control-sm is-valid" name="or_number" value="{{ $or_prefix . $or_number }}"  required>
+					<div class="input-group-append">
+						<button class="btn btn-danger btn-sm" id="btn_check_duplicate">Check Availability</button>
+					</div>
+					<div class="invalid-feedback">
+						Please provide a valid OR Number.
+					</div>
+					@if ($errors->has('or_number'))
+						<span class="invalid-feedback" role="alert">
+								<strong>{{ $errors->first('or_number') }}</strong>
+						</span>
+					@endif
+				</div>
+				<input type="hidden" name="or_number_only" value="{{ $or_number }}">
+			</div>
 
 			<label class="col-md-1 col-form-label text-md-left">User:</label>
 			<label class="col-md-1 col-form-label text-md-left">{{ Auth::user()->name }}</label>
@@ -176,6 +169,9 @@
       <div class="col-md-3">
         <select  id="discount_percent" class="form-control form-control-sm" name="discount_percent">
           <option value=" " selected> </option>
+					<!-- @foreach ($discounts as $discount)
+						<option value="{{ $discount->id }}">{{ $discount->discount_name }}</option>
+					@endforeach -->
           <option value="SENIOR">Senior Citizen</option>
           <option value="PWD">PWD</option>
           <option value="100">100% Discount</option>
@@ -324,27 +320,7 @@
   </div>
 </main>
 
-<!-- <script>
-	$(document).ready(function() {
-		$("#patient_name").select2({
-			placeholder: 'Select a patient name',
-			allowClear:true,
-			minimumResultsForSearch: 3, // at least 3 characters to start displaying records
-			ajax: {
-				url: '/collections/other/get_patient_list',
-				dataType: 'JSON',
-			},
-		});
-	});
-</script> -->
-
-
-
-
 <script type="text/javascript">
-
-
-
 	$(document).ready(function() {
     var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
     var table = $('#invoice_table');
@@ -352,7 +328,7 @@
     var current_row = $('#invoice_table tr')
     var rowNum = 0;
 		var products = {};
-
+		var or_number_state = true;
 
 		// Add row event
     $('#add_row').click(function(event) {
@@ -415,13 +391,12 @@
 			});
     });
 
-
+		// Select item on product select2
 		$('tbody').delegate('.products', 'select2:select', function(){
 			var id = $(this).val();
 			var row_id = $(this).closest('tr').attr('id');
 			var price = 0;
 			var description = $('tr#'+ row_id + ' .products :selected').text();
-
 			// alert('click table product');
 
 			$.ajax({
@@ -476,8 +451,6 @@
 					}) // each data.data function
 				}
 			});
-
-
 		});
 
 		// Click event delete row
@@ -665,46 +638,79 @@
 
     $('#btn_save').click(function(event) {
       event.preventDefault();
-      // alert('clicked save button');
 
-	    var date = new Date();
-	    var month = date.getMonth() + 1;
-	    var day = date.getDate();
+			var _token = CSRF_TOKEN;
+			var patient_name = $('#patient_name').val();
+			var row_count = $('#invoice_table tbody tr').length;
+
+			if (patient_name == '' || patient_name == null || patient_name == 0) {
+				alert('Please input patient name');
+
+			} else {
+				// check duplicate or number
+				if (or_number_state === false) {
+					alert('Please use another OR Number (Duplicate entry).');
+
+				} else {
+
+					if (row_count < 5) {
+						alert('Please select at least one product/service');
+
+					} else {
+						var q = confirm('Are you sure you want to save this payment ?');
+
+						if (q == true) {
+							// console.log('saved');
+
+							// Store payment to database
+							store(_token);
+
+						} // end of confirmation
+					}
+
+				}
+			}
+    });
+
+		function store(_t){
+			event.preventDefault();
+
+			var _token = _t;
+			var date = new Date();
+			var month = date.getMonth() + 1;
+			var day = date.getDate();
 			var hour = date.getHours();
 			var minute = date.getMinutes();
 			var second = date.getSeconds();
-      var patient_name_value = $('#patient_name').val();
-      var or_date_value = $('#or_date').val();
-      var user_id_value = $('#user_id').val();
-      var prefix_or_number_value = $('#or_number').val();
-      var payment_mode_value = $('#payment_mode').val();
+			var patient_name_value = $('#patient_name').val();
+			var or_date_value = $('#or_date').val();
+			var user_id_value = $('#user_id').val();
+			var prefix_or_number_value = $('#or_number').val();
+			var payment_mode_value = $('#payment_mode').val();
 			var discount_name_value = $('#discount_percent').val();
-      var currency_value = $('#currency').val();
-      var payment_type_value = $('#payment_type').val();
-      var discount_computation_value = $('#discount_computation').val();
-      // var amount_paid_value = $('#amount_paid').val();
+			var currency_value = $('#currency').val();
+			var payment_type_value = $('#payment_type').val();
+			var discount_computation_value = $('#discount_computation').val();
+			// var amount_paid_value = $('#amount_paid').val();
 			var amount_paid_value = $('#total_value').text();
-      var amount_tendered_value = $('#amount_tendered').val();
-      var amount_change_value =  $('#change').val();
+			var amount_tendered_value = $('#amount_tendered').val();
+			var amount_change_value =  $('#change').val();
 			var charge_code_value = $('#charge_code').val();
 			var charge_table_value = $('#charge_table').val();
 			var discount_percent_value = 0;
 			var arrData=[];
 			var created_at_value = date.getFullYear() + '-' + (('' + month).length < 2 ? '0' : '') +
 					month + '-' + (('' + day).length < 2 ? '0' : '') + day + ' ' + hour + ':' + minute + ':' + second;
-			var _token = CSRF_TOKEN;
 
 			if (discount_name_value == "SENIOR" || discount_name_value == "PWD") {
 				discount_percent_value = Number(20).toFixed(2);
+
 			} else {
 				discount_percent_value = Number(discount_name_value).toFixed(2);
+
 			}
 
-			if (patient_name_value == '' || patient_name_value == null) {
-				alert('Please input patient name .');
 
-			} else {
-				var row_count = $('#invoice_table tbody tr').length;
 				// loop over each charge table row (tr)
 				$('.payment_values').each(function() {
 					var current_row = $(this);
@@ -748,60 +754,27 @@
 					arrData.push(obj);
 				});
 
-				var q = confirm('Are you sure you want to save this payment ?');
+				console.log(arrData);
 
-				if (q == true) {
-					$.ajax({
-						type: "POST",
-						url: "/collections/other/create/check-or-duplicate",
-						data: { _token: _token, or_number: prefix_or_number_value, arrData: arrData, row_count: row_count },
-						dataType: "JSON",
-						success: function(data){
-							var or_count = data.data;
-							var or_number = data.or_number;
-							var _token = data._token;
-							var arrData = data.arrData;
-							var row_count = data.row_count;
+				 $.ajax({
+					 type: "POST",
+					 url: "/collections/other/store_payment",
+					 data: { _token: _token, arrData: arrData, or_number: prefix_or_number_value },
+					 dataType: "JSON",
+					 success: function(data){
+						 // console.log(data);
+							$('.alert').show();
+							$('#btn_new').show();
+							$('#btn_print').show();
+							$('#btn_print').click();
+							$('#btn_save').hide();
+					 }
+				 }); // End of  ajax url:"/collections/other/store_payment",
 
-							// console.log(or_count);
-							// console.log(or_number);
-							// console.log(_token);
-							// console.log(arrData);
-							// console.log(row_count);
 
-							if (or_count > 0) {
-								// console.log('duplicate OR');
-								alert('Please use another OR Number (Duplicate Entry) .');
 
-							} else {
-								// console.log('new OR');
 
-								if (row_count < 5) {
-									alert('Please add at least one product/service to proceed .');
-
-								} else {
-									$.ajax({
-										type: "POST",
-										url: "/collections/other/store_payment",
-										data: { _token: CSRF_TOKEN, data: arrData, or_number: prefix_or_number_value },
-										dataType: "JSON",
-										success: function(data){
-											// console.log(data);
-											 $('.alert').show();
-											 $('#btn_new').show();
-											 $('#btn_print').show();
-											 $('#btn_print').click();
-											 $('#btn_save').hide();
-										}
-									}); // End of  ajax url:"/collections/other/store_payment",
-								} // End of if (row_count < 2) {
-							}
-						}
-					});
-				}
-
-			} // End of if (patient_name_value == ' ' || patient_name_value == null) {
-    });
+		}
 
 
     $('#invoice_table').on('click', '.select-rows', function(){
@@ -843,6 +816,59 @@
 		// 	$('#patient_name').val('Select2 Config');
 		//
 		// });
+
+
+
+
+		function checkOrDuplicate(_t, or_n){
+			$.ajax({
+				type: "POST",
+				url: "/collections/other/create/check-or-duplicate",
+				data: { _token: _t, or_number: or_n },
+				dataType: "JSON",
+				success: function(data){
+					var or_count = data.total_count;
+
+					if (or_count > 0) {
+						or_number_state = false;
+						$('#or_number').removeClass('is-valid');
+						$('#or_number').addClass('is-invalid');
+					} else {
+						or_number_state = true;
+						$('#or_number').removeClass('is-invalid');
+						$('#or_number').addClass('is-valid');
+					}
+				}
+			});
+		}
+
+		$('#or_number').on('blur', function(){
+			var _token = CSRF_TOKEN;
+			var or_number = $('#or_number').val();
+
+			if (or_number == '') {
+				or_number_state = false;
+
+				return;
+			}
+
+			checkOrDuplicate(_token, or_number);
+		});
+
+		$('#btn_check_duplicate').on('click', function(event){
+			event.preventDefault();
+
+			var _token = CSRF_TOKEN;
+			var or_number = $('#or_number').val();
+
+			if (or_number == '') {
+				or_number_state = false;
+				return;
+			}
+
+			checkOrDuplicate(_token, or_number);
+		});
+
   }); // $.(document).ready(function(){})
 </script>
 
@@ -1144,16 +1170,10 @@
 
 		$('#btn_print').click(function(event) {
 			event.preventDefault();
-			var prefix_or_number = $('#or_number').val();
-			// alert('button print receipt clicked');
-			//
-			// 	$.ajax({
-			// 		type: 'GET',
-			// 		url: '/collections/other/print/pdf',
-			// 		data: { id: prefix_or_number },
-			// 	});
-			// $('#btn_save').click();
-			window.location.replace("/collections/other/print/pdf/" + prefix_or_number);
+			// var prefix_or_number = $('#or_number').val();
+			var id = $('#or_number').val();
+
+			window.location.replace("/collections/other/print/pdf/" + id);
 		});
 
 
@@ -1221,6 +1241,8 @@
       $('#change').focus();
     }
   });
+
+
 
 
 
