@@ -42,7 +42,7 @@
 
   <div class="form-group row">
     <div class="col-md-12">
-      <button type="button" name="btn_generate_report" id="btn_generate_report" class="btn btn-sm btn-danger">Generate Report</button>
+      <button type="button" name="btn_generate_report" id="btn_generate_report" class="btn btn-sm btn-danger" disabled>Generate Report</button>
     </div>
   </div>
 
@@ -54,7 +54,7 @@
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
               <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Earnings (Daily)</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800"><span id="daily_earnings">{{ $data['daily_earnings'] }}</span></div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800"><span id="daily_earnings">{{ 'P' . $data['daily_earnings'] }}</span></div>
             </div>
             <div class="col-auto">
               <i class="fas fa-calendar fa-2x text-gray-300"></i>
@@ -121,7 +121,7 @@
   <div class="row">
 
     <!-- Area Chart -->
-    <div class="col-xl-8 col-lg-7">
+    <div class="col-xl-8 col-lg-7" style="display:none;">
       <div class="card shadow mb-4">
         <!-- Card Header - Dropdown -->
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
@@ -149,7 +149,7 @@
     </div>
 
     <!-- Pie Chart -->
-    <div class="col-xl-4 col-lg-5">
+    <div class="col-xl-4 col-lg-5" style="display:none;">
       <div class="card shadow mb-4">
         <!-- Card Header - Dropdown -->
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">

@@ -21,11 +21,15 @@
       <tr>
         <th>Date</th>
         <th>O.R. No.</th>
-        <th>Patient Name</th>
+        <th>Last Name</th>
+        <th>First Name</th>
+        <th>Suffix Name</th>
+        <th>Middle Name</th>
+        <!-- <th>Patient Name</th> -->
         <th>Amount Paid</th>
-        <th>Code</th>
-        <th>Description</th>
-        <th>Collector</th>
+        <th>Account Code</th>
+        <th>Category</th>
+        <th>Cashier-on-duty</th>
         <th>Status</th>
         <th>Type of Collection</th>
       </tr>
@@ -53,14 +57,39 @@
       },
       "columns": [
         { "data": "created_at" },
-        { "data": "prefix_or_number" },
-        { "data": "patient_name" },
+        {"data": "preorno"},
+        { "data": "patlast" },
+        {"data": "patfirst"},
+        {"data": "patsuffix"},
+        {"data": "patmiddle"},
+        // { "data": "prefix_or_number" },
+        // { "data": "patient_name" },
         { "data": "amount_paid" },
-        {"data": "account_code"},
-        {"data": "charge_description"},
+        {"data": "acctcode"},
+        {"data": "chrgdesc"},
+        // {"data": "account_code"},
+        // {"data": "charge_description"},
         {"data": "name"},
         {"data": "payment_status"},
-        {"data": "collection_type"}
+        { defaultContent:
+          '',
+          render: function(data, type, row, meta) {
+            if (row.advance_payment === '1') {
+              ret_val = '<td>Inpatient Payment</td>';
+
+            } else if (row.advance_payment === '0') {
+              ret_val = '<td>Outpatient Payment</td>';
+
+            } else {
+              ret_val = '<td>Outpatient Payment</td>';
+
+            }
+            return ret_val;
+          },
+
+        },
+        // {"data": "advance_payment"}
+        // {"data": "collection_type"}
       ]
     });
 
