@@ -321,7 +321,8 @@ class CollectionsInpatientController extends Controller
 
         public function getPaymentData($id) {
             $payment_data = ViewPayment::where('or_no_prefix', $id)
-            ->orderByRaw('payment_counter ASC')
+            ->orderBy('product_description', 'ASC')
+            // ->orderByRaw('payment_counter ASC')
             ->get();
 
             return $payment_data;
