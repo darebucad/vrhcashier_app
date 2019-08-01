@@ -613,7 +613,8 @@
         $(this).closest('tr').find('.sub_total').text(sub_total.toFixed(2));
       });
 
-      $('#amount_paid').val(formatNumber(total.toFixed(2)));
+      $('#amount_paid').val(formatNumber(calculateTotalAmount().toFixed(2)));
+      // $('#amount_paid').val(formatNumber(total.toFixed(2)));
 
       $('input[name="discount_checkbox"]:not(:checked)').each(function(){
         $(this).prop('checked', true);
