@@ -30,6 +30,7 @@ Route::get('/collections/outpatient/draft-payment/{id}', 'CollectionsOutpatientC
 Route::get('/collections/outpatient/mark-paid/{id}', 'CollectionsOutpatientController@markPaid');
 Route::get('collections/outpatient/create/print-pdf/{id}', 'CollectionsOutpatientController@createPrintPdf');
 Route::get('/collections/outpatient/edit/{id}', 'CollectionsOutpatientController@edit');
+Route::post('/collections/outpatient/store/check-or-duplicate', 'CollectionsOutpatientController@checkORDuplicateOnStore');
 
 
 // Collections Other
@@ -46,7 +47,7 @@ Route::post('collections/other/create/check-or-duplicate', 'CollectionsOtherCont
 Route::get('/collections/other/cancel-payment/{id}', 'CollectionsOtherController@cancelPayment');
 Route::get('/collections/other/draft-payment/{id}', 'CollectionsOtherController@draftPayment');
 Route::get('/collections/other/mark-paid/{id}', 'CollectionsOtherController@markPaid');
-
+Route::post('/collections/other/store/check-or-duplicate', 'CollectionsOtherController@checkORDuplicateOnStore');
 
 // Collections Inpatient
 Route::get('collections/inpatient', 'CollectionsInpatientController@index')->name('collections.inpatient');
@@ -84,6 +85,7 @@ Route::post('collections/walkin/create/check-or-duplicate', 'CollectionsWalkinCo
 Route::get('/collections/walkin/cancel-payment/{id}', 'CollectionsWalkinController@cancelPayment');
 Route::get('/collections/walkin/draft-payment/{id}', 'CollectionsWalkinController@draftPayment');
 Route::get('/collections/walkin/mark-paid/{id}', 'CollectionsWalkinController@markPaid');
+Route::post('/collections/walkin/store/check-or-duplicate', 'CollectionsWalkinController@checkORDuplicateOnStore');
 
 
 

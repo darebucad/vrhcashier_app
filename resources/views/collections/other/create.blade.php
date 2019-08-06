@@ -647,11 +647,12 @@
 				alert('Please input patient name');
 
 			} else {
-				// check duplicate or number
-				if (or_number_state === false) {
-					alert('Please use another OR Number (Duplicate entry).');
 
-				} else {
+				// check duplicate or number
+				// if (or_number_state === false) {
+				// 	alert('Please use another OR Number (Duplicate entry).');
+				//
+				// } else {
 
 					if (row_count < 5) {
 						alert('Please select at least one product/service');
@@ -668,7 +669,8 @@
 						} // end of confirmation
 					}
 
-				}
+				// }
+
 			}
     });
 
@@ -754,22 +756,46 @@
 					arrData.push(obj);
 				});
 
-				console.log(arrData);
+				// console.log(arrData);
 
-				 $.ajax({
-					 type: "POST",
-					 url: "/collections/other/store_payment",
-					 data: { _token: _token, arrData: arrData, or_number: prefix_or_number_value },
-					 dataType: "JSON",
-					 success: function(data){
-						 // console.log(data);
-							$('.alert').show();
-							$('#btn_new').show();
-							$('#btn_print').show();
-							$('#btn_print').click();
-							$('#btn_save').hide();
-					 }
-				 }); // End of  ajax url:"/collections/other/store_payment",
+				$.ajax({
+					type: "POST",
+					url: "/collections/other/store/check-or-duplicate",
+					data: { _token: _token, arrData: arrData },
+					dataType: "JSON",
+					success: function(data){
+						// console.log(data);
+						var _token = data._token;
+						var total_count = data.total_count;
+						var arrData = data.arrData;
+						// console.log(_token);
+						// console.log(total_count);
+						// console.log(arrData);
+						
+						if (total_count > 0) {
+							alert('Please use another OR Number (Duplicate entry).');
+
+						} else {
+							$.ajax({
+								type: "POST",
+								url: "/collections/other/store_payment",
+								data: { _token: _token, arrData: arrData, or_number: prefix_or_number_value },
+								dataType: "JSON",
+								success: function(data){
+									// console.log(data);
+									 $('.alert').show();
+									 $('#btn_new').show();
+									 $('#btn_print').show();
+									 $('#btn_print').click();
+									 $('#btn_save').hide();
+								}
+							}); // End of  ajax url:"/collections/other/store_payment",
+
+						}
+					}
+				});
+
+
 
 
 

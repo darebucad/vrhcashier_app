@@ -497,8 +497,18 @@ class CollectionsOutpatientController extends Controller
         $total = 0;
         $decimal_value = 0;
         $output = '';
+        $or_number = $id;
+        $or_date = $payment_data[0]->or_date;
+        // $or_date = date_format($payment_data[0]->or_date, 'm/d/Y h:i:s A');
+        $hospital_name = 'Region II Trauma and Medical Center';
+        $patient_name = $payment_data[0]->patient_name;
+        $employee_name = $payment_data[0]->employee_name;
+        $setup_data = Setup::select('cashier_officer', 'cashier_designation')->first();
+        $cashier_officer = $setup_data->cashier_officer;
+        $cashier_designation = $setup_data->cashier_designation;
 
-        foreach ($payment_data as $value) {
+
+        // foreach ($payment_data as $value) {
           $output .= '<html>
           <style>@page {margin-left: 17px; margin-right:27px;}</style></head>
           <body>
@@ -507,12 +517,12 @@ class CollectionsOutpatientController extends Controller
           <br>
           <br>
           <br>
-          <p align="center" style="font-family: Helvetica; font-size: 15px; margin-right: -70px; margin-top: -26px;">'.$value->or_no_prefix.'</p>
-          <p align="right" style="font-family: Helvetica; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">'.$value->or_date.'<br></p>
-          <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">Veterans Regional Hospital</p>
-          <p style="font-family: Courier; font-size: 20px; margin-left: 43px;  margin-bottom: 10px">'.$value->patient_name.'</p><br><br>';
-          break;
-        }
+          <p align="center" style="font-family: Helvetica; font-size: 15px; margin-right: -70px; margin-top: -26px;">'. $or_number .'</p>
+          <p align="right" style="font-family: Helvetica; font-size: 15px; margin-right: 10px; margin-top: -6px; margin-bottom: -3px">'. $or_date .'<br></p>
+          <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px; margin-bottom: -7px;">'. $hospital_name .'</p>
+          <p style="font-family: Helvetica; font-size: 15px; margin-left: 43px;  margin-bottom: 10px">'. $patient_name .'</p><br><br>';
+          // break;
+        // }
         $output .= '<table width="100%">';
 
         if($payment_count <= 8) {
@@ -522,8 +532,8 @@ class CollectionsOutpatientController extends Controller
               $total += $sub_total;
               $output .= '
                 <tr style="line-height: 17px;">
-                  <td style="font-family: Courier; font-size: 11px; width:255px;">' . $description . '</td>
-                  <td style="font-family: Courier; font-size: 20px; margin-right:20px" align="right">' . number_format($sub_total, 2) . '</td>
+                  <td style="font-family: Helvetica; font-size: 12px; width:255px;">' . $description . '</td>
+                  <td style="font-family: Helvetica; font-size: 12px; margin-right:20px" align="right">' . number_format($sub_total, 2) . '</td>
                 </tr>';
             }
 
@@ -546,8 +556,8 @@ class CollectionsOutpatientController extends Controller
               $total = $amount_paid;
               $output .='
                 <tr style="line-height: 17px;">
-                  <td style="font-family: Helvetica; font-size: 11px; width:195px;">' . $category . '</td>
-                  <td style="font-family: Courier; font-size: 15px; margin-right: 20px;" align="right">' . number_format($amount_paid, 2) . '</td>
+                  <td style="font-family: Helvetica; font-size: 12px; width:195px;">' . $category . '</td>
+                  <td style="font-family: Helvetica; font-size: 12px; margin-right: 20px;" align="right">' . number_format($amount_paid, 2) . '</td>
                 </tr>';
 
               $supplemental_row = 7;
@@ -584,22 +594,22 @@ class CollectionsOutpatientController extends Controller
             $new_total = number_format($total, 2, '.', '');
 
         $output .= '</table>
-            <p align="right" style="font-family: Courier; font-size: 20px; font-weight: bold; margin-top: 4px; margin-right: 3px"><b>'. number_format($total, 2) .'</b></p>
-            <p style="font-family: Courier; font-size: 13px; margin-top: -6px; margin-left: 100px">'. ucwords($numberTransformer->toWords($new_total)) . $decimal_value .'</p>
+            <p align="right" style="font-family: Helvetica; font-size: 18px; font-weight: bold; margin-top: 4px; margin-right: 3px"><b>'. number_format($total, 2) .'</b></p>
+            <p style="font-family: Helvetica; font-size: 15px; margin-top: -6px; margin-left: 100px">'. ucwords($numberTransformer->toWords($new_total)) . $decimal_value .'</p>
             <br>
             <br>
             <br>
             <br>
             <br>
-            <p align="right" style="font-family: Helvetica; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">TERESITA T. TAGUINOD</p>
-            <p align="right" style="font-family: Helvetica; font-size: 10px; margin-right: 20px">Supervising Administrative Officer</p>';
+            <p align="right" style="font-family: Helvetica; font-size: 14px; margin-bottom: -15px; margin-top: -10px; margin-right: 13px">'. $cashier_officer .'</p>
+            <p align="right" style="font-family: Helvetica; font-size: 10px; margin-right: 20px">'. $cashier_designation .'</p>';
 
-        foreach ($payment_data as $key) {
-            $output .='<p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -6px; margin-left:15px;">'.$key->employee_name.'</p>';
-            break;
-        }
+        // foreach ($payment_data as $key) {
+            $output .='<p align="left" style="font-family: Helvetica; font-size: 14px; margin-top: -6px; margin-left:15px;">'. $employee_name .'</p>';
+            // break;
+        // }
+
         return $output;
-
    }
 
 
@@ -1404,6 +1414,32 @@ class CollectionsOutpatientController extends Controller
        }
        return $output;
 
+  }
+
+
+  public function checkORDuplicateOnStore(Request $request) {
+    $_token = $request->_token;
+    $arrData = $request->arrData;
+    $or_number = $arrData[0]['or_number'];
+
+    $get_or_number_count = Payment::where('preorno', $or_number)->count();
+    $get_other_or_count = PaymentOther::where('prefix_or_number', $or_number)->count();
+    $total_count = $get_or_number_count + $get_other_or_count;
+
+    // $get_payment_data = ViewPaymentOR::where('preorno', $or_number)->count();
+    // $get_payment_data = ViewMasterCollection::where('prefix_or_number', $or_number)->where('payment_status', 'Paid')->count();
+    // $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
+    // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
+
+    $data = $total_count;
+
+    $response = array(
+      'total_count' => $total_count,
+      '_token' => $_token,
+      'arrData' => $arrData,
+    );
+
+    return response()->json($response);
   }
 
 

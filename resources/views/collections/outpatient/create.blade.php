@@ -1176,7 +1176,6 @@
     });
 
 
-
     // Save button
     $('#btn_save').on('click', function(e) {
       e.preventDefault();
@@ -1195,11 +1194,11 @@
       } else {
 
         // Check duplicate OR Number
-        if (or_number_state === false) {
-          alert('Please use another OR Number (Duplicate entry).');
-          // console.log('duplicate or number');
-
-        } else {
+        // if (or_number_state === false) {
+        //   alert('Please use another OR Number (Duplicate entry).');
+        //   // console.log('duplicate or number');
+        // 
+        // } else {
 
           var q = confirm('Are you sure you want to save this payment ?');
 
@@ -1208,7 +1207,7 @@
             savePayment(_token, or_number);
 
           }
-        }
+        // }
       }
     });
 
@@ -1298,25 +1297,45 @@
         arrData.push(obj);
       });
 
-      console.log(arrData);
+      // console.log(arrData);
 
       $.ajax({
         type: "POST",
-        url: "/collections/outpatient/create/store-payment",
-        data: { _token: _token, arrData: arrData, or_number: or_number_value },
+        url: "/collections/outpatient/store/check-or-duplicate",
+        data: { _token: _token, arrData: arrData },
         dataType: "JSON",
         success: function(data){
-          // console.log('saved');
           // console.log(data);
-          // console.log(data.or_number);
+          var _token = data._token;
+          var total_count = data.total_count;
+          var arrData = data.arrData;
 
-           $('.alert').show();
-           $('#btn_new').show();
-           $('#btn_print').show();
-           $('#btn_print').click();
-           $('#btn_save').hide();
+          // console.log(_token);
+          // console.log(total_count);
+          // console.log(arrData);
+
+          if (total_count > 0) {
+            alert('Please use another OR Number (Duplicate entry).');
+
+          } else {
+            $.ajax({
+              type: "POST",
+              url: "/collections/outpatient/create/store-payment",
+              data: { _token: _token, arrData: arrData, or_number: or_number_value },
+              dataType: "JSON",
+              success: function(data){
+                 $('.alert').show();
+                 $('#btn_new').show();
+                 $('#btn_print').show();
+                 $('#btn_print').click();
+                 $('#btn_save').hide();
+              }
+            }); // End of  ajax url:"/collections/other/store_payment",
+          }
         }
-      }); // End of  ajax url:"/collections/other/store_payment",
+      });
+
+
 
       // var q = confirm('Are you sure you want to save this payment ?');
       // if (q == true) {

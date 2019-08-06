@@ -1020,6 +1020,32 @@ class CollectionsWalkinController extends Controller
     }
 
 
+    public function checkORDuplicateOnStore(Request $request) {
+      $_token = $request->_token;
+      $arrData = $request->arrData;
+      $or_number = $arrData[0]['or_number'];
+
+      $get_or_number_count = Payment::where('preorno', $or_number)->count();
+      $get_other_or_count = PaymentOther::where('prefix_or_number', $or_number)->count();
+      $total_count = $get_or_number_count + $get_other_or_count;
+
+      // $get_payment_data = ViewPaymentOR::where('preorno', $or_number)->count();
+      // $get_payment_data = ViewMasterCollection::where('prefix_or_number', $or_number)->where('payment_status', 'Paid')->count();
+      // $getPaymentData = ViewCollection::where('or_number', $or_number)->count();
+      // $getPaymentData = ViewOtherCollection::where('prefix_or_number', $or_number)->count();
+
+      $data = $total_count;
+
+      $response = array(
+        'total_count' => $total_count,
+        '_token' => $_token,
+        'arrData' => $arrData,
+      );
+
+      return response()->json($response);
+    }
+
+
 
 
 
